@@ -15,6 +15,12 @@ flutter pub get
 flutter build windows --release
 ```
 
+## References
+
+TUFApp uses the public TUF API and follows the TUF website's behavior and wording, referencing [T21C/t21c-web-frontend](https://github.com/T21C/t21c-web-frontend) (UI layout, display rules such as creator names, accuracy and tag outlines, Korean/English wording).
+
+No source code from that project is included in this repository.
+
 ## License
 
 TUFApp is licensed under the [GNU General Public License v3.0](LICENSE).
