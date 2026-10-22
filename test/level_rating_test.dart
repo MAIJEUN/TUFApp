@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tufapp/core/models/level.dart';
 
-/// Q 레벨에 예상 PGU 난이도를 보여주려면 검색 결과의 rating.averageDifficultyId를 읽어야 한다.
+/// Showing the expected PGU difficulty of a Q level requires reading rating.averageDifficultyId from search results.
 void main() {
   test('평가에서 매겨진 예상 난이도를 읽는다', () {
     final level = Level.fromJson({

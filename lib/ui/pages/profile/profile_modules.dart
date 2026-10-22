@@ -19,7 +19,7 @@ import 'profile_header.dart';
 import 'profile_navigation.dart';
 import 'profile_section.dart';
 
-/// 모듈 내용을 담는 앱 카드. 내용이 짧아도 폭을 꽉 채운다.
+/// App card holding module content, filling the width even when the content is short.
 Widget _card(Widget child) => SizedBox(
   width: double.infinity,
   child: Card(
@@ -28,9 +28,9 @@ Widget _card(Widget child) => SizedBox(
   ),
 );
 
-// ───────────────────────── 소개 ─────────────────────────
+// ───────────────────────── Bio ─────────────────────────
 
-/// 자기소개. 후원자의 꾸민 소개는 블록(글·링크·그림·영상·레벨)으로 보여준다.
+/// Bio. Supporters' composed bios are shown as blocks (text, links, images, videos, levels).
 class BioModule extends StatelessWidget {
   const BioModule({super.key, required this.title, required this.bio});
 
@@ -127,16 +127,16 @@ class _BioBlockView extends StatelessWidget {
   }
 }
 
-// ───────────────────────── 토너먼트 ─────────────────────────
+// ───────────────────────── Tournaments ─────────────────────────
 
-/// 대회 입상. 시리즈 → 대회 → 입상 카드로 접혀 있다 (사이트와 같은 순서와 묶음).
+/// Tournament placements, collapsed as series → tournament → placement cards (same order and grouping as the website).
 class TournamentsModule extends StatefulWidget {
   const TournamentsModule({super.key, required this.placements, this.orderIds = const []});
 
   final List<TournamentPlacement> placements;
   final List<int> orderIds;
 
-  /// 보여줄 입상: 공개된 것만, 한 대회에서는 가장 좋은 등수만.
+  /// Placements to show: public ones only, and only the best placement per tournament.
   static List<TournamentPlacement> visible(List<TournamentPlacement> placements, List<int> orderIds) {
     final public = [
       for (final placement in placements)
@@ -192,7 +192,7 @@ class _TournamentsModuleState extends State<TournamentsModule> {
   Widget build(BuildContext context) {
     final list = TournamentsModule.visible(widget.placements, widget.orderIds);
 
-    // 시리즈 → 대회 순서로 묶는다.
+    // Group by series, then tournament.
     final series = <String, ({String? name, int weight, Map<String, List<TournamentPlacement>> tournaments})>{};
     for (final placement in list) {
       final key = placement.seriesId == null ? 'none' : 'series-${placement.seriesId}';
@@ -256,7 +256,7 @@ class _TournamentsModuleState extends State<TournamentsModule> {
           children: [
             for (final group in groups)
               if (group.key == 'none')
-                // 시리즈가 없는 대회는 묶지 않고 바로 보여준다.
+                // Tournaments without a series are shown directly, ungrouped.
                 for (final entry in group.value.tournaments.entries) tournament(entry.key, entry.value, indent: false)
               else
                 Padding(
@@ -294,7 +294,7 @@ class _TournamentsModuleState extends State<TournamentsModule> {
   }
 }
 
-/// 입상 카드: 왼쪽에 대회 아이콘, 오른쪽에 등수, 레벨, 해(년)와 팀.
+/// Placement card: tournament icon on the left; placement, level, year and team on the right.
 class _PlacementCard extends StatelessWidget {
   const _PlacementCard({required this.placement});
 
@@ -340,9 +340,9 @@ class _PlacementCard extends StatelessWidget {
   }
 }
 
-// ───────────────────────── 점수 상세 ─────────────────────────
+// ───────────────────────── Score breakdown ─────────────────────────
 
-/// 점수 여덟 가지를 칸으로. 이름 옆 (i)에 마우스를 올리면 설명이 나온다.
+/// The eight scores as tiles. Hovering the (i) next to a name shows its description.
 class ScoreBreakdownModule extends StatelessWidget {
   const ScoreBreakdownModule({super.key, required this.player});
 
@@ -408,18 +408,18 @@ class ScoreBreakdownModule extends StatelessWidget {
   }
 }
 
-// ───────────────────────── 난이도 그래프 ─────────────────────────
+// ───────────────────────── Difficulty chart ─────────────────────────
 
-/// 난이도별 클리어(플레이어) 또는 레벨(제작자) 그래프.
+/// Chart of clears (players) or levels (creators) per difficulty.
 class DifficultyModule extends StatefulWidget {
   const DifficultyModule({super.key, required this.title, required this.counts, this.countsWithDupes});
 
   final String title;
 
-  /// 난이도 id → 개수. 플레이어는 같은 레벨을 다시 깬 것을 뺀 수.
+  /// Difficulty id → count. For players, reclears are excluded.
   final Map<String, dynamic> counts;
 
-  /// 다시 깬 것까지 센 수. 있으면 tr('중복 포함', 'Include duplicates') 칩을 보여준다 (플레이어).
+  /// Counts including reclears. When set, an "Include duplicates" chip is shown (players).
   final Map<String, dynamic>? countsWithDupes;
 
   @override
@@ -455,9 +455,9 @@ class _DifficultyModuleState extends State<DifficultyModule> {
   }
 }
 
-// ───────────────────────── 순위 변화 ─────────────────────────
+// ───────────────────────── Rank history ─────────────────────────
 
-/// 랭크 점수(또는 일반 점수) 순위가 어떻게 바뀌었는지.
+/// How the ranked score (or general score) rank changed over time.
 class RankHistoryModule extends StatefulWidget {
   const RankHistoryModule({super.key, required this.playerId});
 
@@ -512,8 +512,9 @@ class _RankHistoryModuleState extends State<RankHistoryModule> {
         to: days == null ? null : now,
       );
       if (mounted && request == _request) setState(() => _points = points);
-    } on TufApiException catch (e) {
-      if (mounted && request == _request) setState(() => _error = e.message);
+    } on Object catch (e) {
+      // Unexpected errors too, so the chart never stays loading forever.
+      if (mounted && request == _request) setState(() => _error = e is TufApiException ? e.message : '$e');
     }
   }
 
@@ -594,22 +595,22 @@ class _RankHistoryModuleState extends State<RankHistoryModule> {
   }
 }
 
-// ───────────────────────── 기록 한 줄 ─────────────────────────
+// ───────────────────────── Pass row ─────────────────────────
 
-/// 플레이어의 기록 한 줄 (모양은 [PassRow], 레벨 카드와 같은 크기).
-/// 웹의 기록 카드처럼 곡 정보와, 점수 아래에 랭크 점수에 보탠 몫을 보여준다.
+/// One of a player's passes ([PassRow] layout, the size of a level card).
+/// Like the website's score card, shows the song and, under the score, what it adds to the ranked score.
 class ProfileScoreCard extends StatelessWidget {
   const ProfileScoreCard({super.key, required this.entry, this.impact, this.potentialImpact, this.featured = false});
 
   final PlayerPassEntry entry;
 
-  /// 랭크 점수에 보탠 점수 (상위 기록).
+  /// Score added to the ranked score (top passes).
   final double? impact;
 
-  /// 레벨 파일이 없어 반영되지 않았지만 보탤 수 있었던 점수.
+  /// Score it could have added if the level file weren't missing.
   final double? potentialImpact;
 
-  /// 즐겨찾기에 놓인 줄: 위 줄에 기록을 낸 사람을 보여준다.
+  /// Row inside a favorites module: the top line shows who made the pass.
   final bool featured;
 
   @override
@@ -626,7 +627,7 @@ class ProfileScoreCard extends StatelessWidget {
       onTap: () => ProfileNavigation.openPass(context, pass.id),
       videoBackdrop: !hidden,
       leading: PassDifficultyIcon(icon: difficulty?.icon, hidden: hidden),
-      // 레벨 카드와 같은 순서: 위에 "#번호 - 작곡가", 가운데 곡 이름.
+      // Same order as level cards: "#id - artist" on top, song in the middle.
       top: featured
           ? pass.playerName
           : hidden
@@ -643,11 +644,11 @@ class ProfileScoreCard extends StatelessWidget {
   }
 }
 
-/// 랭크 점수에 들어간 기록 중 마지막 줄 아래에 붙는 안내.
+/// Note below the last pass that counts toward the ranked score.
 class RankedCutoffNote extends StatelessWidget {
   const RankedCutoffNote({super.key, required this.score});
 
-  /// 그 마지막 기록의 점수. 이보다 높아야 랭크 점수에 들어간다.
+  /// Score of that last pass; a pass must score higher to count.
   final double score;
 
   @override
@@ -682,9 +683,9 @@ class RankedCutoffNote extends StatelessWidget {
   }
 }
 
-// ───────────────────────── 즐겨찾기 ─────────────────────────
+// ───────────────────────── Favorites ─────────────────────────
 
-/// 사용자가 골라 둔 기록·레벨·팩·플레이어·제작자.
+/// Passes, levels, packs, players and creators picked by the user.
 class FavoritesModule extends StatelessWidget {
   const FavoritesModule({super.key, required this.items});
 

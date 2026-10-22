@@ -4,21 +4,20 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 
-/// zip 안에 적힌 파일 이름을 제대로 읽어 온다.
+/// Decodes file names stored in a zip.
 ///
-/// zip에는 "이름을 UTF-8로 적었다"는 표시가 있는데, 옛 압축 도구들은 그 표시 없이
-/// 그 컴퓨터의 코드 페이지(한국어 949, 일본어 932 …)로 이름을 적는다.
-/// archive 패키지는 그런 이름을 바이트 그대로(한 글자당 한 바이트) 돌려주기 때문에,
-/// 그대로 풀면 '자산 49oz.png'가 'À¯»ê 49oz.png'처럼 깨져서 레벨이 노래를 못 찾는다.
-/// 여기서 코드 페이지를 골라 다시 읽는다 (7-Zip·NanaZip이 하는 일과 같다).
+/// Zips have a flag marking names as UTF-8, but old archivers store names without it in the machine's code page
+/// (949 for Korean, 932 for Japanese, ...). The archive package returns such names byte for byte (one char per byte),
+/// so extracting them as is turns '자산 49oz.png' into 'À¯»ê 49oz.png' and the level can't find its music.
+/// This picks a code page and decodes again (the same thing 7-Zip and NanaZip do).
 abstract final class ZipNames {
-  /// 이 컴퓨터의 코드 페이지 다음으로 시도할 것들. 한국어·일본어·중국어·번체·서유럽 순.
+  /// Tried after the machine's code page: Korean, Japanese, Simplified Chinese, Traditional Chinese, Western European.
   static const _fallbacks = [949, 932, 936, 950, 1252];
 
-  /// 바뀐 이름이 맞는지 볼 때 읽어 들일 레벨 파일의 최대 크기.
+  /// Maximum size of the level file read to verify decoded names.
   static const hintLimit = 32 * 1024 * 1024;
 
-  /// 바이트가 그대로 담겨 온 이름인가 (모든 글자가 한 바이트 안에 들고, ASCII가 아닌 글자가 있다).
+  /// Whether the name holds raw bytes (every char fits in one byte and some are non-ASCII).
   static bool isRaw(String name) {
     var high = false;
     for (final unit in name.codeUnits) {
@@ -30,12 +29,12 @@ abstract final class ZipNames {
 
   static Uint8List bytesOf(String name) => Uint8List.fromList(name.codeUnits);
 
-  /// [names]를 어떤 코드 페이지로 읽을지 정해서, 이름을 고치는 함수를 돌려준다.
+  /// Decides which code page to decode [names] with and returns a function that fixes a name.
   ///
-  /// [hint]는 레벨 파일(.adofai)의 내용이다. 거기에는 노래·그림 파일 이름이 적혀 있으므로,
-  /// 고친 이름이 거기에 나오면 제대로 읽은 것이다. 그렇게 확인된 코드 페이지를 먼저 쓰고,
-  /// 확인할 수 없으면 이 컴퓨터의 코드 페이지를 쓴다 (NanaZip으로 풀었을 때와 같은 결과).
-  /// 한 zip 안에 서로 다른 코드 페이지로 적힌 이름이 섞여 있어도 이름마다 따로 고른다.
+  /// [hint] is the content of the level file (.adofai). It lists the music and image file names,
+  /// so a decoded name that appears there was decoded correctly. Code pages confirmed this way are tried first;
+  /// otherwise the machine's code page is used (the same result as extracting with NanaZip).
+  /// Each name is decided separately, even if one zip mixes code pages.
   static String Function(String) decoder(Iterable<String> names, {String? hint}) {
     String unchanged(String name) => name;
 
@@ -47,7 +46,7 @@ abstract final class ZipNames {
 
     final pages = _codePages();
 
-    // 이름마다 코드 페이지별로 읽어 본다 (그 코드 페이지에 없는 바이트가 있으면 빠진다).
+    // Decode each name with every code page (dropping pages that reject some byte).
     final options = <String, Map<int, String>>{};
     for (final name in raw) {
       final bytes = bytesOf(name);
@@ -60,7 +59,7 @@ abstract final class ZipNames {
     }
     if (options.isEmpty) return unchanged;
 
-    // 레벨 파일에 적힌 이름과 들어맞으면 그 코드 페이지에 표를 준다.
+    // A code page gets a vote when its result matches a name in the level file.
     final votes = <int, int>{};
     final matched = <String, String>{};
     if (hint != null) {
@@ -73,7 +72,7 @@ abstract final class ZipNames {
       }
     }
 
-    // 표를 많이 받은 코드 페이지부터, 같으면 원래 순서대로 (이 컴퓨터의 것이 먼저).
+    // Most votes first; ties keep the original order (the machine's code page first).
     final order = [...pages]
       ..sort((a, b) {
         final byVotes = (votes[b] ?? 0).compareTo(votes[a] ?? 0);
@@ -99,7 +98,7 @@ abstract final class ZipNames {
     return (name) => fixed[name] ?? name;
   }
 
-  /// 이 컴퓨터의 코드 페이지를 먼저, 그다음 흔한 것들을 시도한다.
+  /// The machine's code page first, then the common ones.
   static List<int> _codePages() {
     final system = _systemCodePage();
     return [?system, ..._fallbacks.where((page) => page != system)];
@@ -110,7 +109,7 @@ abstract final class ZipNames {
     return slash < 0 ? path : path.substring(slash + 1);
   }
 
-  /// [bytes]를 [codePage]로 읽는다. 그 코드 페이지에 없는 바이트가 섞여 있으면 null.
+  /// Decodes [bytes] with [codePage], or null if some byte is invalid in it.
   static String? decode(int codePage, Uint8List bytes) {
     if (bytes.isEmpty) return '';
     final convert = _multiByteToWideChar;
@@ -135,7 +134,7 @@ abstract final class ZipNames {
     }
   }
 
-  /// 읽을 수 없는 바이트가 있으면 실패로 처리하게 하는 표시 (MB_ERR_INVALID_CHARS).
+  /// Makes invalid bytes fail the conversion (MB_ERR_INVALID_CHARS).
   static const _errInvalidChars = 8;
 
   static bool _loaded = false;
@@ -155,7 +154,7 @@ abstract final class ZipNames {
           .asFunction();
       _acp = kernel32.lookup<NativeFunction<Uint32 Function()>>('GetACP').asFunction();
     } on ArgumentError {
-      // 윈도가 아니거나 함수를 찾지 못하면 이름을 그대로 둔다.
+      // Leave names as is when not on Windows or the function can't be found.
     }
   }
 
@@ -169,7 +168,7 @@ abstract final class ZipNames {
     final acp = _acp;
     if (acp == null) return null;
     final page = acp();
-    // 65001(UTF-8)은 이미 archive가 해 본 방식이라 후보에서 뺀다.
+    // 65001 (UTF-8) was already tried by the archive package.
     return page == 65001 ? null : page;
   }
 }

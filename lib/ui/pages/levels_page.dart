@@ -10,7 +10,7 @@ import '../widgets/level_card.dart';
 import '../widgets/motion.dart';
 import '../widgets/smooth_scroll.dart';
 
-/// 가운데 정렬된 최대 폭 안에서 내용이 항상 가로를 꽉 채우게 한다.
+/// Content always fills the width inside the centered max width.
 Widget _constrain(Widget child) => Center(
   child: ConstrainedBox(
     constraints: const BoxConstraints(maxWidth: pageMaxWidth),
@@ -31,21 +31,21 @@ class LevelsPage extends StatefulWidget {
 }
 
 class _LevelsPageState extends State<LevelsPage> {
-  /// 목록 끝에서 이만큼 남았을 때 다음 페이지를 미리 불러온다.
+  /// Start loading the next page when this close to the end.
   static const _loadMoreThreshold = 600.0;
 
-  /// 새 검색일 때 이보다 가까우면 맨 위로 미끄러지고, 멀면 바로 이동한다.
+  /// On a new search, closer than this animates to the top; farther jumps.
   static const _animateToTopLimit = 1500.0;
 
   final _scroll = SmoothScrollController();
   final _search = TextEditingController();
   int _lastGeneration = -1;
 
-  /// 검색 결과가 새로 도착할 때마다 증가. 카드 key에 넣어 새 결과가 다시 나타나는 애니메이션을 받게 한다.
+  /// Incremented when new results arrive; part of the card keys so new results replay the entrance animation.
   int _resultsVersion = 0;
   bool _wasSearching = false;
 
-  /// 이 순서 이전의 카드는 이미 보여준 것이라 애니메이션 없이 만든다.
+  /// Cards before this index were already shown, so they are built without the animation.
   int _shownCount = 0;
 
   @override
@@ -71,8 +71,8 @@ class _LevelsPageState extends State<LevelsPage> {
     final app = AppScope.of(context);
     final levels = app.levels;
 
-    // 상태 메시지는 받는 동안 자주 바뀐다. 여기서 app을 함께 듣지 않아야
-    // 진행률이 올라갈 때마다 목록 전체를 다시 그리지 않는다.
+    // The status message changes often during downloads. Not listening to the app here
+    // keeps the whole list from rebuilding on every progress update.
     return ListenableBuilder(
       listenable: levels,
       builder: (context, _) {
@@ -121,7 +121,7 @@ class _LevelsPageState extends State<LevelsPage> {
             child: _ResultsHeader(levels: levels),
           ),
         ),
-        // 새 검색 중에는 이전 결과를 흐리게 보여준다.
+        // Dim the previous results while a new search runs.
         SliverAnimatedOpacity(
           opacity: levels.isSearching && levels.levels.isNotEmpty ? 0.45 : 1,
           duration: Motion.medium,
@@ -136,7 +136,7 @@ class _LevelsPageState extends State<LevelsPage> {
                   child: Appear(
                     key: ValueKey((_resultsVersion, level.id)),
                     animate: isNew,
-                    // 한 번에 나타나는 카드들은 조금씩 시간차를 둔다.
+                    // Stagger cards that appear together.
                     delay: Duration(milliseconds: 35 * (index - _shownCount).clamp(0, 10)),
                     child: LevelCard(level: level, compact: levels.compact),
                   ),
@@ -150,7 +150,8 @@ class _LevelsPageState extends State<LevelsPage> {
     ),
   );
 
-  /// 빌드 전후로 처리할 일: 새 결과면 애니메이션 준비, 검색창 글자 맞추기, 새 검색이면 맨 위로, 화면이 덜 찼으면 더 불러오기.
+  /// Post-build work: prepare animations for new results, sync the search box, scroll
+  /// to the top on a new search, and load more if the screen isn't full.
   void _afterBuild(LevelsController levels) {
     final generationChanged = levels.searchGeneration != _lastGeneration;
     _lastGeneration = levels.searchGeneration;
@@ -229,7 +230,7 @@ class _Header extends StatelessWidget {
   }
 }
 
-// ───────────────────────── 검색 / 정렬 / 필터 버튼 ─────────────────────────
+// ───────────────────────── Search / sort / filter buttons ─────────────────────────
 
 class _Toolbar extends StatelessWidget {
   const _Toolbar({required this.levels, required this.searchController});
@@ -254,7 +255,7 @@ class _Toolbar extends StatelessWidget {
             onChanged: levels.setSearchText,
             onSubmitted: (_) => levels.submitSearch(),
             trailing: [
-              // 검색어가 바뀔 때 이 버튼만 다시 그린다.
+              // Only this button rebuilds when the search text changes.
               ValueListenableBuilder(
                 valueListenable: levels.searchTextNotifier,
                 builder: (context, text, _) => FadeSwitcher(
@@ -278,7 +279,7 @@ class _Toolbar extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         DropdownMenu<SortOption>(
-          // 초기화처럼 밖에서 정렬이 바뀌거나 언어가 바뀌면 선택 표시도 새로 그린다.
+          // Recreate the menu when the sort changes from outside (like a reset) or the language changes.
           key: ValueKey((levels.sort.key, appLanguage)),
           initialSelection: levels.sort,
           label: Text(tr('정렬', 'Sort')),
@@ -327,12 +328,12 @@ class _Toolbar extends StatelessWidget {
   }
 }
 
-// ───────────────────────── 필터 카드 ─────────────────────────
+// ───────────────────────── Filter card ─────────────────────────
 
 class _FilterCard extends StatelessWidget {
   const _FilterCard({required this.levels, required this.catalog});
 
-  /// 선택기 버튼 하나의 폭. 셋이 나란히 놓인다.
+  /// Width of one picker button; three sit side by side.
   static const _pickerWidth = 168.0;
 
   final LevelsController levels;
@@ -379,7 +380,7 @@ class _FilterCard extends StatelessWidget {
               onChanged: levels.setPguRange,
             ),
             const SizedBox(height: 8),
-            // 왼쪽에 선택기 셋, 오른쪽에 Q 난이도 슬라이더.
+            // Three pickers on the left, the Q difficulty slider on the right (when Q is included).
             Row(
               children: [
                 Wrap(
@@ -505,7 +506,7 @@ class _StateChoice extends StatelessWidget {
   );
 }
 
-/// 선택기 버튼. 고른 개수를 함께 보여준다.
+/// Picker button showing how many items are selected.
 class _PickerButton extends StatelessWidget {
   const _PickerButton({required this.label, required this.count, required this.controller});
 
@@ -544,7 +545,7 @@ class _PickerButton extends StatelessWidget {
   );
 }
 
-/// 태그 / 큐레이션 유형처럼 id로 고르는 목록 선택기.
+/// Picker for id-based lists like tags and curation types.
 class _FacetPicker extends StatelessWidget {
   const _FacetPicker({
     required this.label,
@@ -580,7 +581,7 @@ class _FacetPicker extends StatelessWidget {
     }
 
     return MenuAnchor(
-      // 메뉴 안에서 골라도 바로 반영되도록 따로 구독한다.
+      // Listen separately so changes made inside the menu show up immediately.
       menuChildren: [
         ListenableBuilder(
           listenable: levels,
@@ -630,7 +631,7 @@ class _FacetPanel extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: SizedBox(
         width: 520,
-        // 태그는 수가 많아 길어지면 스크롤한다.
+        // There are many tags, so long lists scroll.
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxHeight: 440),
           child: SingleChildScrollView(
@@ -656,7 +657,7 @@ class _FacetPanel extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                // 여러 개를 골랐을 때만 의미가 있다.
+                // Only meaningful with several selected.
                 SegmentedButton<bool>(
                   showSelectedIcon: false,
                   segments: [
@@ -700,7 +701,7 @@ class _SpecialPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MenuAnchor(
-    // 메뉴 안에서 골라도 바로 반영되도록 따로 구독한다.
+    // Listen separately so changes made inside the menu show up immediately.
     menuChildren: [
       ListenableBuilder(
         listenable: levels,
@@ -799,7 +800,7 @@ class _ResultsHeader extends StatelessWidget {
         AnimatedOpacity(
           opacity: levels.isSearching ? 1 : 0,
           duration: Motion.medium,
-          // 투명하게만 하면 보이지 않아도 계속 돌면서 매 프레임 화면을 다시 그린다.
+          // Merely making it transparent keeps it spinning and repainting every frame while invisible.
           child: TickerMode(
             enabled: levels.isSearching,
             child: const Padding(

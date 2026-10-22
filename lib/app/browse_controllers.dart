@@ -6,11 +6,11 @@ import '../core/models/profile.dart';
 import '../core/models/search_models.dart';
 import 'paged_list.dart';
 
-/// '클리어' 화면: TUF에 올라온 모든 클리어 기록. 검색·정렬·필터는 서버가 한다.
+/// Passes page: every pass on TUF. Searching, sorting and filtering happen on the server.
 class ClearsController extends PagedList<PlayerPassEntry> {
   ClearsController(super.api, {required this.catalog});
 
-  /// 난이도 슬라이더에 쓸 난이도 목록 (앱이 시작하면서 받는다).
+  /// Difficulties for the slider (loaded at startup).
   final DifficultyCatalog? Function() catalog;
 
   static const pageSize = 30;
@@ -20,7 +20,7 @@ class ClearsController extends PagedList<PlayerPassEntry> {
   bool descending = true;
   bool filterOpen = false;
 
-  /// PGU 슬라이더 위치. null이면 처음부터 끝까지.
+  /// PGU slider range. null means the full range.
   int? pguLower;
   int? pguUpper;
   final Set<String> specialDifficulties = {};
@@ -30,7 +30,7 @@ class ClearsController extends PagedList<PlayerPassEntry> {
 
   int? _seed;
 
-  /// 기본값에서 바뀐 필터 수 (필터 단추의 배지).
+  /// Number of filters changed from their defaults (shown as a badge on the filter button).
   int get activeFilterCount {
     final pgu = catalog()?.pgu.length ?? 0;
     final rangeChanged = (pguLower ?? 0) != 0 || (pguUpper ?? pgu - 1) != pgu - 1;
@@ -45,14 +45,14 @@ class ClearsController extends PagedList<PlayerPassEntry> {
 
   @override
   Future<void> reload() {
-    // 무작위 정렬은 새로 검색할 때마다 순서가 바뀌고, 이어 받는 묶음은 같은 순서를 따른다.
+    // Random sort reshuffles on every new search; later pages keep the same order.
     _seed = sort == ClearSort.random ? Random().nextInt(0x7FFFFFFF) + 1 : null;
     return super.reload();
   }
 
   @override
   Future<({List<PlayerPassEntry> items, int total, bool hasMore})> fetch(int offset) async {
-    // "#123"은 그 번호의 기록 하나.
+    // "#123" finds that single pass.
     final id = RegExp(r'^#(\d+)$').firstMatch(query.trim())?.group(1);
     if (id != null) {
       if (offset > 0) return (items: const <PlayerPassEntry>[], total: total, hasMore: false);
@@ -108,7 +108,7 @@ class ClearsController extends PagedList<PlayerPassEntry> {
     notifyListeners();
   }
 
-  /// 슬라이더를 끄는 동안 자주 불리므로 잠깐 기다렸다가 받는다.
+  /// Called often while dragging the slider, so the request is debounced.
   void setPguRange(int lower, int upper) {
     pguLower = lower;
     pguUpper = upper;
@@ -147,7 +147,7 @@ class ClearsController extends PagedList<PlayerPassEntry> {
   }
 }
 
-/// '리더보드' 화면: 플레이어 순위.
+/// Leaderboard page: player rankings.
 class LeaderboardController extends PagedList<LeaderboardPlayer> {
   LeaderboardController(super.api);
 
@@ -190,7 +190,7 @@ class LeaderboardController extends PagedList<LeaderboardPlayer> {
   }
 }
 
-/// '제작자' 화면: 제작자 목록 (웹의 /creators).
+/// Creators page: the creator list (the website's /creators).
 class CreatorsController extends PagedList<CreatorListEntry> {
   CreatorsController(super.api);
 
@@ -201,10 +201,10 @@ class CreatorsController extends PagedList<CreatorListEntry> {
   bool descending = true;
   bool filterOpen = false;
 
-  /// 인증 상태로 거르기. null이면 모두.
+  /// Verification status filter. null means all.
   CreatorVerification? verification;
 
-  /// 이 큐레이션 유형의 레벨이 있는 제작자만. [curationsMatchAll]이면 모두 있는 제작자만.
+  /// Only creators with levels of these curation types; with [curationsMatchAll], creators with all of them.
   final Set<int> curationTypeIds = {};
   bool curationsMatchAll = false;
 

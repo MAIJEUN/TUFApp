@@ -7,7 +7,7 @@ import 'package:tufapp/core/models/pass.dart';
 import 'package:tufapp/core/tuf_api_client.dart';
 import 'package:tufapp/ui/widgets/pass_row.dart';
 
-/// 기록 줄의 요소 자리가 내용(영상 유무, 날짜 길이, 몫 칩)에 따라 바뀌지 않는지 본다.
+/// Elements of a pass row must not move with the content (video or not, date length, contribution chip).
 void main() {
   LevelPass pass({required int id, String? video, required String date, double score = 1234.5}) => LevelPass.fromJson({
     'id': id,
@@ -65,15 +65,15 @@ void main() {
     for (var i = 0; i < 3; i++) {
       final card = tester.getRect(cards.at(i));
       final date = tester.getRect(dates[i]);
-      // 카드 오른쪽 여백(12) 바로 안쪽에 붙는다. 날짜가 짧아도 오른쪽 끝은 같다.
+      // Sits right inside the card's right padding (12); the right edge is the same even for short dates.
       expect(card.right - date.right, closeTo(12, 0.5), reason: '날짜 ${i + 1}');
-      // 영상이 없어도 날짜는 같은 높이에 있다.
+      // The date is at the same height even without a video.
       expect(date.top - card.top, closeTo(tester.getRect(dates[0]).top - tester.getRect(cards.at(0)).top, 0.5));
     }
 
     final icons = find.byIcon(Icons.smart_display_outlined);
     expect(icons, findsNWidgets(2));
-    // 영상 단추는 줄마다 같은 자리에 있다.
+    // The video button is in the same place on every row.
     expect(tester.getRect(icons.at(0)).center.dx, tester.getRect(icons.at(1)).center.dx);
   });
 
@@ -91,7 +91,7 @@ void main() {
       final found = find.text(label);
       expect(tester.getRect(found.at(0)).left, tester.getRect(found.at(1)).left, reason: label);
     }
-    // 정확도·배속은 칩이 있는 줄과 없는 줄에서 같은 높이다. 점수 칸만 위로 올라간다.
+    // Accuracy and speed are at the same height on rows with and without a chip; only the score column moves up.
     expect(topIn(0, '정확도'), closeTo(topIn(1, '정확도'), 0.5));
     expect(topIn(0, '배속'), closeTo(topIn(1, '배속'), 0.5));
     expect(topIn(0, '점수'), lessThan(topIn(1, '점수')));
@@ -106,7 +106,8 @@ void main() {
     expect(card.bottom - date.bottom, closeTo(12, 0.5), reason: '아래 모서리 (여백 12 안쪽)');
     expect(card.right - date.right, closeTo(12, 0.5));
 
-    // 표시 칩(<3.4.0)은 세 줄 칸의 오른쪽 끝, 점수 칸 바로 앞에 붙는다 (칸 사이 16 + 칩 안쪽 여백 6).
+    // The flag chip (<3.4.0) sits at the right end of the three-line column,
+    // right before the score column (16 gap + 6 chip padding).
     final flag = tester.getRect(find.text('<3.4.0'));
     final score = tester.getRect(find.text('점수'));
     expect(score.left - flag.right, closeTo(16 + 6, 0.5));

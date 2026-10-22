@@ -5,7 +5,7 @@ import 'package:tufapp/core/models/level.dart';
 import 'package:tufapp/ui/pages/level_viewer_page.dart';
 import 'package:tufapp/ui/widgets/level_card.dart';
 
-/// 레벨 카드를 누르면 자세히 보기가 열리고, 기록을 불러오지 못해도 화면은 그려져야 한다.
+/// Tapping a level card opens the details, which must render even when passes fail to load.
 void main() {
   final level = Level.fromJson({
     'id': 11372,
@@ -51,13 +51,13 @@ void main() {
     expect(find.byType(LevelViewerPage), findsOneWidget);
     expect(find.text('#11372'), findsWidgets);
     expect(find.text('리더보드'), findsOneWidget);
-    // 기록 요약 줄 (테스트에서는 서버를 부르지 못해 값이 비어 있다).
+    // Pass summary rows (empty here because the test can't reach the server).
     expect(find.text('최초 클리어'), findsOneWidget);
     expect(find.text('최고 점수'), findsOneWidget);
     expect(find.text('총 클리어 수'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
-    // 자세히 보기 안의 카드는 또 열리지 않는다.
+    // The card inside the details page doesn't open again.
     expect(tester.widget<LevelCard>(find.byType(LevelCard).last).openable, isFalse);
   });
 

@@ -1,16 +1,16 @@
 import 'dart:ui' show PlatformDispatcher;
 
-/// 화면에 쓰는 언어.
+/// UI language.
 enum AppLanguage {
   ko('ko', '한국어'),
   en('en', 'English');
 
   const AppLanguage(this.code, this.nativeName);
 
-  /// 설정 파일에 적는 값.
+  /// Value stored in the settings file.
   final String code;
 
-  /// 언어 고르기 메뉴에 보이는 이름 (언어와 상관없이 그 언어로 적는다).
+  /// Name shown in the language menu, always written in that language.
   final String nativeName;
 
   static AppLanguage? fromCode(Object? code) {
@@ -20,17 +20,17 @@ enum AppLanguage {
     return null;
   }
 
-  /// 시스템 언어가 한국어면 한국어, 아니면 영어.
+  /// Korean if the system language is Korean, otherwise English.
   static AppLanguage get system => PlatformDispatcher.instance.locale.languageCode == 'ko' ? ko : en;
 }
 
-/// 지금 화면 언어. 바꿀 때는 [AppController.setLanguage]를 쓴다 (화면 전체를 다시 그린다).
+/// Current UI language. Change it through [AppController.setLanguage], which rebuilds the whole tree.
 AppLanguage appLanguage = AppLanguage.ko;
 
-/// 한국어 글과 영어 글 중 지금 언어의 것.
+/// Picks the Korean or English text for the current language.
 String tr(String ko, String en) => appLanguage == AppLanguage.en ? en : ko;
 
-/// 영어 단어의 단수·복수: plural(1, 'level') → "level", plural(3, 'level') → "levels".
+/// English singular/plural: plural(1, 'level') → "level", plural(3, 'level') → "levels".
 String plural(int count, String one, [String? many]) => count == 1 ? one : many ?? '${one}s';
 
 const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tufapp/core/models/pass.dart';
 import 'package:tufapp/ui/widgets/common.dart';
 
-/// 리더보드에 쓰는 기록 읽기와 요약.
+/// Reading passes for leaderboards, and their summary.
 void main() {
   Map<String, dynamic> pass(
     int id,
@@ -56,7 +56,7 @@ void main() {
     expect(result.expectedRating, isNull);
   });
 
-  // 실제 기록 (#650, 2026-10): 3.4.0의 X-Perfect 판정으로 낸 8키 기록.
+  // A real pass (#650, 2026-10): an 8-key pass with 3.4.0 X-Perfect judgements.
   final xPerfectJson = {
     'id': 66676,
     'scoreV2': 1234.5,
@@ -100,7 +100,8 @@ void main() {
     expect(result.isWorldsFirstPP, isTrue);
     expect(result.isAutoSubmitted, isFalse);
     expect(result.isPureXPerfect, isFalse);
-    // 사이트처럼 TUF에 올린 사진을 먼저 쓰고, 디스코드 사진은 대신 쓸 주소로 둔다. 작게 보여서 중간 크기를 받는다.
+    // Like the website, the TUF upload comes first with the Discord picture
+    // as fallback; shown small, so the medium size is used.
     expect(result.playerAvatar, 'https://api.tuforums.com/cdn/images/profile/abc/medium');
     expect(result.playerAvatarFallback, 'https://cdn.discordapp.com/avatars/1/a.png');
   });
@@ -119,7 +120,7 @@ void main() {
     expect(pureX.isPureXPerfect, isTrue);
     expect(pureX.isPurePerfect, isFalse);
 
-    // 실제 기록 #66712: 정확도 100%지만 정확−/정확+가 섞여 있다.
+    // Real pass #66712: 100% accuracy, but with Perfect−/Perfect+ mixed in.
     final pure = LevelPass.fromJson({
       ...xPerfectJson,
       'accuracy': 1,

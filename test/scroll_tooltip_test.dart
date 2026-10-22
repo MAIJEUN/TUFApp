@@ -5,7 +5,7 @@ import 'package:tufapp/ui/widgets/hover_tip.dart';
 import 'package:tufapp/ui/widgets/slide_overflow.dart';
 import 'package:tufapp/ui/widgets/smooth_scroll.dart';
 
-/// 마우스를 올려 둔 채로 빠르게 스크롤해도 툴팁에서 오류가 나지 않아야 한다.
+/// Fast scrolling with the mouse resting on tooltips must not throw.
 void main() {
   testWidgets('마우스를 올린 채 빠르게 스크롤해도 오류가 없다', (tester) async {
     final controller = SmoothScrollController();

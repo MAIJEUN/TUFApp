@@ -17,13 +17,13 @@ import 'package:tufapp/ui/pages/clears_page.dart';
 import 'package:tufapp/ui/pages/creators_page.dart';
 import 'package:tufapp/ui/pages/leaderboard_page.dart';
 
-/// 실제 응답(2026-10)을 돌려주는 가짜 서버로 '클리어'와 '리더보드' 화면을 그린다.
+/// Renders the passes, leaderboard and creators pages against a fake server returning real responses (2026-10).
 void main() {
   String fixture(String name) => File('test/fixtures/$name.json').readAsStringSync();
 
   late List<Uri> requested;
 
-  /// [path]로 간 마지막 요청 (영상 썸네일 같은 다른 요청은 뺀다).
+  /// The last request to [path] (ignoring others like video thumbnails).
   Uri last(String path) => requested.lastWhere((uri) => uri.path == path);
   Iterable<Uri> to(String path) => requested.where((uri) => uri.path == path);
 
@@ -182,7 +182,7 @@ void main() {
       expect(find.text('FallenEra'), findsOneWidget);
       expect(find.text('97.30'), findsOneWidget);
 
-      // 처음 묶음 (화면이 덜 차서 다음 묶음도 이어서 묻는다).
+      // The first batch (the screen isn't full, so the next batch is requested too).
       final query = to('/v2/database/passes').first.queryParameters;
       expect(query['sort'], 'RECENT_DESC');
       expect(query['minDiff'], 'P1');
@@ -278,7 +278,7 @@ void main() {
   });
 }
 
-/// 응답은 가짜라 바로 오지만, 그림·애니메이션이 끝날 때까지 기다린다.
+/// Fake responses arrive immediately, but wait for images and animations to finish.
 Future<void> settle(WidgetTester tester) async {
   for (var i = 0; i < 15; i++) {
     await tester.pump(const Duration(milliseconds: 100));

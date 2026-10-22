@@ -1,4 +1,4 @@
-// API 응답은 숫자가 문자열로 오거나 빈 문자열이 null 대신 오기도 해서, 읽을 때 한 번 정리한다.
+// API responses sometimes send numbers as strings or empty strings instead of null, so values are normalized when read.
 
 int asInt(Object? value, [int fallback = 0]) => switch (value) {
   int v => v,
@@ -20,7 +20,7 @@ double? asDoubleOrNull(Object? value) => switch (value) {
   _ => null,
 };
 
-/// 빈 문자열은 null로 본다 (예: workshopLink: "").
+/// Treats empty strings as null (e.g. workshopLink: "").
 String? asStringOrNull(Object? value) => value is String && value.trim().isNotEmpty ? value : null;
 
 bool asBool(Object? value) => value == true;

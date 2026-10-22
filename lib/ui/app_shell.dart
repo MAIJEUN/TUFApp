@@ -10,7 +10,7 @@ import 'pages/library_page.dart';
 import 'pages/packs_page.dart';
 import 'widgets/motion.dart';
 
-/// 상단 AppBar + 탭. 페이지를 오가도 스크롤 위치와 입력이 유지되도록 모든 페이지를 살려 두고 겹쳐서 전환한다.
+/// App bar and tabs. All pages stay alive and are stacked, so scroll positions and input survive switching tabs.
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -46,10 +46,9 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
     super.dispose();
   }
 
-  /// 탭을 누르면 페이지를 바꾼다.
   void _onTabChanged() => _app?.setPage(AppPage.values[_tabs.index]);
 
-  /// 다른 곳에서 페이지를 바꾸면(예: '레벨 둘러보기' 버튼) 탭도 따라간다.
+  /// Follows page changes made elsewhere (e.g. the "Browse levels" button).
   void _syncTabWithPage() {
     final index = _app!.page.index;
     if (_tabs.index != index) _tabs.animateTo(index);
@@ -208,7 +207,7 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
   }
 }
 
-/// 화면 언어 고르기. 시스템 언어를 따르거나 한국어·영어 중 하나로 고정한다.
+/// UI language menu: follow the system language or pin Korean or English.
 class _LanguageMenu extends StatelessWidget {
   const _LanguageMenu({required this.app});
 
@@ -220,7 +219,7 @@ class _LanguageMenu extends StatelessWidget {
     return PopupMenuButton<AppLanguage?>(
       tooltip: tr('언어', 'Language'),
       icon: const Icon(Icons.translate),
-      // null(시스템 언어)도 고를 수 있어야 하므로 onSelected 대신 항목마다 onTap을 쓴다.
+      // onSelected ignores a null value, and null (system language) must be selectable, so each item uses onTap.
       itemBuilder: (context) => [
         for (final (value, label) in [
           (null, tr('시스템 언어 (${AppLanguage.system.nativeName})', 'System (${AppLanguage.system.nativeName})')),
@@ -237,7 +236,7 @@ class _LanguageMenu extends StatelessWidget {
   }
 }
 
-/// 보이는 페이지는 흐려졌다 나타나며 살짝 올라온다. 숨은 페이지는 상태를 유지한 채 입력만 막는다.
+/// The visible page fades in; hidden pages keep their state but ignore input.
 class _PageLayer extends StatelessWidget {
   const _PageLayer({required this.active, required this.child});
 
@@ -249,14 +248,15 @@ class _PageLayer extends StatelessWidget {
     ignoring: !active,
     child: ExcludeFocus(
       excluding: !active,
-      // RepaintBoundary: 흐려지는 동안 페이지를 매 프레임 다시 그리지 않고,
-      // 미리 그려 둔 그림에 투명도만 입힌다. (움직임까지 넣으면 매번 다시 그려야 해서 뺐다.)
+      // RepaintBoundary: while fading, the page isn't repainted every
+      // frame; only the opacity of the cached picture changes.
+      // (A slide was dropped because it forces a repaint every frame.)
       child: RepaintBoundary(
         child: AnimatedOpacity(
           opacity: active ? 1 : 0,
           duration: Motion.fast,
           curve: Curves.easeOut,
-          // 보이지 않는 페이지의 애니메이션(도는 표시 등)은 멈춰 둔다.
+          // Pause animations (spinners etc.) on hidden pages.
           child: TickerMode(enabled: active, child: child),
         ),
       ),

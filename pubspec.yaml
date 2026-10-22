@@ -64,8 +64,8 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  # 웹(tuforums.com)과 같은 글꼴. Google Fonts의 Roboto 가변 글꼴이며, 굵기는 Flutter가 wght 축으로 맞춘다.
-  # 라이선스: assets/fonts/OFL.txt (SIL Open Font License 1.1)
+  # Same font as the website (tuforums.com): the Roboto variable font from Google Fonts; Flutter sets weights via the wght axis.
+  # License: assets/fonts/OFL.txt (SIL Open Font License 1.1)
   fonts:
     - family: Roboto
       fonts:

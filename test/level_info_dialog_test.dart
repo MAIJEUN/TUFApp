@@ -4,7 +4,7 @@ import 'package:tufapp/app/controllers.dart';
 import 'package:tufapp/core/models/level.dart';
 import 'package:tufapp/ui/widgets/level_info_dialog.dart';
 
-/// '전체 정보' 창: 레벨의 모든 값과 만든 사람들이 보여야 한다.
+/// "Full info" dialog: every value of the level and its creators must be shown.
 void main() {
   final level = Level.fromJson({
     'id': 263,
@@ -75,16 +75,16 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
-    // 사이트와 같은 항목만 보여준다: 팀, 난이도, 기반 점수, 별칭, 만든 사람.
+    // Only the same fields as the website: team, difficulty, base score, aliases, creators.
     expect(find.text('Team Camellia'), findsOneWidget);
     expect(find.text('U16'), findsOneWidget);
     expect(find.text('13,750 PP'), findsOneWidget, reason: '따로 정해진 점수가 없으면 난이도의 기본 점수');
     expect(find.text('artist: cametek, artist: かめりあ'), findsOneWidget, reason: '별칭');
-    // 카드에 이미 있는 값은 다시 적지 않는다.
+    // Values already on the card aren't repeated.
     for (final label in ['번호', '길이', '타일 수', 'BPM', '클리어', '좋아요', '태그']) {
       expect(find.text(label), findsNothing, reason: '$label 은(는) 빼고 보여준다');
     }
-    // 채보와 이펙트를 나눠서 보여준다.
+    // Charters and VFX are listed separately.
     expect(find.text('채보'), findsOneWidget);
     expect(find.text('이펙트'), findsOneWidget);
     expect(find.text('PLORALD'), findsOneWidget);

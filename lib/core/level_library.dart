@@ -8,7 +8,7 @@ import 'json.dart';
 import 'l10n.dart';
 import 'zip_names.dart';
 
-/// 로컬에 받아 둔 레벨 정보. C# 버전과 같은 JSON 형식이라 기존 라이브러리를 그대로 읽을 수 있다.
+/// A downloaded level. Uses the same JSON format as the C# version, so existing libraries load as is.
 class InstalledLevel {
   const InstalledLevel({
     required this.levelId,
@@ -42,13 +42,13 @@ class InstalledLevel {
   final String? creator;
   final String? difficulty;
 
-  /// 받을 당시의 CDN fileId. 서버의 값과 다르면 업데이트가 있는 것.
+  /// CDN fileId at download time. A different value on the server means an update is available.
   final String fileId;
 
-  /// 라이브러리 루트 기준 폴더 이름.
+  /// Folder name relative to the library root.
   final String folderName;
 
-  /// 폴더 기준 메인 .adofai 상대 경로. 찾지 못하면 null.
+  /// Path of the main .adofai file relative to the folder, or null if not found.
   final String? mainChartPath;
   final int sizeBytes;
   final DateTime installedAt;
@@ -80,7 +80,7 @@ class InstalledLevel {
   };
 }
 
-/// 받은 레벨 목록. 라이브러리 폴더 안의 [indexFileName]에 저장된다.
+/// Index of downloaded levels, stored as [indexFileName] in the library folder.
 class LevelLibrary {
   LevelLibrary._(this.rootPath, Iterable<InstalledLevel> levels, {this.recovery}) {
     for (final level in levels) {
@@ -90,12 +90,12 @@ class LevelLibrary {
 
   static const indexFileName = 'tufapp-library.json';
 
-  /// 다운로드와 압축 해제 중에 쓰는 임시 폴더 이름.
+  /// Temporary folder used while downloading and extracting.
   static const tempFolderName = '.tufapp-tmp';
 
   final String rootPath;
 
-  /// 목록 파일이 깨져 있어서 고친 내용. 문제가 없었으면 null.
+  /// What was repaired because the index file was broken, or null if it was fine.
   final String? recovery;
   final Map<int, InstalledLevel> _levels = {};
   Future<void> _saveChain = Future.value();
@@ -109,7 +109,7 @@ class LevelLibrary {
     final index = File(p.join(root, indexFileName));
     if (!await index.exists()) return LevelLibrary._(root, const []);
 
-    // 목록 파일이 깨져 있어도 앱이 멈추지 않게 한다. 레벨 폴더는 건드리지 않는다.
+    // A broken index must not crash the app. Level folders are never touched here.
     Object? json;
     try {
       json = jsonDecode(await index.readAsString());
@@ -117,7 +117,7 @@ class LevelLibrary {
       json = null;
     }
     if (json is! List) {
-      // 읽을 수 없는 파일은 지우지 않고 옆에 남겨 두고, 빈 목록으로 시작한다.
+      // Keep the unreadable file next to it instead of deleting it, and start with an empty index.
       final backup = '${index.path}.broken-${DateTime.now().millisecondsSinceEpoch}';
       await index.rename(backup);
       return LevelLibrary._(
@@ -134,7 +134,8 @@ class LevelLibrary {
     var skipped = 0;
     for (final item in json) {
       final level = item is Map<String, dynamic> ? _tryParse(item) : null;
-      // 폴더 이름이 없거나 라이브러리 밖을 가리키는 항목은 지우기·업데이트 때 위험하므로 뺀다.
+      // Skip entries with no folder name or one pointing outside the
+      // library; deleting or updating them would be dangerous.
       if (level == null || !_isSafeFolderName(level.folderName)) {
         skipped++;
       } else {
@@ -163,7 +164,7 @@ class LevelLibrary {
     }
   }
 
-  /// 라이브러리 안의 하위 폴더를 가리키는 이름인지 (비어 있거나 루트 자신, 루트 밖이면 아님).
+  /// Whether the name points to a subfolder of the library (not empty, not the root itself, not outside it).
   static bool _isSafeFolderName(String folderName) {
     final name = folderName.replaceAll(r'\', '/').trim();
     if (name.isEmpty || p.isAbsolute(name)) return false;
@@ -171,14 +172,15 @@ class LevelLibrary {
     return normalized != '.' && !normalized.startsWith('..');
   }
 
-  /// [level] 폴더의 실제 경로. 루트 자신이거나 루트 밖이면 null (그런 경로는 지우거나 바꾸면 안 된다).
+  /// Actual path of [level]'s folder, or null if it is the root or
+  /// outside it (such paths must never be deleted or replaced).
   String? safeFolderPathOf(InstalledLevel level) {
     if (!_isSafeFolderName(level.folderName)) return null;
     final path = p.normalize(folderPathOf(level));
     return p.isWithin(rootPath, path) ? path : null;
   }
 
-  /// 최근에 받은 순서.
+  /// Most recently downloaded first.
   List<InstalledLevel> getAll() => _levels.values.toList()..sort((a, b) => b.installedAt.compareTo(a.installedAt));
 
   InstalledLevel? get(int levelId) => _levels[levelId];
@@ -195,8 +197,8 @@ class LevelLibrary {
     return _save();
   }
 
-  /// 폴더를 옮기거나 이름을 바꿨을 때, 그 안에 있던 레벨들의 경로를 한꺼번에 고친다.
-  /// [from]이 레벨 폴더 자신이면 그 레벨만 바뀐다.
+  /// Updates the paths of all levels inside a folder that was moved or renamed.
+  /// If [from] is a level folder itself, only that level changes.
   Future<void> movePath(String from, String to) async {
     final source = _normalizePath(from);
     final target = _normalizePath(to);
@@ -227,7 +229,7 @@ class LevelLibrary {
     return removed;
   }
 
-  /// 폴더가 사라진 항목(사용자가 직접 지운 경우 등)을 목록에서 뺀다.
+  /// Removes entries whose folder is gone (deleted by hand, for example).
   Future<List<InstalledLevel>> pruneMissing() async {
     final missing = <InstalledLevel>[];
     for (final level in _levels.values.toList()) {
@@ -241,7 +243,7 @@ class LevelLibrary {
     return missing;
   }
 
-  /// 저장이 겹치지 않도록 순서대로 이어 붙인다. 앞의 저장이 실패해도 다음 저장은 시도한다.
+  /// Chains saves so they never overlap. A failed save doesn't stop the next one.
   Future<void> _save() {
     _saveChain = _saveChain.catchError((Object _) {}).then((_) => _writeIndex());
     return _saveChain;
@@ -251,7 +253,7 @@ class LevelLibrary {
     final snapshot = _levels.values.toList()..sort((a, b) => a.levelId.compareTo(b.levelId));
     final json = const JsonEncoder.withIndent('  ').convert(snapshot.map((l) => l.toJson()).toList());
 
-    // 임시 파일에 쓰고 교체해서, 저장 도중 꺼져도 인덱스가 깨지지 않게 한다.
+    // Write a temporary file and swap it in so the index survives a crash mid-save.
     final temp = File(p.join(rootPath, '$indexFileName.tmp'));
     await temp.writeAsString(json);
     await temp.rename(p.join(rootPath, indexFileName));
@@ -259,9 +261,9 @@ class LevelLibrary {
 }
 
 abstract final class LevelArchive {
-  /// zip을 [destinationDir]에 풀고 풀린 파일의 총 크기를 반환한다.
-  /// 모든 파일이 폴더 하나에 들어 있으면 그 단계를 없애서 풀고, __MACOSX 같은 찌꺼기는 건너뛴다.
-  /// 무거운 작업이라 Isolate에서 호출한다.
+  /// Extracts the zip into [destinationDir] and returns the total size of the extracted files.
+  /// If everything sits in a single folder, that level is flattened; junk like __MACOSX is skipped.
+  /// Heavy work, so it runs in an isolate.
   static int extract(String zipPath, String destinationDir) {
     final root = p.normalize(p.absolute(destinationDir));
     Directory(root).createSync(recursive: true);
@@ -271,7 +273,7 @@ abstract final class LevelArchive {
       final archive = ZipDecoder().decodeStream(input);
       final entries = archive.files.where((f) => !_isJunk(f.name)).toList();
 
-      // 옛 압축 도구가 UTF-8 표시 없이 적은 이름(한글·일본어 등)을 제대로 읽는다.
+      // Decode names (Korean, Japanese, ...) that old zip tools stored without the UTF-8 flag.
       final fixName = ZipNames.decoder(entries.map((f) => f.name), hint: _levelText(entries));
       final names = {for (final entry in entries) entry: _normalize(fixName(entry.name))};
       final prefix = _singleRootFolder(names.values);
@@ -282,7 +284,7 @@ abstract final class LevelArchive {
         if (relative.isEmpty) continue;
 
         final target = p.normalize(p.join(root, relative));
-        // zip slip 방지: 대상 폴더 밖으로 나가는 경로 거부
+        // Zip slip protection: reject paths that escape the target folder.
         if (!p.isWithin(root, target)) {
           throw FormatException(
             tr('zip에 잘못된 경로가 있습니다: ${entry.name}', 'The zip contains an invalid path: ${entry.name}'),
@@ -311,8 +313,8 @@ abstract final class LevelArchive {
 
   static String _normalize(String path) => path.replaceAll('\\', '/');
 
-  /// 레벨 파일(.adofai) 안에는 노래·그림 파일 이름이 그대로 적혀 있다.
-  /// 깨진 이름을 어떤 코드 페이지로 읽어야 하는지 고를 때 견줘 볼 글이다.
+  /// A level file (.adofai) contains the music and image file names verbatim.
+  /// It is used to pick the code page that decodes garbled names correctly.
   static String? _levelText(List<ArchiveFile> entries) {
     for (final entry in entries) {
       if (!entry.isFile) continue;
@@ -331,7 +333,7 @@ abstract final class LevelArchive {
     return path.startsWith('__macosx/') || path == '.ds_store' || path.endsWith('/.ds_store');
   }
 
-  /// 모든 항목이 "Folder/..." 로 시작하면 "Folder/", 아니면 "".
+  /// "Folder/" if every entry starts with "Folder/", otherwise "".
   static String _singleRootFolder(Iterable<String> paths) {
     String? prefix;
     for (final path in paths) {

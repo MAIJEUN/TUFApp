@@ -27,19 +27,20 @@ class LevelSort {
   final LevelSortKey key;
   final SortDirection direction;
 
-  /// 백엔드는 "KEY_ASC" / "KEY_DESC" 형식만 인식한다. 접미사가 없으면 기본 정렬(id desc)로 처리된다.
+  /// The backend only understands "KEY_ASC" / "KEY_DESC"; without the
+  /// suffix it falls back to the default sort (id desc).
   String toApiValue() => '${key.apiName}_${direction == SortDirection.asc ? 'ASC' : 'DESC'}';
 }
 
-/// 웹 레벨 페이지의 3단 필터 값 (클리어한 레벨, 다운로드 가능).
+/// Three-state filter of the website's levels page (cleared levels, downloadable).
 enum FilterState {
-  /// 모두 표시 (필터 없음)
+  /// Show everything (no filter)
   show,
 
-  /// 해당하는 레벨 숨김
+  /// Hide matching levels
   hide,
 
-  /// 해당하는 레벨만 표시
+  /// Show only matching levels
   only,
 }
 
@@ -57,7 +58,7 @@ class PagedResult<T> {
   final bool hasMore;
 }
 
-/// 서버의 난이도 목록. 필터를 만들 때 순서와 이름을 정한다.
+/// The server's difficulties, which decide the order and names used in filters.
 class DifficultyCatalog {
   DifficultyCatalog(Iterable<Difficulty> difficulties)
     : all = List.unmodifiable([...difficulties]..sort((a, b) => a.sortOrder.compareTo(b.sortOrder))) {
@@ -71,17 +72,17 @@ class DifficultyCatalog {
   /// P1 ~ U20
   late final List<Difficulty> pgu = all.where((d) => d.type == 'PGU').toList();
 
-  /// Qq, GQ0 ~ UQ4. 웹처럼 이름에 Q가 들어간 SPECIAL 난이도만 쓴다 (LEGACY인 Q2+, Q3+는 서버가 무시).
+  /// Qq, GQ0–UQ4. Like the website, only SPECIAL difficulties with Q in the name (the server ignores LEGACY Q2+, Q3+).
   late final List<Difficulty> q = all.where((d) => d.type == 'SPECIAL' && d.name.contains('Q')).toList();
 
-  /// Q가 아닌 특수 난이도: Unranked, P0, Censored, Impossible 등
+  /// Special difficulties other than Q: Unranked, P0, Censored, Impossible, ...
   late final List<Difficulty> special = all.where((d) => d.type == 'SPECIAL' && !d.name.contains('Q')).toList();
 
   Difficulty? named(String? name) => name == null ? null : all.where((d) => d.name == name).firstOrNull;
 
   Difficulty? byId(int? id) => id == null ? null : all.where((d) => d.id == id).firstOrNull;
 
-  /// 슬라이더 위치(인덱스)로 필터를 만든다. 순서가 뒤바뀌어 있으면 바로잡는다.
+  /// Builds a filter from slider positions (indices), swapping them if reversed.
   DifficultyFilter createFilter({
     required int pguLower,
     required int pguUpper,
@@ -110,14 +111,14 @@ class DifficultyCatalog {
   }
 }
 
-/// 서버는 PGU 범위를 이름 두 개로, Q 난이도를 전체 이름 목록으로 받는다.
+/// The server takes the PGU range as two names and Q difficulties as a list of full names.
 class DifficultyFilter {
   const DifficultyFilter({required this.pguFrom, required this.pguTo, required this.qNames, required this.includeQ});
 
   final Difficulty pguFrom;
   final Difficulty pguTo;
 
-  /// Q 범위에 들어가는 난이도의 전체 이름 (예: "GQ0 (G1~G4)"). 짧은 이름을 보내면 서버가 무시한다.
+  /// Full names of the Q difficulties in range (e.g. "GQ0 (G1~G4)"). The server ignores short names.
   final List<String> qNames;
   final bool includeQ;
 
@@ -126,7 +127,7 @@ class DifficultyFilter {
   List<String> get includedQNames => includeQ ? qNames : const [];
 }
 
-/// GET /v2/database/levels 검색 조건.
+/// GET /v2/database/levels search parameters.
 class LevelSearchQuery {
   const LevelSearchQuery({
     this.query,
@@ -145,23 +146,24 @@ class LevelSearchQuery {
   final String? query;
   final LevelSort sort;
 
-  /// null이면 난이도로 거르지 않는다. 필터를 쓰면 PGU 범위와 포함한 Q/특수 난이도만 나온다.
+  /// null means no difficulty filter. With a filter, only the PGU range
+  /// and included Q/special difficulties are returned.
   final DifficultyFilter? difficultyFilter;
 
-  /// 추가로 포함할 특수 난이도의 전체 이름 (Unranked, Censored 등).
+  /// Full names of extra special difficulties to include (Unranked, Censored, ...).
   final List<String> specialDifficulties;
   final FilterState clearedFilter;
   final FilterState availableDlFilter;
 
-  /// 태그·큐레이션 유형 필터 (facetQuery v1 JSON). [buildFacetQuery]로 만든다.
+  /// Tag and curation type filter (facetQuery v1 JSON), built with [buildFacetQuery].
   final String? facetQuery;
   final int offset;
   final int limit;
 
-  /// 무작위 정렬의 시드. 같은 시드로 요청해야 페이지를 넘겨도 순서가 유지된다.
+  /// Seed of a random sort. Pages keep the same order only when requested with the same seed.
   final int? seed;
 
-  /// 이 제작자가 채보나 이펙트를 맡은 레벨만 (제작자 페이지).
+  /// Only levels this creator charted or did VFX for (creator page).
   final int? byCreatorId;
 
   Map<String, String> toQueryParameters() {
@@ -184,7 +186,7 @@ class LevelSearchQuery {
   }
 }
 
-/// GET /v2/database/levels/{id}/cdnData 의 metadata 중 필요한 부분.
+/// The needed part of the metadata from GET /v2/database/levels/{id}/cdnData.
 class CdnLevelMetadata {
   const CdnLevelMetadata({this.targetLevelRelativePath, this.archiveBytes});
 
@@ -196,9 +198,9 @@ class CdnLevelMetadata {
     );
   }
 
-  /// 메인 차트의 zip 내 상대 경로. 예: "Multi_arm(fixed)/main.adofai"
+  /// Path of the main chart inside the zip, e.g. "Multi_arm(fixed)/main.adofai"
   final String? targetLevelRelativePath;
 
-  /// 받을 zip 파일의 크기 (바이트). 모르면 null.
+  /// Size of the zip to download in bytes, or null if unknown.
   final int? archiveBytes;
 }

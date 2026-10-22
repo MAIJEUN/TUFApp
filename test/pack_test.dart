@@ -4,9 +4,9 @@ import 'package:tufapp/app/controllers.dart';
 import 'package:tufapp/core/models/pack.dart';
 import 'package:tufapp/core/tuf_api_client.dart';
 
-/// 팩 응답 읽기와, 팩째 받을 때 라이브러리에 만들 폴더 구조.
+/// Reading pack responses, and the folder layout created in the library for pack downloads.
 void main() {
-  // 실제 응답(GET /v2/database/levels/packs/{id}?tree=true)을 줄인 모양.
+  // A trimmed real response (GET /v2/database/levels/packs/{id}?tree=true).
   Map<String, dynamic> level(int id, String song, {String dlLink = 'https://cdn.tuforums.com/zips/x'}) => {
     'id': id,
     'song': song,
@@ -16,7 +16,7 @@ void main() {
     'tags': [
       {'id': 3},
     ],
-    // 실제 응답처럼 목록 안에 typeIds가 들어 있다.
+    // Like the real response, the list holds typeIds.
     'curations': [
       {
         'id': 1,
@@ -97,7 +97,7 @@ void main() {
     )..detail = detail;
 
     final all = packs.downloadItems(detail.pack, detail.items);
-    // 이름에 쓸 수 없는 ':'와 '/'는 '_'로, 끝의 '?'도 '_'로 바뀐다.
+    // ':' and '/' (not allowed in names) and a trailing '?' all become '_'.
     expect(
       [for (final item in all) (item.level.id, item.folder)],
       [
@@ -119,7 +119,7 @@ void main() {
     final detail = LevelPackDetail.fromJson(json);
     final api = TufApiClient();
     addTearDown(api.close);
-    // 라이브러리가 없어서 받기는 바로 실패한다 (실제로 내려받지 않는다). 흐름만 본다.
+    // Without a library the download fails right away (nothing is downloaded); only the flow is checked.
     final packs = PacksController(
       api: api,
       levels: LevelsController(api: api, onStatus: (_) {}),
@@ -136,7 +136,7 @@ void main() {
     final items = packs.downloadItems(detail.pack, detail.items);
     final running = packs.startDownload('pack', 'AWC', items);
     final job = packs.download!;
-    // 폴더 1(AWC 2023)에는 레벨 1, 2, 그리고 하위 폴더 12의 레벨 4가 들어 있다.
+    // Folder 1 (AWC 2023) holds levels 1 and 2, plus level 4 in subfolder 12.
     expect(job.levelsFor(1), [1, 2, 4]);
     expect(job.levelsFor(12), [4]);
     expect(job.levelsFor(2), [3]);
@@ -145,10 +145,10 @@ void main() {
     await running;
 
     expect(opened, [
-      <int>{}, // 시작
-      {1}, // AWC 2023을 펼친다
-      {1, 12}, // 레벨 4를 받으려고 하위 폴더도 펼친다
-      <int>{}, // 하위 폴더와 AWC 2023을 다 받아서 접는다
+      <int>{}, // start
+      {1}, // expand AWC 2023
+      {1, 12}, // also expand the subfolder to download level 4
+      <int>{}, // subfolder and AWC 2023 done, both collapse
       {2}, // AWC 2024
       <int>{},
     ]);
@@ -159,7 +159,7 @@ void main() {
     final api = TufApiClient();
     addTearDown(api.close);
     final messages = <String>[];
-    // 라이브러리가 없어서 받기는 바로 실패한다 (실제로 내려받지 않는다).
+    // Without a library the download fails right away (nothing is downloaded).
     final installs = InstallCenter(onStatus: (_) {});
     final packs = PacksController(
       api: api,

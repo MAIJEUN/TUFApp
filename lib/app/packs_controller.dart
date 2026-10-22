@@ -12,10 +12,10 @@ import '../core/models/pack.dart';
 import '../core/tuf_api_client.dart';
 import 'controllers.dart';
 
-/// 받을 레벨 하나와 라이브러리 안에서 넣을 폴더.
+/// A level to download and the library folder to put it in.
 typedef PackDownloadItem = ({Level level, String folder});
 
-/// 여러 레벨을 차례로 받는 작업 (팩 전체 또는 폴더 하나).
+/// Downloads several levels in order (a whole pack or one folder).
 class PackDownload extends ChangeNotifier {
   PackDownload({
     required this.scope,
@@ -25,17 +25,18 @@ class PackDownload extends ChangeNotifier {
     this.packId,
   });
 
-  /// 받고 있는 레벨들이 든 팩 (폴더만 받아도 그 팩). 목록의 팩 카드가 진행 막대를 보여줄 때 쓴다.
+  /// The pack the levels belong to (also for a single folder). Pack cards use it to show a progress bar.
   final String? packId;
 
-  /// 어느 버튼에서 시작했는지 (팩이면 팩 id, 폴더면 폴더 id). 그 버튼이 진행률로 바뀐다.
+  /// Which button started it (pack id or folder id); that button turns into the progress indicator.
   final Object scope;
 
-  /// 예: "AWC Original Levels" 또는 "AWC 2023"
+  /// e.g. "AWC Original Levels" or "AWC 2023"
   final String label;
   final List<PackDownloadItem> items;
 
-  /// 폴더 id → 이번에 받는 레벨 중 그 폴더(하위 폴더 포함) 안에 있는 것. 폴더 버튼도 자기 몫의 진행률을 보여준다.
+  /// Folder id → levels in this job inside that folder (including
+  /// subfolders), so folder buttons show their own progress.
   final Map<int, List<int>> folderLevels;
 
   int done = 0;
@@ -43,30 +44,29 @@ class PackDownload extends ChangeNotifier {
   bool cancelled = false;
   bool finished = false;
 
-  /// 끝난 레벨 (받았거나 실패).
+  /// Finished levels (downloaded or failed).
   final Set<int> finishedIds = {};
   final Set<int> failedIds = {};
 
-  /// 지금 받고 있는 레벨.
   int? currentLevelId;
 
   int get total => items.length;
   double get fraction => total == 0 ? 1 : (done + failed) / total;
 
-  /// 전체 진행률. 지금 받는 레벨의 진행률([current], 0~1)까지 더해서 막대가 계단처럼 뛰지 않게 한다.
+  /// Overall progress, including the current level's progress ([current], 0–1) so the bar doesn't jump in steps.
   double progress(double current) {
     if (total == 0) return 1;
     final running = currentLevelId != null && !finishedIds.contains(currentLevelId) ? current : 0.0;
     return ((finishedIds.length + running) / total).clamp(0.0, 1.0);
   }
 
-  /// [scope] 버튼이 맡은 레벨들. 이번 작업에 포함되지 않으면 null.
+  /// Levels handled by the [scope] button, or null if it isn't part of this job.
   List<int>? levelsFor(Object scope) {
     if (scope == this.scope) return [for (final item in items) item.level.id];
     return scope is int ? folderLevels[scope] : null;
   }
 
-  /// [scope]의 몫이 아직 남았는지. 다 끝난 폴더 버튼은 다시 버튼으로 돌아간다.
+  /// Whether [scope] still has levels left. A finished folder button turns back into a button.
   bool isActiveFor(Object scope) {
     final ids = levelsFor(scope);
     return ids != null && ids.isNotEmpty && !finished && !ids.every(finishedIds.contains);
@@ -79,7 +79,7 @@ class PackDownload extends ChangeNotifier {
 
   void _advance(int levelId, {required bool ok}) {
     finishedIds.add(levelId);
-    // 멈추기로 끊긴 레벨은 실패로 세지 않는다.
+    // Levels interrupted by Stop are not counted as failures.
     if (ok) {
       done++;
     } else if (!cancelled) {
@@ -96,7 +96,7 @@ class PackDownload extends ChangeNotifier {
   }
 }
 
-/// '레벨 팩' 화면: 팩 목록 검색, 팩 하나 열어 보기, 팩/폴더째 받기.
+/// Packs page: searching packs, opening one, and downloading a pack or folder.
 class PacksController extends ChangeNotifier {
   PacksController({required this.api, required this.levels, required this.installs, required this.onStatus});
 
@@ -108,7 +108,7 @@ class PacksController extends ChangeNotifier {
   static const _pageSize = 30;
   static const _searchDelay = Duration(milliseconds: 400);
 
-  // ── 목록 ──
+  // ── List ──
 
   List<LevelPack> packs = const [];
   int total = 0;
@@ -117,7 +117,7 @@ class PacksController extends ChangeNotifier {
   bool hasSearched = false;
   String? error;
 
-  /// 다음 묶음을 받다가 실패한 이유. 있으면 저절로 다시 받지 않고 [retryLoadMore]를 기다린다.
+  /// Why loading the next page failed. While set, it is not requested again until [retryLoadMore].
   String? loadMoreError;
 
   String query = '';
@@ -129,12 +129,12 @@ class PacksController extends ChangeNotifier {
 
   bool get hasMore => packs.length < total;
 
-  /// 처음 화면을 열었을 때 한 번만 불러온다.
+  /// Loads once, the first time the page is shown.
   void ensureLoaded() {
     if (!hasSearched && !isSearching) search();
   }
 
-  /// 입력이 멈추면 검색한다.
+  /// Searches once typing pauses.
   void setQuery(String value) {
     if (value == query) return;
     query = value;
@@ -167,9 +167,10 @@ class PacksController extends ChangeNotifier {
       if (id != _requestId) return;
       packs = result.packs;
       total = result.total;
-    } on TufApiException catch (e) {
+    } on Object catch (e) {
+      // Unexpected errors too, so the list never stays loading forever.
       if (id != _requestId) return;
-      error = e.message;
+      error = _messageOf(e);
       packs = const [];
       total = 0;
     }
@@ -196,8 +197,8 @@ class PacksController extends ChangeNotifier {
       final known = {for (final pack in packs) pack.id};
       packs = [...packs, ...result.packs.where((pack) => !known.contains(pack.id))];
       total = result.total;
-    } on TufApiException catch (e) {
-      if (id == _requestId) loadMoreError = e.message;
+    } on Object catch (e) {
+      if (id == _requestId) loadMoreError = _messageOf(e);
     } finally {
       if (id == _requestId) {
         isLoadingMore = false;
@@ -206,21 +207,23 @@ class PacksController extends ChangeNotifier {
     }
   }
 
-  /// 실패한 다음 묶음을 다시 받는다 (목록 맨 아래의 '다시 시도').
+  static String _messageOf(Object error) => error is TufApiException ? error.message : '$error';
+
+  /// Retries a failed next page ("Retry" at the bottom of the list).
   Future<void> retryLoadMore() {
     loadMoreError = null;
     return loadMore();
   }
 
-  // ── 팩 하나 ──
+  // ── Single pack ──
 
-  /// 열어 둔 팩. 내용을 받는 동안에도 머리글은 목록에서 가져온 값으로 보여준다.
+  /// The opened pack. Its header uses the list values while the contents load.
   LevelPack? openedPack;
   LevelPackDetail? detail;
   bool isLoadingDetail = false;
   String? detailError;
 
-  /// 펼쳐 둔 폴더 id.
+  /// Ids of expanded folders.
   final Set<int> expanded = {};
   int _detailRequestId = 0;
 
@@ -230,7 +233,7 @@ class PacksController extends ChangeNotifier {
     detailError = null;
     expanded.clear();
 
-    // 목록 카드가 이미 받아 둔 내용이면 기다리지 않고 바로 보여준다.
+    // Show contents the list card already fetched without waiting.
     final cached = _details[pack.id];
     detail = cached;
     isLoadingDetail = cached == null;
@@ -242,15 +245,16 @@ class PacksController extends ChangeNotifier {
       final result = await _fetchDetail(pack.id);
       if (id != _detailRequestId) return;
       _showDetail(result);
-    } on TufApiException catch (e) {
+    } on Object catch (e) {
       if (id != _detailRequestId) return;
-      detailError = e.message;
+      detailError = _messageOf(e);
     }
     isLoadingDetail = false;
     notifyListeners();
   }
 
-  /// 팩 링크 코드(또는 id)로 연다. 프로필의 대회 팩처럼 목록에 없는 팩도 열 수 있다. 열었으면 true.
+  /// Opens a pack by link code (or id), including packs not in the list such
+  /// as tournament packs on profiles. Returns true if opened.
   Future<bool> openById(String id) async {
     final detail = await detailFor(id);
     if (detail == null) return false;
@@ -262,7 +266,7 @@ class PacksController extends ChangeNotifier {
     detail = result;
     openedPack = result.pack;
     unawaited(_tagExistingPackFolder(result.pack));
-    // 웹처럼 처음에는 맨 위 폴더만 펼쳐 둔다.
+    // Like the website, only the first top-level folder starts expanded.
     final firstFolder = result.items.whereType<PackFolder>().firstOrNull;
     if (firstFolder != null) expanded.add(firstFolder.id);
   }
@@ -275,9 +279,9 @@ class PacksController extends ChangeNotifier {
     await open(pack);
   }
 
-  // ── 팩 내용 받아 두기 ──
+  // ── Pack contents cache ──
 
-  /// 목록 카드가 나머지 레벨의 난이도를 보여주려고 팩 내용을 받는다. 한꺼번에 몰리지 않게 동시에 몇 개만.
+  /// List cards fetch pack contents to show the difficulties of the remaining levels; limit how many run at once.
   static const _maxConcurrentDetails = 4;
 
   final Map<String, LevelPackDetail> _details = {};
@@ -285,10 +289,9 @@ class PacksController extends ChangeNotifier {
   final List<Completer<void>> _detailQueue = [];
   int _runningDetails = 0;
 
-  /// 이미 받아 둔 팩 내용.
   LevelPackDetail? cachedDetail(String id) => _details[id];
 
-  /// 팩 내용을 (한 번만) 받는다. 실패하면 null이고, 다음에 다시 시도한다.
+  /// Fetches pack contents once. Returns null on failure and tries again next time.
   Future<LevelPackDetail?> detailFor(String id) => _detailRequests[id] ??= () async {
     try {
       return await _fetchDetail(id);
@@ -308,7 +311,7 @@ class PacksController extends ChangeNotifier {
     _runningDetails++;
     try {
       final result = await api.getPack(id, resolveLevel: _resolveLevel);
-      // 난이도 목록이 오기 전에 받았으면 카드에 아이콘이 빠지므로 기억하지 않는다.
+      // Don't cache results fetched before the difficulty list arrived; their icons would be missing.
       if (levels.catalog != null) _details[id] = result;
       return result;
     } finally {
@@ -331,7 +334,6 @@ class PacksController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// 모든 폴더를 펼치거나 접는다.
   void setAllExpanded(bool value) {
     expanded.clear();
     if (value) {
@@ -360,7 +362,7 @@ class PacksController extends ChangeNotifier {
     return all;
   }
 
-  /// 팩 응답의 레벨은 난이도와 태그가 id로만 온다. 받아 둔 목록에서 찾아 채운다.
+  /// Pack responses only carry difficulty and tag ids; fill them in from the loaded catalogs.
   Level _resolveLevel(Level level) {
     final difficulty = level.difficulty ?? levels.catalog?.byId(level.diffId);
     final tagCatalog = levels.tagCatalog;
@@ -376,11 +378,12 @@ class PacksController extends ChangeNotifier {
     return level.copyWith(difficulty: difficulty, tags: tags);
   }
 
-  // ── 팩째 받기 ──
+  // ── Pack downloads ──
 
   PackDownload? download;
 
-  /// 팩이나 폴더 안에서 아직 받지 않았고 받을 수 있는 레벨. 라이브러리 안의 폴더 구조는 팩과 같게 만든다.
+  /// Downloadable levels in a pack or folder that aren't in the library
+  /// yet. The library mirrors the pack's folder layout.
   List<PackDownloadItem> downloadItems(LevelPack pack, List<PackNode> nodes, {List<String> path = const []}) {
     final items = <PackDownloadItem>[];
     final seen = <int>{};
@@ -402,7 +405,7 @@ class PacksController extends ChangeNotifier {
     return items;
   }
 
-  /// [nodes]가 팩 안에서 놓인 폴더 경로 (폴더 받기용).
+  /// The folder path of [target] inside the pack (for folder downloads).
   List<String> folderPathOf(PackFolder target) {
     List<String>? find(List<PackNode> nodes, List<String> path) {
       for (final folder in nodes.whereType<PackFolder>()) {
@@ -417,20 +420,20 @@ class PacksController extends ChangeNotifier {
     return find(detail?.items ?? const [], const []) ?? const [];
   }
 
-  /// 라이브러리의 팩 이름 폴더([LevelManager.safeFolderName]) 경로. 라이브러리가 없으면 null.
+  /// Path of the pack's folder in the library ([LevelManager.safeFolderName]), or null without a library.
   String? _packFolderPath(LevelPack pack) {
     final root = installs.manager?.library.rootPath;
     return root == null ? null : p.join(root, LevelManager.safeFolderName(pack.name));
   }
 
-  /// 팩 폴더에 팩 아이콘을 남긴다 (폴더가 없으면 만든다).
+  /// Marks the pack folder with the pack's icon (creating the folder if needed).
   Future<void> _tagPackFolder(LevelPack pack) async {
     final folder = _packFolderPath(pack);
     if (folder == null || pack.iconUrl == null) return;
     await LibraryOrganizer.writeFolderInfo(folder, FolderInfo(iconUrl: pack.iconUrl, packId: pack.id));
   }
 
-  /// 전에 받아 둔 팩 폴더에도 아이콘이 붙도록, 팩을 열 때 이미 있는 폴더면 정보를 남긴다.
+  /// Marks an existing pack folder when the pack is opened, so folders downloaded earlier get the icon too.
   Future<void> _tagExistingPackFolder(LevelPack pack) async {
     final folder = _packFolderPath(pack);
     if (folder == null || pack.iconUrl == null || !await Directory(folder).exists()) return;
@@ -438,7 +441,7 @@ class PacksController extends ChangeNotifier {
     await _tagPackFolder(pack);
   }
 
-  /// 레벨 id → 그 레벨을 담은 폴더 id들 (바깥 폴더부터). 같은 레벨이 여러 번 나오면 처음 자리.
+  /// Level id → ids of the folders containing it, outermost first. A repeated level uses its first position.
   Map<int, List<int>> _folderAncestors() {
     final result = <int, List<int>>{};
     void walk(List<PackNode> nodes, List<int> path) {
@@ -456,10 +459,10 @@ class PacksController extends ChangeNotifier {
     return result;
   }
 
-  /// 받는 중인지. 한 번에 하나만 돌린다.
+  /// Only one pack download runs at a time.
   bool get isDownloading => download != null;
 
-  /// 차례로 받는다. 누른 버튼([scope])이 진행률로 바뀌고, 끝나면 다시 버튼으로 돌아온다.
+  /// Downloads in order. The pressed button ([scope]) shows progress and turns back into a button when done.
   Future<void> startDownload(Object scope, String label, List<PackDownloadItem> items) async {
     if (items.isEmpty || isDownloading) return;
 
@@ -482,13 +485,13 @@ class PacksController extends ChangeNotifier {
     download = job;
     notifyListeners();
 
-    // 팩 이름 폴더에 팩 아이콘을 남겨서 레벨 관리에서도 알아볼 수 있게 한다.
+    // Mark the pack folder with the pack's icon so it is recognizable in the library.
     if (openedPack case final pack?) await _tagPackFolder(pack);
 
     for (final item in items) {
       if (job.cancelled) break;
       final folders = ancestors[item.level.id] ?? const <int>[];
-      // 받고 있는 레벨이 든 폴더를 펼쳐서 보여준다.
+      // Expand the folders containing the level being downloaded.
       if (!expanded.containsAll(folders)) {
         expanded.addAll(folders);
         notifyListeners();
@@ -496,7 +499,7 @@ class PacksController extends ChangeNotifier {
       job._start(item.level.id);
       final ok = await installs.install(item.level, parentFolder: item.folder);
       job._advance(item.level.id, ok: ok);
-      // 다 받은 폴더는 접는다 (안쪽 폴더부터).
+      // Collapse finished folders, innermost first.
       final done = [
         for (final folder in folders.reversed)
           if (folderLevels[folder]!.every(job.finishedIds.contains)) folder,
@@ -528,7 +531,7 @@ class PacksController extends ChangeNotifier {
     final job = download;
     if (job == null || job.finished) return;
     job.cancelled = true;
-    // 지금 받고 있는 레벨도 멈춘다.
+    // Also stop the level currently downloading.
     for (final item in job.items) {
       installs.jobFor(item.level.id)?.cancel();
     }

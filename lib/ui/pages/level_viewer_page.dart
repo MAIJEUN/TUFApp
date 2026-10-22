@@ -21,8 +21,8 @@ import '../widgets/pass_row.dart';
 import '../widgets/slide_overflow.dart';
 import '../widgets/smooth_scroll.dart';
 
-/// 레벨 하나를 자세히 본다: 카드, 기록 요약, 영상, 리더보드.
-/// 목록이나 팩에서 레벨 카드를 누르면 이 화면이 그 위에 열린다.
+/// Level details: card, pass summary, video and leaderboard.
+/// Opens on top when a level card is tapped in a list or pack.
 class LevelViewerPage extends StatefulWidget {
   const LevelViewerPage({super.key, required this.level});
 
@@ -50,7 +50,7 @@ class _LevelViewerPageState extends State<LevelViewerPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // AppScope는 initState에서 읽을 수 없다. 처음 한 번만 불러온다.
+    // AppScope can't be read in initState. Load only once.
     if (_started) return;
     _started = true;
     _load();
@@ -69,7 +69,7 @@ class _LevelViewerPageState extends State<LevelViewerPage> {
     });
 
     final api = AppScope.of(context).api;
-    // 팩에서 온 레벨은 정보가 일부만 있어서 다시 받는다. 실패해도 목록에서 받은 정보로 계속 보여준다.
+    // Levels from packs carry partial info, so fetch the level again. On failure, keep showing the list info.
     unawaited(_refreshLevel(api));
 
     try {
@@ -79,10 +79,11 @@ class _LevelViewerPageState extends State<LevelViewerPage> {
         _summary = LevelPassSummary.of(passes);
         _loading = false;
       });
-    } on TufApiException catch (e) {
+    } on Object catch (e) {
+      // Unexpected errors too, so the leaderboard never stays loading forever.
       if (!mounted) return;
       setState(() {
-        _error = e.message;
+        _error = e is TufApiException ? e.message : '$e';
         _loading = false;
       });
     }
@@ -92,8 +93,8 @@ class _LevelViewerPageState extends State<LevelViewerPage> {
     try {
       final full = await api.getLevel(_level.id);
       if (mounted) setState(() => _level = full);
-    } on TufApiException {
-      // 카드에 보여줄 정보는 이미 있다.
+    } on Object {
+      // The card already has what it needs.
     }
   }
 
@@ -230,13 +231,13 @@ class _Footer extends StatelessWidget {
   }
 }
 
-/// 왼쪽 칸과 오른쪽 칸(영상) 사이 간격. 자세히 보기 화면들이 같은 값을 쓴다.
+/// Gap between the left column and the video on the right, shared by the detail pages.
 const sideGap = 16.0;
 
-/// 영상 자리 (크기를 확인하는 테스트에서 찾는다).
+/// Key of the video box (found by size tests).
 const videoKey = ValueKey('video');
 
-/// 왼쪽에 기록 요약, 오른쪽에 영상.
+/// Pass summary on the left, video on the right.
 class _Overview extends StatelessWidget {
   const _Overview({required this.level, required this.summary});
 
@@ -248,7 +249,7 @@ class _Overview extends StatelessWidget {
     final video = level.videoLink;
     if (video == null) return _Records(level: level, summary: summary);
 
-    // 영상이 오른쪽 칸을 꽉 채우고, 왼쪽 기록 칸이 그 높이에 맞춰 늘어난다.
+    // The video fills the right column and the summary on the left stretches to its height.
     return SideBySide(
       gap: sideGap,
       left: _Records(level: level, summary: summary),
@@ -279,7 +280,7 @@ class _Records extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-          // 칸을 꽉 채우도록 줄들을 고르게 벌린다 (오른쪽 영상과 높이가 같다).
+          // Spread the rows to fill the column (matching the video's height).
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _RecordRow(
@@ -314,7 +315,7 @@ class _Records extends StatelessWidget {
                         '${summary.totalClears != summary.uniquePlayers ? ' (${formatNumber(summary.totalClears)})' : ''}',
               last: true,
             ),
-            // 사이트처럼 나머지 정보는 따로 창으로 본다.
+            // Like the website, the rest of the info opens in a dialog.
             SizedBox(
               width: double.infinity,
               child: FilledButton.tonalIcon(
@@ -330,7 +331,7 @@ class _Records extends StatelessWidget {
   }
 }
 
-/// "최고 점수  [Jipper | 67016.00]" 한 줄. 아직 모르면 빈 칸을 둔다.
+/// One "Highest score  [Jipper | 67016.00]" row, left empty while unknown.
 class _RecordRow extends StatelessWidget {
   const _RecordRow({required this.label, this.who, this.value, this.last = false});
 
@@ -370,7 +371,7 @@ class _RecordRow extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // 이름이 길면 이름만 흐르게 두고, 기록(날짜·점수 등)은 항상 그대로 보이게 한다.
+                            // Long names scroll on their own; the record (date, score, ...) always stays visible.
                             if (who != null)
                               Flexible(
                                 child: SlideOverflow(child: slidingText(who, style: style)),
@@ -389,9 +390,8 @@ class _RecordRow extends StatelessWidget {
   }
 }
 
-/// 영상 썸네일. 누르면 브라우저에서 연다.
-/// 사이트처럼 영상 재생기를 바로 띄운다.
-/// 앱에서 띄울 수 없으면(재생기를 쓸 수 없거나 YouTube·Bilibili가 아니면) 썸네일을 두고 브라우저로 연다.
+/// Video preview. Like the website, the player is embedded right away.
+/// If it can't be embedded (no WebView2, or not YouTube/Bilibili/Douyin), a thumbnail opens the video in the browser.
 class _VideoPreview extends StatefulWidget {
   const _VideoPreview({required this.videoLink, required this.title});
 
@@ -409,7 +409,7 @@ class _VideoPreviewState extends State<_VideoPreview> {
   Widget build(BuildContext context) {
     final embed = !_failed && EmbeddedVideo.canPlay(widget.videoLink);
 
-    // 크기는 부모가 정해 준 칸(16:9)에 맞춘다.
+    // Sized by the parent's 16:9 box.
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: SizedBox.expand(
@@ -429,7 +429,7 @@ class _VideoPreviewState extends State<_VideoPreview> {
   }
 }
 
-/// 앱에서 재생기를 띄울 수 없을 때 보여주는 썸네일. 누르면 브라우저에서 연다.
+/// Thumbnail shown when the player can't be embedded. Tapping opens the browser.
 class _Thumbnail extends StatelessWidget {
   const _Thumbnail({required this.videoLink, required this.title});
 
@@ -452,7 +452,7 @@ class _Thumbnail extends StatelessWidget {
           children: [
             if (snapshot.data case final url?)
               Image(image: DiskCachedImage(url, maxWidth: 640), fit: BoxFit.cover, gaplessPlayback: true),
-            // 아이콘이 썸네일 위에서도 잘 보이게 아래를 어둡게 깐다.
+            // Darken the bottom so the icon stays visible over the thumbnail.
             DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -478,7 +478,7 @@ class _Thumbnail extends StatelessWidget {
   }
 }
 
-/// 리더보드 한 줄. 웹처럼 순위와 사진, 이름, 판정을 보여준다 (모양은 [PassRow]).
+/// One leaderboard row with rank, avatar, name and judgements like the website ([PassRow] layout).
 class _PassRow extends StatelessWidget {
   const _PassRow({required this.level, required this.rank, required this.pass});
 
@@ -495,7 +495,7 @@ class _PassRow extends StatelessWidget {
     return PassRow(
       pass: pass,
       onTap: () => PassViewerPage.open(context, level: level, pass: pass),
-      // 사진과 이름을 누르면 그 사람의 플레이어 페이지 (줄의 나머지는 클리어 페이지).
+      // The avatar and name open the player page (the rest of the row opens the pass).
       leading: HoverTip(
         message: tr('플레이어 프로필 보기', 'View player profile'),
         child: InkWell(

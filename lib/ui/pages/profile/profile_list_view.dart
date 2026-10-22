@@ -9,7 +9,7 @@ import '../../widgets/motion.dart';
 import 'profile_lists.dart';
 import 'profile_section.dart';
 
-/// 긴 목록 위의 제목 줄과 도구 줄. 레벨 찾기 화면의 도구 줄(검색 · 정렬 · 순서)과 같은 모양이다.
+/// Title and toolbar above a long list, shaped like the levels page toolbar (search, sort, order).
 class _ListToolbar extends StatefulWidget {
   const _ListToolbar({
     required this.title,
@@ -104,7 +104,7 @@ class _ListToolbarState extends State<_ListToolbar> {
   );
 }
 
-/// 플레이어 기록 목록의 제목과 도구 줄.
+/// Title and toolbar of a player's pass list.
 class PlayerPassListHeader extends StatelessWidget {
   const PlayerPassListHeader({super.key, required this.list});
 
@@ -120,7 +120,7 @@ class PlayerPassListHeader extends StatelessWidget {
     query: list.query,
     onQuery: list.setQuery,
     sort: DropdownMenu<PlayerPassSort>(
-      // 고른 항목의 글은 처음 만들 때만 채워지므로, 언어가 바뀌면 새로 만든다.
+      // The selected label is only filled in on creation, so recreate the menu when the language changes.
       key: ValueKey(appLanguage),
       initialSelection: list.sort,
       label: Text(tr('정렬', 'Sort')),
@@ -144,7 +144,7 @@ class PlayerPassListHeader extends StatelessWidget {
   );
 }
 
-/// 제작자 레벨 목록의 제목과 도구 줄.
+/// Title and toolbar of a creator's level list.
 class CreatorLevelListHeader extends StatelessWidget {
   const CreatorLevelListHeader({super.key, required this.list});
 
@@ -160,7 +160,7 @@ class CreatorLevelListHeader extends StatelessWidget {
     query: list.query,
     onQuery: list.setQuery,
     sort: DropdownMenu<SortOption>(
-      // 고른 항목의 글은 처음 만들 때만 채워지므로, 언어가 바뀌면 새로 만든다.
+      // The selected label is only filled in on creation, so recreate the menu when the language changes.
       key: ValueKey(appLanguage),
       initialSelection: list.sort,
       label: Text(tr('정렬', 'Sort')),
@@ -175,7 +175,7 @@ class CreatorLevelListHeader extends StatelessWidget {
   );
 }
 
-/// 긴 목록 맨 아래: 불러오는 중, 실패, 비어 있음.
+/// Bottom of a long list: loading, error or empty.
 class ProfileListFooter extends StatelessWidget {
   const ProfileListFooter({super.key, required this.list, required this.emptyTitle});
 

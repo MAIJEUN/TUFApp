@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tufapp/ui/widgets/smooth_scroll.dart';
 
-/// 휠 스크롤이 한 번에 뛰지 않고, 연달아 굴려도 멈칫하지 않고 이어지는지 본다.
+/// Wheel scrolling glides instead of jumping and continues smoothly across repeated ticks.
 void main() {
   late SmoothScrollController controller;
 

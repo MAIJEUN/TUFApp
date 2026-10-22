@@ -5,29 +5,29 @@ import '../../core/image_cache_store.dart';
 import '../../core/l10n.dart';
 import 'hover_tip.dart';
 
-/// 난이도/태그 아이콘. 받지 못하면 빈 자리만 남긴다.
+/// Difficulty or tag icon. Leaves an empty slot if it can't be loaded.
 class NetworkIcon extends StatefulWidget {
   const NetworkIcon(this.url, {super.key, required this.size, this.fallback, this.opacity = 1});
 
   final String? url;
   final double size;
 
-  /// [url]을 열지 못하면 대신 그릴 그림 (예: 프로필 사진이 지워졌으면 디스코드 사진).
+  /// Image to draw if [url] fails (e.g. the Discord picture when a profile picture was deleted).
   final String? fallback;
 
-  /// 그림의 투명도 (0~1). 레이어를 만들지 않고 그림을 그릴 때 바로 입힌다.
+  /// Image opacity (0–1), applied while painting instead of with a layer.
   final double opacity;
 
-  /// [NetworkIcon]이 그리는 것과 같은 그림. 미리 불러 둘 때([precache]) 같은 캐시 항목을 쓰도록 한곳에서 정한다.
+  /// The image [NetworkIcon] draws, defined in one place so precaching ([precache]) hits the same cache entry.
   ///
-  /// 원본은 800~1300px이지만 화면에는 작게 나오므로, 보이는 크기로만 디코딩한다.
-  /// 그래야 메모리 캐시에 오래 남아 목록을 오르내려도 다시 받지 않는다.
-  /// 카드가 소수점 위치에 놓여도 흐릿해지지 않게 두 배로 받아 두고 그릴 때 줄인다.
+  /// Sources are 800–1300px but shown small, so they are decoded at display size only.
+  /// That keeps them in the memory cache, so scrolling back and forth doesn't reload them.
+  /// Decoded at twice the size and scaled down when painted, so cards at fractional offsets stay sharp.
   static ImageProvider provider(BuildContext context, String url, double size) =>
       DiskCachedImage(url, maxWidth: (size * MediaQuery.devicePixelRatioOf(context) * 2).ceil());
 
-  /// 아이콘들을 미리 불러 둔다. 다 준비되면 끝난다 (실패한 것은 건너뛴다).
-  /// 나타나는 애니메이션을 그림이 준비된 뒤에 시작해야 빈칸만 움직이다가 그림이 툭 생기지 않는다.
+  /// Precaches icons; completes when all are ready (failures are skipped).
+  /// Appearance animations should start only after this, or empty slots move and the images pop in later.
   static Future<void> precache(BuildContext context, Iterable<String?> urls, double size) => Future.wait([
     for (final url in urls.whereType<String>().toSet())
       precacheImage(provider(context, url, size), context, onError: (_, _) {}),
@@ -38,9 +38,9 @@ class NetworkIcon extends StatefulWidget {
 }
 
 class _NetworkIconState extends State<NetworkIcon> with SingleTickerProviderStateMixin {
-  /// 처음 받을 때만 살짝 나타난다. 이미 받아 둔 아이콘은 바로 그린다.
-  /// 투명도는 그림을 그릴 때 바로 입힌다. AnimatedOpacity처럼 레이어를 만들면 아이콘이 많은 목록에서
-  /// 그리기가 무거워지고, 한 장으로 구워 두는 줄([RasterSnapshot])에서 반쯤 나타난 채로 굳을 수 있다.
+  /// Fades in only on the first load; cached icons are drawn right away.
+  /// Opacity is applied while painting. A layer like AnimatedOpacity makes lists with many icons expensive to draw,
+  /// and can freeze half-faded inside a baked row ([RasterSnapshot]).
   late final _fade = AnimationController(vsync: this, duration: const Duration(milliseconds: 200));
   late final _curve = CurvedAnimation(parent: _fade, curve: Curves.easeOut);
   bool _shown = false;
@@ -91,9 +91,9 @@ class _NetworkIconState extends State<NetworkIcon> with SingleTickerProviderStat
   }
 }
 
-/// 국가 코드를 국기 그림으로 보여준다 (예: "KR").
+/// Shows a country code as a flag image (e.g. "KR").
 ///
-/// Windows는 국기 이모지를 글자 두 개로만 그려서, 그림을 받아 쓴다. 받은 그림은 아이콘들과 같이 캐시에 남는다.
+/// Windows renders flag emoji as two letters, so an image is downloaded instead and cached with the icons.
 class CountryFlag extends StatelessWidget {
   const CountryFlag({super.key, required this.country, this.height = 14});
 
@@ -124,7 +124,7 @@ class CountryFlag extends StatelessWidget {
   }
 }
 
-/// 받는 중일 때 받기 버튼 자리에 보여주는 진행률과 취소 버튼.
+/// Progress and cancel button shown in place of the download button while downloading.
 class JobProgressIndicator extends StatelessWidget {
   const JobProgressIndicator({super.key, required this.job});
 
@@ -140,7 +140,7 @@ class JobProgressIndicator extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // 진행률은 100ms마다 갱신되므로 사이를 부드럽게 채운다.
+              // Progress updates every 100 ms, so animate between updates.
               if (job.fraction case final fraction?)
                 TweenAnimationBuilder<double>(
                   tween: Tween(end: fraction),
@@ -165,7 +165,7 @@ class JobProgressIndicator extends StatelessWidget {
   );
 }
 
-/// 목록 맨 아래: 다음 묶음을 받지 못했을 때. 저절로 다시 받지 않고 사용자가 누를 때만 다시 시도한다.
+/// Bottom of a list when the next batch failed. Retries only when the user presses the button.
 class LoadMoreError extends StatelessWidget {
   const LoadMoreError({super.key, required this.message, required this.onRetry});
 
@@ -204,7 +204,7 @@ class LoadMoreError extends StatelessWidget {
   }
 }
 
-/// 비어 있거나 불러오지 못했을 때의 안내.
+/// Placeholder for empty or failed content.
 class EmptyState extends StatelessWidget {
   const EmptyState({super.key, required this.icon, required this.title, this.message, this.action});
 
@@ -239,13 +239,13 @@ class EmptyState extends StatelessWidget {
   }
 }
 
-/// 모든 화면의 내용 최대 폭 (양옆 여백 24를 포함). 내용은 1152까지 넓어진다.
+/// Maximum content width of every page (including 24px side padding); content is up to 1152 wide.
 const pageMaxWidth = 1200.0;
 
 /// 1234567 → "1,234,567"
 String formatNumber(int value) => value.toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (match) => ',');
 
-/// 웹 formatDuration과 같은 형식: "02:15", "1:02:15"
+/// Same format as the website's formatDuration: "02:15", "1:02:15"
 String formatDuration(Duration duration) {
   String two(int n) => n.toString().padLeft(2, '0');
   final hours = duration.inHours;
@@ -258,7 +258,7 @@ String formatDuration(Duration duration) {
 String formatBpm(double bpm) =>
     bpm == bpm.roundToDouble() ? bpm.toInt().toString() : bpm.toStringAsFixed(2).replaceFirst(RegExp(r'0+$'), '');
 
-/// 67016.0 → "67,016.00" (웹 리더보드와 같이 소수점 두 자리까지)
+/// 67016.0 → "67,016.00" (two decimals, like the website's leaderboard)
 String formatScore(double score) {
   final text = score.toStringAsFixed(2);
   final dot = text.indexOf('.');
@@ -271,7 +271,7 @@ String formatAccuracy(double accuracy) => '${(accuracy * 100).toStringAsFixed(2)
 /// 1.0 → "1", 1.25 → "1.25"
 String formatSpeed(double speed) => speed == speed.roundToDouble() ? speed.toInt().toString() : speed.toString();
 
-/// 2026-05-05 → "2026년 5월 5일" / "May 5, 2026". 모르면 빈 문자열.
+/// 2026-05-05 → "2026년 5월 5일" / "May 5, 2026". Empty if unknown.
 String formatDate(DateTime? date) {
   if (date == null) return '';
   final local = date.toLocal();

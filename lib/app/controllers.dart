@@ -31,7 +31,7 @@ enum AppPage { levels, packs, clears, leaderboard, creators, library }
 
 enum LevelInstallState { notInstalled, installed, updateAvailable, notDownloadable }
 
-/// 위젯 트리 어디서나 [AppController]를 꺼내 쓰기 위한 InheritedWidget.
+/// Exposes [AppController] to the widget tree.
 class AppScope extends InheritedWidget {
   const AppScope({super.key, required this.controller, required super.child});
 
@@ -43,9 +43,9 @@ class AppScope extends InheritedWidget {
   bool updateShouldNotify(AppScope oldWidget) => controller != oldWidget.controller;
 }
 
-/// 앱 전체 상태: 페이지, 상태 메시지, 초기화, 하위 컨트롤러.
+/// App-wide state: current page, status message, startup and the page controllers.
 class AppController extends ChangeNotifier {
-  /// [api]는 테스트에서 가짜 서버를 끼울 때만 준다.
+  /// [api] is only passed by tests to plug in a fake server.
   AppController({TufApiClient? api}) : api = api ?? TufApiClient() {
     installs = InstallCenter(onStatus: setStatus);
     levels = LevelsController(api: this.api, onStatus: setStatus);
@@ -75,7 +75,7 @@ class AppController extends ChangeNotifier {
   void setPage(AppPage value) {
     if (page == value) return;
     page = value;
-    // 팩·클리어·리더보드 목록은 처음 볼 때 불러온다.
+    // Lists other than levels are loaded the first time their page is shown.
     switch (value) {
       case AppPage.packs:
         packs.ensureLoaded();
@@ -96,11 +96,11 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// 고른 화면 언어. null이면 시스템 언어를 따른다.
+  /// The chosen UI language. null follows the system language.
   AppLanguage? languageChoice;
 
-  /// 화면 언어를 바꾸고 설정 파일에 적는다. null이면 시스템 언어를 따른다.
-  /// 화면은 [TufApp]이 이 알림을 듣고 전체를 다시 그린다.
+  /// Changes the UI language and saves it to the settings file. null follows the system language.
+  /// [TufApp] listens and rebuilds the whole tree.
   Future<void> setLanguage(AppLanguage? choice) async {
     final wasReady = status == _readyText;
     languageChoice = choice;
@@ -120,7 +120,7 @@ class AppController extends ChangeNotifier {
 
   static String get _readyText => tr('준비됐습니다.', 'Ready.');
 
-  /// [settings]는 앱을 켤 때 언어를 먼저 정하려고 미리 읽어 둔 설정이다 (없으면 여기서 읽는다).
+  /// [settings] are the settings main() already read to pick the language early (read here if null).
   Future<void> initialize({AppSettings? settings}) async {
     startupError = null;
     setStatus(tr('불러오는 중...', 'Loading...'));
@@ -131,7 +131,7 @@ class AppController extends ChangeNotifier {
       library.settings = settings;
       final tags = _tryList(api.getTags());
       final curations = _tryList(api.getCurationTypes());
-      // 둘을 함께 기다린다. 따로 기다리면 먼저 실패한 쪽 때문에 나머지의 실패가 처리되지 않고 남는다.
+      // Wait for both together; awaiting them one by one would leave the second failure unhandled if the first throws.
       final ready = await Future.wait([library.open(settings.libraryPath), api.getDifficulties()]);
       final catalog = DifficultyCatalog(ready[1] as List<Difficulty>);
 
@@ -144,12 +144,12 @@ class AppController extends ChangeNotifier {
     } on StateError catch (e) {
       _failStartup(e.message);
     } on Object catch (e) {
-      // 예상하지 못한 오류도 '불러오는 중'에 멈춰 있지 않고 다시 시도할 수 있게 한다.
+      // Unexpected errors must not leave the app stuck on "Loading"; the user can retry.
       _failStartup('$e');
     }
   }
 
-  /// 태그·큐레이션 목록은 없어도 나머지 기능은 쓸 수 있으므로 실패를 삼킨다.
+  /// The rest of the app works without tags and curation types, so failures are swallowed.
   static Future<List<FacetItem>> _tryList(Future<List<FacetItem>> request) async {
     try {
       return await request;
@@ -165,8 +165,8 @@ class AppController extends ChangeNotifier {
 
   Difficulty? difficultyNamed(String? name) => levels.catalog?.named(name);
 
-  /// http/https 링크만 브라우저로 연다.
-  /// 영상 칸처럼 링크 여러 개가 빈칸으로 이어져 있으면 첫 번째(대표)를 연다.
+  /// Opens only http/https links in the browser.
+  /// When several links are joined with spaces (like the video field), opens the first one.
   Future<void> openLink(String? url) async {
     final first = VideoLinks.primary(url);
     final uri = first == null ? null : Uri.tryParse(first);
@@ -195,19 +195,19 @@ class AppController extends ChangeNotifier {
   }
 }
 
-// ───────────────────────── 받기 ─────────────────────────
+// ───────────────────────── Downloads ─────────────────────────
 
-/// 레벨 하나를 받는 작업의 진행 상태.
+/// Progress of downloading a single level.
 class InstallJob extends ChangeNotifier {
   InstallJob(this.levelId);
 
   final int levelId;
   final CancelToken cancelToken = CancelToken();
 
-  /// null이면 진행률을 알 수 없음 (준비/압축 해제 중).
+  /// null when progress is unknown (preparing or extracting).
   double? fraction;
 
-  /// 좁은 버튼 안에 보여줄 짧은 상태. 예: "42%", "압축 해제"
+  /// Short status for the narrow button, e.g. "42%" or "Extracting".
   String shortText = tr('준비 중', 'Preparing');
 
   void report(InstallProgress progress) {
@@ -236,7 +236,7 @@ class InstallJob extends ChangeNotifier {
   }
 }
 
-/// 진행 중인 받기 작업. 같은 레벨을 동시에 두 번 받지 않고, 어느 화면에서든 같은 진행 상태를 보여준다.
+/// Running downloads. A level is never downloaded twice at once, and every page shows the same progress.
 class InstallCenter extends ChangeNotifier {
   InstallCenter({required this.onStatus});
 
@@ -249,7 +249,7 @@ class InstallCenter extends ChangeNotifier {
 
   int get activeCount => _jobs.length;
 
-  /// 라이브러리가 바뀌었을 때(삭제, 폴더 변경) 받기 버튼 상태를 다시 그리게 한다.
+  /// Redraws download buttons after the library changes (delete, folder change).
   void refresh() => notifyListeners();
 
   LevelInstallState stateOf(Level level) {
@@ -264,8 +264,8 @@ class InstallCenter extends ChangeNotifier {
         : LevelInstallState.notDownloadable;
   }
 
-  /// 레벨을 받는다. [parentFolder]를 주면 라이브러리의 그 폴더 아래에 넣는다 ('/'로 구분).
-  /// 받았으면 true.
+  /// Downloads a level, into [parentFolder] of the library if given ('/'-separated).
+  /// Returns true on success.
   Future<bool> install(Level level, {String? parentFolder}) async {
     final current = manager;
     if (current == null || _jobs.containsKey(level.id)) return false;
@@ -297,7 +297,7 @@ class InstallCenter extends ChangeNotifier {
   }
 }
 
-// ───────────────────────── 레벨 찾기 ─────────────────────────
+// ───────────────────────── Levels ─────────────────────────
 
 class SortOption {
   const SortOption(this.key, this._ko, this._en);
@@ -325,21 +325,21 @@ const sortOptions = [
 class SpecialDifficultyGroup {
   const SpecialDifficultyGroup({required this.hidden, required this.items});
 
-  /// 히든 난이도 묶음이면 true, 엑스트라 묶음이면 false.
+  /// true for the hidden group, false for the extra group.
   final bool hidden;
 
   String get title => hidden ? tr('히든', 'Hidden') : tr('엑스트라', 'Extra');
   final List<Difficulty> items;
 }
 
-/// 검색어, 필터, 정렬, 무한 스크롤 목록.
+/// Search text, filters, sort and the infinite level list.
 class LevelsController extends ChangeNotifier {
   LevelsController({required this.api, required this.onStatus});
 
   static const pageSize = 30;
   static const _searchDebounce = Duration(milliseconds: 500);
 
-  /// 웹 TagSelector에서 '히든' 그룹으로 묶는 난이도.
+  /// Difficulties the website's TagSelector puts in the "Hidden" group.
   static const _hiddenSpecialNames = {'Unranked', 'Impossible', 'Censored', 'P0'};
 
   final TufApiClient api;
@@ -347,7 +347,7 @@ class LevelsController extends ChangeNotifier {
 
   DifficultyCatalog? catalog;
 
-  // 검색
+  // Search
   String _searchText = '';
   String _committedQuery = '';
   Timer? _debounceTimer;
@@ -357,7 +357,7 @@ class LevelsController extends ChangeNotifier {
 
   bool filterOpen = true;
 
-  // 난이도
+  // Difficulty
   int pguLower = 0;
   int pguUpper = 0;
   int qLower = 0;
@@ -366,28 +366,28 @@ class LevelsController extends ChangeNotifier {
   final Set<String> selectedSpecials = {};
   List<SpecialDifficultyGroup> specialGroups = const [];
 
-  // 보기 필터 / 정렬 / 보기 방법
+  // Filters / sort / view
   FilterState clearedFilter = FilterState.show;
   FilterState availableDlFilter = FilterState.show;
   SortOption sort = sortOptions.first;
   bool ascending = false;
   bool compact = false;
 
-  // 결과
+  // Results
   final List<Level> levels = [];
   bool isSearching = false;
   bool isLoadingMore = false;
   bool hasMore = false;
   bool hasSearched = false;
 
-  /// 다음 페이지를 받다가 실패한 이유. 있으면 저절로 다시 받지 않고 [retryLoadMore]를 기다린다.
+  /// Why loading the next page failed. While set, the next page is not requested again until [retryLoadMore].
   String? loadMoreError;
   int total = 0;
 
-  /// 검색창에 적힌 글자만 따로 알린다 (목록은 다시 그리지 않는다).
+  /// Notifies search box text changes alone (without rebuilding the list).
   final ValueNotifier<String> searchTextNotifier = ValueNotifier('');
 
-  /// 새 검색이 시작될 때마다 증가. 화면은 이 값이 바뀌면 맨 위로 스크롤한다.
+  /// Incremented on every new search; the page scrolls back to the top when it changes.
   int searchGeneration = 0;
   int _nextOffset = 0;
   int? _seed;
@@ -408,7 +408,7 @@ class LevelsController extends ChangeNotifier {
     ].where((changed) => changed).length;
   }
 
-  /// 고른 태그와 큐레이션 유형. 각각 "하나라도"(기본) 또는 "모두"로 찾을 수 있다.
+  /// Selected tags and curation types. Each can match any (default) or all.
   final Set<int> selectedTagIds = {};
   bool tagsMatchAll = false;
   final Set<int> selectedCurationIds = {};
@@ -469,8 +469,8 @@ class LevelsController extends ChangeNotifier {
     return search();
   }
 
-  /// 글자를 칠 때마다 알리지 않는다. 목록 전체를 다시 그리면 타이핑이 밀린다.
-  /// 지우기 버튼처럼 입력 상태만 보는 위젯은 [searchTextNotifier]를 듣는다.
+  /// Does not notify on every keystroke: rebuilding the whole list makes typing lag.
+  /// Widgets that only care about the text (like the clear button) listen to [searchTextNotifier].
   void setSearchText(String value) {
     if (value == _searchText) return;
     _searchText = value;
@@ -514,7 +514,7 @@ class LevelsController extends ChangeNotifier {
     _filtersChanged();
   }
 
-  /// 하나라도 선택돼 있으면 모두 해제, 아니면 모두 선택.
+  /// Clears all if any is selected, otherwise selects all.
   void toggleAllSpecials() {
     if (selectedSpecials.isNotEmpty) {
       selectedSpecials.clear();
@@ -549,7 +549,7 @@ class LevelsController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// 검색어, 정렬, 난이도, 특수 난이도, 보기 필터를 모두 기본값으로.
+  /// Resets search text, sort, difficulty range, special difficulties and filters.
   void resetAll() {
     _searchText = '';
     searchTextNotifier.value = '';
@@ -581,7 +581,7 @@ class LevelsController extends ChangeNotifier {
     search();
   }
 
-  /// 첫 페이지부터 새로 검색한다. 이전 검색의 늦게 온 응답은 무시한다.
+  /// Searches again from the first page. Late responses from earlier searches are ignored.
   Future<void> search() async {
     if (catalog == null) return;
     _debounceTimer?.cancel();
@@ -615,7 +615,7 @@ class LevelsController extends ChangeNotifier {
     }
   }
 
-  /// 스크롤이 끝에 가까워지면 화면에서 호출한다. 다음 페이지를 이어 붙인다.
+  /// Called by the page near the end of the list; appends the next page.
   Future<void> loadMore() async {
     if (catalog == null || !hasMore || isSearching || isLoadingMore || loadMoreError != null) return;
 
@@ -640,7 +640,7 @@ class LevelsController extends ChangeNotifier {
     }
   }
 
-  /// 실패한 다음 페이지를 다시 받는다 (목록 맨 아래의 '다시 시도').
+  /// Retries a failed next page ("Retry" at the bottom of the list).
   Future<void> retryLoadMore() {
     loadMoreError = null;
     return loadMore();
@@ -676,7 +676,7 @@ class LevelsController extends ChangeNotifier {
   }
 }
 
-/// 목록 정렬 방식.
+/// Sort order of the library list.
 enum LibrarySort { name, size, recent }
 
 Map<LibrarySort, String> get librarySortLabels => {
@@ -685,7 +685,7 @@ Map<LibrarySort, String> get librarySortLabels => {
   LibrarySort.recent: tr('최근 받은 순', 'Recently downloaded'),
 };
 
-// ───────────────────────── 받은 레벨 ─────────────────────────
+// ───────────────────────── Library ─────────────────────────
 
 class LibraryController extends ChangeNotifier {
   LibraryController({required this.api, required this.installs, required this.onStatus});
@@ -698,27 +698,27 @@ class LibraryController extends ChangeNotifier {
   LevelLibrary? library;
   LibraryOrganizer? organizer;
 
-  /// 라이브러리를 열 때 목록 파일이 깨져 있어서 고친 내용 (없으면 null).
+  /// What was repaired when the library index was found broken (null if nothing).
   String? recovery;
 
-  /// 지금 보고 있는 폴더 (라이브러리 루트 기준, 루트는 빈 문자열).
+  /// The folder being viewed, relative to the library root (empty for the root).
   String currentPath = '';
   FolderContents? contents;
 
-  /// 고른 항목들의 경로. 탐색기처럼 Ctrl/Shift로 여러 개를 고를 수 있다.
+  /// Paths of the selected entries. Ctrl/Shift multi-select works like Explorer.
   final Set<String> selection = {};
 
-  /// 선택이 바뀐 것만 따로 알린다. 목록 전체를 다시 그리면 클릭이 굼떠진다.
+  /// Notifies selection changes alone; rebuilding the whole list makes clicks feel sluggish.
   final ValueNotifier<int> selectionRevision = ValueNotifier(0);
 
   void _selectionChanged() => selectionRevision.value++;
 
-  /// Shift로 범위를 고를 때 기준이 되는 항목.
+  /// Anchor entry for Shift range selection.
   String? _selectionAnchor;
 
   LibrarySort sort = LibrarySort.name;
 
-  /// 정렬을 적용한 목록. 폴더가 항상 먼저 온다.
+  /// Entries in the chosen sort order, folders first.
   List<LibraryEntry> get entries {
     final current = contents;
     if (current == null) return const [];
@@ -754,7 +754,7 @@ class LibraryController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// 탐색기와 같은 선택 규칙: 그냥 누르면 하나만, Ctrl은 토글, Shift는 범위.
+  /// Explorer-style selection: click selects one, Ctrl toggles, Shift selects a range.
   void select(LibraryEntry entry, {bool toggle = false, bool range = false}) {
     final all = entries;
     if (range && _selectionAnchor != null) {
@@ -794,17 +794,16 @@ class LibraryController extends ChangeNotifier {
     _selectionChanged();
   }
 
-  /// 드래그한 항목이 선택에 들어 있으면 선택 전체를, 아니면 그 항목만 옮긴다.
+  /// Dragging a selected entry moves the whole selection; otherwise just that entry.
   List<LibraryEntry> dragGroupFor(LibraryEntry entry) =>
       selection.contains(entry.relativePath) && selection.length > 1 ? selectedEntries : [entry];
 
-  /// 한 단계 위 폴더로.
   Future<void> goUp() {
     final index = currentPath.lastIndexOf('/');
     return openPath(index < 0 ? '' : currentPath.substring(0, index));
   }
 
-  /// 현재 폴더까지의 경로 조각. [('루트', ''), ('Camellia', 'Camellia'), ...]
+  /// Path segments up to the current folder: [('Root', ''), ('Camellia', 'Camellia'), ...]
   List<(String name, String path)> get breadcrumb {
     final parts = currentPath.split('/').where((part) => part.isNotEmpty).toList();
     final crumbs = <(String, String)>[(tr('루트', 'Root'), '')];
@@ -816,7 +815,7 @@ class LibraryController extends ChangeNotifier {
     return crumbs;
   }
 
-  /// 마지막 업데이트 확인 결과 (레벨 ID → 서버의 새 버전).
+  /// Result of the last update check (level ID → newer level from the server).
   final Map<int, Level> _pendingUpdates = {};
   bool isCheckingUpdates = false;
 
@@ -838,7 +837,7 @@ class LibraryController extends ChangeNotifier {
     _pendingUpdates.clear();
     currentPath = '';
 
-    // 전에 받았거나 직접 넣어 둔 폴더 중 게임이 못 불러오는 이름('+')을 바꿔 둔다.
+    // Renames folders the game cannot load (names with '+'), including ones added by hand.
     final renamed = await organizer!.fixUnloadableNames();
     if (renamed > 0) {
       onStatus(
@@ -852,7 +851,7 @@ class LibraryController extends ChangeNotifier {
     await refreshContents();
   }
 
-  /// 지금 폴더의 내용을 다시 읽는다. 폴더가 사라졌으면 루트로 돌아간다.
+  /// Reloads the current folder; goes back to the root if it no longer exists.
   Future<void> refreshContents() async {
     final current = organizer;
     if (current == null) return;
@@ -861,7 +860,7 @@ class LibraryController extends ChangeNotifier {
     try {
       if (currentPath.isNotEmpty && !await Directory(current.fullPath(currentPath)).exists()) currentPath = '';
       contents = await current.list(currentPath);
-      FrameLog.note('폴더 읽기', watch.elapsed, detail: currentPath.isEmpty ? '루트' : currentPath);
+      FrameLog.note('read folder', watch.elapsed, detail: currentPath.isEmpty ? '(root)' : currentPath);
       final alive = {for (final entry in contents!.all) entry.relativePath};
       selection.removeWhere((path) => !alive.contains(path));
       _selectionChanged();
@@ -884,9 +883,9 @@ class LibraryController extends ChangeNotifier {
     return tr('폴더를 만들었습니다: $created', 'Created folder: $created');
   });
 
-  /// 지금 받기와 겹쳐서 건드리면 안 되는 항목인지.
-  /// 받는 중인 레벨 자신, 또는 받기가 진행 중일 때의 폴더 (팩째 받기가 그 안에 레벨을 넣고 있을 수 있다).
-  /// 이런 것을 지우거나 옮기면 받기가 끝난 뒤 레벨이 엉뚱한 자리에 다시 생긴다.
+  /// Whether touching this entry would collide with a running download:
+  /// the downloading level itself, or any folder while downloads run (a pack download may be writing into it).
+  /// Deleting or moving these would make the level reappear in the wrong place once the download finishes.
   bool _isBusy(LibraryEntry entry) => switch (entry) {
     LevelEntry(:final level) => installs.jobFor(level.levelId) != null,
     FolderEntry() => installs.activeCount > 0,
@@ -898,7 +897,7 @@ class LibraryController extends ChangeNotifier {
     "Can't do this while a level is downloading. Try again once the download finishes.",
   );
 
-  /// 받기와 겹치지 않는 것만 남긴다. 건너뛴 개수를 알리는 글도 함께 돌려준다.
+  /// Drops entries that collide with downloads; also returns a note about how many were skipped.
   ({List<LibraryEntry> items, String skipped}) _withoutBusy(List<LibraryEntry> items) {
     final free = items.where((entry) => !_isBusy(entry)).toList();
     final skipped = items.length - free.length;
@@ -914,7 +913,7 @@ class LibraryController extends ChangeNotifier {
     return tr('이름을 바꿨습니다: $newName', 'Renamed to: $newName');
   });
 
-  /// 여러 항목을 한 폴더로 옮긴다. 하나가 실패해도 나머지는 계속 옮긴다.
+  /// Moves entries into one folder. One failure does not stop the rest.
   Future<void> moveEntries(List<LibraryEntry> all, String targetFolder) => _organize((organizer) async {
     final (:items, :skipped) = _withoutBusy(all);
     var moved = 0;
@@ -938,7 +937,7 @@ class LibraryController extends ChangeNotifier {
     );
   });
 
-  /// 여러 항목을 지운다. 받은 레벨은 목록에서도 뺀다.
+  /// Deletes entries. Downloaded levels are also removed from the index.
   Future<void> deleteEntries(List<LibraryEntry> all) => _organize((organizer) async {
     final (:items, :skipped) = _withoutBusy(all);
     var count = 0;
@@ -962,7 +961,7 @@ class LibraryController extends ChangeNotifier {
     return tr('옮겼습니다: ${entry.name} → $where', 'Moved: ${entry.name} → $where');
   });
 
-  /// 폴더나 (목록에 없는) 레벨 폴더를 통째로 지운다.
+  /// Deletes a folder or an unindexed level folder entirely.
   Future<void> deleteEntry(LibraryEntry entry) => _organize((organizer) async {
     if (_isBusy(entry)) return _busyMessage;
     final removed = await organizer.delete(entry);
@@ -975,7 +974,7 @@ class LibraryController extends ChangeNotifier {
           );
   });
 
-  /// 옮기기 대화상자에서 폴더를 하나씩 들여다본다 (라이브러리가 커도 느려지지 않게).
+  /// Lists one folder at a time for the move dialog, so large libraries stay fast.
   Future<FolderContents> browse(String relativePath) async {
     final current = organizer;
     if (current == null) return const FolderContents(path: '', folders: [], levels: []);
@@ -1000,7 +999,7 @@ class LibraryController extends ChangeNotifier {
     await refreshContents();
   }
 
-  /// 받기가 끝나면 호출된다. 이미 새 버전을 받은 레벨의 업데이트 표시를 지운다.
+  /// Called when downloads change; clears update marks of levels that now have the new version.
   void onInstallsChanged() {
     unawaited(refreshContents());
     final current = library;
@@ -1066,7 +1065,7 @@ class LibraryController extends ChangeNotifier {
       onStatus(tr('삭제하지 못했습니다: ${e.message}', 'Could not delete: ${e.message}'));
     } finally {
       notifyListeners();
-      // 레벨 찾기 화면의 받기 버튼 상태도 갱신한다.
+      // Also refresh the download buttons on the levels page.
       installs.refresh();
     }
   }
@@ -1100,7 +1099,7 @@ class LibraryController extends ChangeNotifier {
     await openFolderPath(level == null ? '' : level.folderName);
   }
 
-  /// 라이브러리 루트 기준 경로를 탐색기로 연다. 빈 문자열이면 지금 보고 있는 폴더.
+  /// Opens a library-relative path in Explorer; the current folder if omitted.
   Future<void> openFolderPath([String? relativePath]) async {
     final current = organizer;
     if (current == null) return;

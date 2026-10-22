@@ -13,7 +13,7 @@ import '../widgets/raster_snapshot.dart';
 import '../widgets/slide_overflow.dart';
 import '../widgets/smooth_scroll.dart';
 
-/// 다른 페이지와 같은 폭으로 가운데 정렬한다.
+/// Same centered width as the other pages.
 const _maxWidth = pageMaxWidth;
 const _gutter = 24.0;
 
@@ -32,7 +32,7 @@ Widget _constrain(Widget child) => Center(
 
 Widget _section(Widget child) => SliverToBoxAdapter(child: _constrain(child));
 
-/// 슬리버를 [_maxWidth] 안에 가운데 놓는다 (격자처럼 _constrain으로 감쌀 수 없는 것).
+/// Centers a sliver within [_maxWidth] (for slivers like the grid that _constrain can't wrap).
 Widget _centeredSliver(Widget sliver) => SliverLayoutBuilder(
   builder: (context, constraints) {
     final side = max(_gutter, (constraints.crossAxisExtent - _maxWidth) / 2 + _gutter);
@@ -43,7 +43,7 @@ Widget _centeredSliver(Widget sliver) => SliverLayoutBuilder(
   },
 );
 
-/// 커뮤니티 레벨 팩. 목록에서 팩을 누르면 그 위로 팩 내용이 열린다.
+/// Community level packs. Tapping a pack opens its contents on top of the list.
 class PacksPage extends StatefulWidget {
   const PacksPage({super.key});
 
@@ -63,7 +63,7 @@ class _PacksPageState extends State<PacksPage> {
         return Stack(
           fit: StackFit.expand,
           children: [
-            // 목록은 그대로 살려 둬서 돌아왔을 때 스크롤 위치가 유지된다.
+            // The list stays alive so its scroll position is kept when coming back.
             Offstage(
               offstage: opened,
               child: TickerMode(
@@ -83,7 +83,7 @@ class _PacksPageState extends State<PacksPage> {
   }
 }
 
-// ───────────────────────── 팩 목록 ─────────────────────────
+// ───────────────────────── Pack list ─────────────────────────
 
 class _PackList extends StatefulWidget {
   const _PackList({required this.packs});
@@ -123,7 +123,7 @@ class _PackListState extends State<_PackList> {
     final packs = widget.packs;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && packs.hasMore && !packs.isLoadingMore && !packs.isSearching) _maybeLoadMore();
-      // 다른 화면에서 검색어를 정하고 왔으면 (프로필의 '사용자 팩 보기') 검색창도 맞춘다.
+      // Sync the search box when the query was set elsewhere (a profile's "View user's packs").
       if (mounted && _search.text != packs.query) _search.text = packs.query;
     });
 
@@ -235,7 +235,7 @@ class _ListToolbar extends StatelessWidget {
       ),
       const SizedBox(width: 12),
       DropdownMenu<PackSort>(
-        // 고른 항목의 글은 처음 만들 때만 채워지므로, 언어가 바뀌면 새로 만든다.
+        // The selected label is only filled in on creation, so recreate the menu when the language changes.
         key: ValueKey(appLanguage),
         initialSelection: packs.sort,
         label: Text(tr('정렬', 'Sort')),
@@ -362,7 +362,7 @@ class _ListFooter extends StatelessWidget {
   }
 }
 
-/// 팩 목록의 카드 한 칸. 위쪽에 강조색 줄을 두르고, 앞쪽 레벨 몇 개를 미리 보여준다.
+/// One pack card: an accent bar on top and a preview of the first few levels.
 class _PackCard extends StatelessWidget {
   const _PackCard({super.key, required this.pack, required this.onOpen});
 
@@ -399,7 +399,7 @@ class _PackCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // 한 줄로 두고 넘치면 흘러가게 한다 (두 줄이면 카드 높이를 넘는다).
+                      // Keep it to one line and let it scroll when too long (two lines exceed the card height).
                       SizedBox(
                         height: 26,
                         child: Align(
@@ -435,24 +435,24 @@ class _PackCard extends StatelessWidget {
   }
 }
 
-/// 제목까지 보여준 미리보기 뒤의 레벨들. 난이도 아이콘을 겹쳐 한 줄로 늘어놓고, 끝에 "+N개 더"를 붙인다.
+/// Levels after the titled preview: overlapping difficulty icons on one line, followed by "+N more".
 ///
-/// - N은 제목 미리보기를 뺀 나머지 레벨 전부다 (아이콘으로 보인 것도 포함).
-/// - 아이콘은 "+N개 더" 글자 바로 앞까지 들어가는 만큼 그린다. 자리가 모자라면 뒤쪽 레벨은 아이콘 없이 N에만 들어간다.
+/// - N counts every level except the titled preview (including those shown as icons).
+/// - Icons fill the space up to the "+N more" text. Levels that don't fit are only counted in N.
 ///
-/// 목록 응답에는 앞쪽 레벨 몇 개만 오므로, 카드가 보일 때 팩 내용을 받아서 채운다.
+/// List responses only include the first few levels, so the pack contents are fetched when the card is shown.
 class _MoreLevels extends StatelessWidget {
   const _MoreLevels({required this.pack, required this.previewCount, required this.more});
 
   static const _iconSize = 20.0;
 
-  /// 아이콘이 겹치는 간격 (아이콘 폭보다 좁게 두어 겹친다).
+  /// Icon spacing, narrower than an icon so they overlap.
   static const _step = 13.0;
 
-  /// 아이콘 줄과 글자 사이.
+  /// Gap between the icons and the text.
   static const _gap = 8.0;
 
-  /// 자리에 들어가는 개수보다 더 그릴 개수. 이만큼이 흐려지면서 잘린다.
+  /// Extra icons drawn past the available space; they fade out at the cut.
   static const _overflowIcons = 3;
 
   final LevelPack pack;
@@ -466,7 +466,8 @@ class _MoreLevels extends StatelessWidget {
     final theme = Theme.of(context);
     final textStyle = theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant);
 
-    // 겹친 아이콘이 수십 개라 그리기가 비싸다. 한 장으로 구워 두고 스크롤할 때는 그것만 그린다.
+    // Dozens of overlapping icons are expensive to draw, so bake them into one image and draw only that while
+    // scrolling.
     return SizedBox(
       height: 24,
       child: RasterSnapshot(
@@ -475,7 +476,7 @@ class _MoreLevels extends StatelessWidget {
           future: packs.detailFor(pack.id),
           builder: (context, snapshot) {
             final detail = snapshot.data;
-            // 미리보기에 이미 나온 레벨은 빼고, 팩 안 순서대로.
+            // Skip levels already in the preview, keeping the pack order.
             final shownIds = {for (final level in pack.preview.take(previewCount)) level.id};
             final icons = [
               if (detail != null)
@@ -486,7 +487,7 @@ class _MoreLevels extends StatelessWidget {
             final label = tr('+$more개 더', '+$more more');
             return LayoutBuilder(
               builder: (context, constraints) {
-                // 글자가 실제로 차지하는 폭을 재서, 아이콘이 그 바로 앞까지 오게 한다.
+                // Measure the text so the icons end right before it.
                 final painter = TextPainter(
                   text: TextSpan(text: label, style: textStyle),
                   textDirection: TextDirection.ltr,
@@ -495,19 +496,19 @@ class _MoreLevels extends StatelessWidget {
                 final room = constraints.maxWidth - painter.width - _gap;
                 painter.dispose();
                 final fit = room < _iconSize ? 0 : ((room - _iconSize) / _step).floor() + 1;
-                // 자리보다 조금 더 그려서, 넘칠 때 오른쪽 끝이 흐려지며 이어지는 느낌을 준다.
+                // Draw a little more than fits so the right edge fades out as if continuing.
                 final count = min(icons.length, fit + _overflowIcons);
 
                 return Row(
                   children: [
-                    // 아이콘이 없을 때도 자리를 두어야, 내용이 도착했을 때 나타나는 애니메이션을 줄 수 있다.
+                    // Keep the slot even without icons so they can animate in when the contents arrive.
                     _IconStrip(
                       icons: icons.take(count).toList(),
                       size: _iconSize,
                       step: _step,
                       maxWidth: max(0.0, room),
                     ),
-                    // 글자는 항상 오른쪽 끝에 붙인다.
+                    // The text always sits at the right edge.
                     const Spacer(),
                     Text(label, style: textStyle),
                   ],
@@ -521,15 +522,16 @@ class _MoreLevels extends StatelessWidget {
   }
 }
 
-/// 팩 카드 위쪽의 강조 줄. 그 팩을 받는 동안에는 진행 막대가 된다 (폴더만 받아도).
+/// Accent bar on top of a pack card. Becomes a progress bar while that pack (or one of its folders) downloads.
 class _PackCardBar extends StatelessWidget {
   const _PackCardBar({required this.pack, required this.hovered});
 
   final LevelPack pack;
   final bool hovered;
 
-  /// 받는 동안에는 조금 두껍게 해서 눈에 띄게 한다.
   static const _height = 3.0;
+
+  /// Slightly thicker while downloading so it stands out.
   static const _activeHeight = 4.0;
 
   @override
@@ -546,8 +548,8 @@ class _PackCardBar extends StatelessWidget {
       );
     }
 
-    // 지금 받는 레벨이 바뀌면 그 레벨의 진행률을 새로 듣는다.
-    // 받기 작업은 레벨을 시작한 다음에 생기므로 받기 목록도 함께 듣는다.
+    // Listen to the current level's progress again when the current level changes.
+    // A level's download job is created after it starts, so also listen to the downloads list.
     return ListenableBuilder(
       listenable: Listenable.merge([download, app.installs]),
       builder: (context, _) {
@@ -571,11 +573,11 @@ class _PackCardBar extends StatelessWidget {
   }
 }
 
-/// 겹쳐 늘어놓은 난이도 아이콘들.
+/// Overlapping difficulty icons.
 ///
-/// 팩 내용이 도착해서 아이콘이 처음 생길 때 왼쪽부터 하나씩 살짝 커지며 나타난다.
-/// 이미 받아 둔 팩이라 처음부터 아이콘이 있으면 애니메이션 없이 바로 보인다.
-/// [maxWidth]를 넘치면 다른 넘치는 내용들처럼 오른쪽 끝이 흐려진다 (움직이지는 않는다).
+/// When the pack contents first arrive, the icons pop in one by one from the left.
+/// Packs fetched earlier show their icons right away without the animation.
+/// Beyond [maxWidth], the right edge fades out like other overflowing content (without moving).
 class _IconStrip extends StatefulWidget {
   const _IconStrip({required this.icons, required this.size, required this.step, required this.maxWidth});
 
@@ -589,13 +591,13 @@ class _IconStrip extends StatefulWidget {
 }
 
 class _IconStripState extends State<_IconStrip> with SingleTickerProviderStateMixin {
-  /// 아이콘 하나가 나타나는 시간과, 다음 아이콘이 따라 나오는 간격.
+  /// How long one icon takes to appear, and the delay before the next one follows.
   static const _each = Duration(milliseconds: 260);
   static const _stagger = Duration(milliseconds: 22);
 
-  /// 처음부터 아이콘이 있었으면 끝난 상태(1)로 시작한다.
-  /// initState에서 만들어야 한다. 처음 쓸 때 만들면(late), 비어 있는 동안에는 한 번도 쓰이지 않다가
-  /// 아이콘이 생긴 순간에야 만들어져서 '처음부터 있었다'고 잘못 판단하고 애니메이션을 건너뛴다.
+  /// Starts finished (1) if the icons were there from the start.
+  /// It must be created in initState: created lazily (late), it would only be created once icons appear,
+  /// wrongly conclude they were there from the start, and skip the animation.
   late final AnimationController _controller;
 
   @override
@@ -609,14 +611,14 @@ class _IconStripState extends State<_IconStrip> with SingleTickerProviderStateMi
   @override
   void didUpdateWidget(_IconStrip oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // 비어 있다가 아이콘이 생기면 한 번 나타나게 한다.
+    // Animate once when icons appear after being empty.
     if (widget.icons.isNotEmpty && _controller.value == 0 && !_controller.isAnimating && !_preparing) {
       _appear();
     }
   }
 
-  /// 아이콘 그림을 먼저 다 불러온 뒤에 나타나기 시작한다.
-  /// (그림이 준비되기 전에 움직이면 빈칸만 커지다가 그림이 한꺼번에 툭 생긴다.)
+  /// Starts appearing only after every icon image has loaded
+  /// (animating earlier grows empty slots and then the images pop in all at once).
   Future<void> _appear() async {
     _preparing = true;
     await NetworkIcon.precache(context, widget.icons, _StackedIcon.iconSize(widget.size));
@@ -641,7 +643,7 @@ class _IconStripState extends State<_IconStrip> with SingleTickerProviderStateMi
     final full = widget.size + (icons.length - 1) * widget.step;
 
     return SizedBox(
-      // 다 들어가면 그만큼만, 넘치면 자리만큼만 차지한다. 넘치는 쪽 끝은 FadeEdges가 흐리게 지운다.
+      // Takes only what it needs, or the available width when overflowing. FadeEdges fades the overflowing end.
       width: min(full, widget.maxWidth),
       height: widget.size,
       child: FadeEdges(
@@ -671,8 +673,9 @@ class _IconStripState extends State<_IconStrip> with SingleTickerProviderStateMi
     );
   }
 
-  /// [t]가 0→1로 가는 동안 투명했다가 살짝 커지며 나타난다. 다 나타나면 아무것도 덧씌우지 않는다.
-  /// 투명도는 레이어(Opacity) 대신 아이콘을 그릴 때 바로 입힌다 (이 줄은 한 장으로 구워 두기 때문).
+  /// Fades in and scales up slightly as [t] goes from 0 to 1; adds nothing once fully shown.
+  /// Opacity is applied when painting the icon instead of with an Opacity
+  /// layer, because this strip is baked into one image.
   static Widget _appearing(double t, Widget Function(double opacity) icon) {
     if (t >= 1) return icon(1);
     if (t <= 0) return const SizedBox.shrink();
@@ -683,11 +686,11 @@ class _IconStripState extends State<_IconStrip> with SingleTickerProviderStateMi
   }
 }
 
-/// 겹친 아이콘 하나. 뒤 아이콘과 구분되게 카드 색 테두리를 두른다.
+/// One overlapping icon, ringed in the card color to separate it from the icon behind.
 class _StackedIcon extends StatelessWidget {
   const _StackedIcon({required this.url, required this.size, this.opacity = 1});
 
-  /// 테두리를 뺀 아이콘 크기. 미리 불러 둘 때도 같은 크기를 써야 같은 그림을 쓴다.
+  /// Icon size without the ring. Precaching must use the same size to hit the same cached image.
   static double iconSize(double size) => size - 3;
 
   final String? url;
@@ -783,7 +786,7 @@ class _OwnerLine extends StatelessWidget {
   }
 }
 
-/// 미리보기 레벨 한 줄: 난이도 아이콘과 곡 이름.
+/// Preview row: difficulty icon and song name.
 class _PreviewRow extends StatelessWidget {
   const _PreviewRow({required this.song, required this.icon});
 
@@ -813,7 +816,7 @@ class _PreviewRow extends StatelessWidget {
   }
 }
 
-/// 팩 아이콘. 없으면 상자 모양을 대신 둔다.
+/// Pack icon, or a box placeholder.
 class _PackIcon extends StatelessWidget {
   const _PackIcon({required this.url, required this.size});
 
@@ -859,12 +862,12 @@ class _Avatar extends StatelessWidget {
   }
 }
 
-// ───────────────────────── 팩 내용 ─────────────────────────
+// ───────────────────────── Pack contents ─────────────────────────
 
-/// 폴더 구조를 한 줄씩 늘어놓은 것.
+/// The folder tree flattened into rows.
 ///
-/// 접힌 폴더 안의 줄도 목록에 그대로 두고 [visible]만 끈다. 그래야 줄 순서가 바뀌지 않아서
-/// 폴더를 열고 닫을 때 줄마다 부드럽게 펼쳐지고 접힌다 (접혀 있는 줄은 아무것도 만들지 않는다).
+/// Rows inside collapsed folders stay in the list with [visible] off. Keeping the row order stable
+/// lets each row expand and collapse smoothly (collapsed rows build nothing).
 sealed class _Row {
   const _Row(this.depth, {required this.visible});
 
@@ -905,7 +908,7 @@ class _PackDetailView extends StatefulWidget {
 }
 
 class _PackDetailViewState extends State<_PackDetailView> {
-  /// 폴더 안 한 단계마다 들여 쓰는 폭.
+  /// Indent per folder level.
   static const _indent = 28.0;
 
   final _scroll = SmoothScrollController();
@@ -924,7 +927,7 @@ class _PackDetailViewState extends State<_PackDetailView> {
     final detail = packs.detail;
 
     return ListenableBuilder(
-      // 받은 레벨이 바뀌면 tr('받기', 'Download') 버튼에 적힌 개수도 바뀐다.
+      // The count on the Download button changes when downloaded levels change.
       listenable: app.installs,
       builder: (context, _) {
         final rows = detail == null ? const <_Row>[] : _flatten(detail.items, packs.expanded);
@@ -1012,7 +1015,7 @@ class _DetailHeader extends StatelessWidget {
     final detail = this.detail;
     final toDownload = detail == null ? const <PackDownloadItem>[] : packs.downloadItems(pack, detail.items);
 
-    // 모서리가 둥근 상자에는 한쪽 테두리만 줄 수 없어서, 위쪽 강조 줄은 따로 겹쳐 그린다.
+    // A rounded box can't have a border on one side only, so the top accent bar is drawn on top.
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: Container(
@@ -1132,7 +1135,7 @@ class _ItemsHeader extends StatelessWidget {
   }
 }
 
-/// 폴더 한 줄. 누르면 펼치고 접는다. 폴더째 받을 수도 있다.
+/// Folder row. Tapping expands or collapses it; the folder can also be downloaded as a whole.
 class _FolderHeader extends StatelessWidget {
   const _FolderHeader({required this.packs, required this.pack, required this.folder});
 
@@ -1193,7 +1196,7 @@ class _FolderHeader extends StatelessWidget {
   }
 }
 
-/// 여러 레벨을 받기 전에 어디에 몇 개를 받는지 알려준다.
+/// Before downloading several levels, tells where they go and how many there are.
 Future<void> _confirmDownload(
   BuildContext context,
   PacksController packs,
@@ -1225,7 +1228,7 @@ Future<void> _confirmDownload(
   if (ok ?? false) await packs.startDownload(scope, label, items);
 }
 
-/// 팩·폴더 받기 버튼. 받는 동안에는 레벨 목록의 받기 버튼처럼 그 자리에서 진행률로 바뀐다.
+/// Pack/folder download button. While downloading it turns into progress in place, like level download buttons.
 class _PackDownloadButton extends StatelessWidget {
   const _PackDownloadButton({
     required this.packs,
@@ -1237,7 +1240,7 @@ class _PackDownloadButton extends StatelessWidget {
     this.doneText,
   });
 
-  /// 버튼과 진행률이 같은 폭을 써서 바뀔 때 옆 요소가 밀리지 않는다.
+  /// The button and its progress share a width so neighbors don't shift.
   static const width = 200.0;
 
   final PacksController packs;
@@ -1247,13 +1250,13 @@ class _PackDownloadButton extends StatelessWidget {
   final String idleText;
   final bool filled;
 
-  /// 받을 레벨이 없을 때 적는 말. 없으면 '모두 받음'.
+  /// Text shown when there is nothing to download; "All downloaded" if null.
   final String? doneText;
 
   @override
   Widget build(BuildContext context) {
     final download = packs.download;
-    // 팩을 받을 때는 안의 폴더 버튼들도 자기 몫의 진행률로 바뀐다.
+    // While a pack downloads, folder buttons inside it show their own share of the progress.
     final active = download != null && download.isActiveFor(scope);
 
     return SizedBox(
@@ -1290,14 +1293,14 @@ class _PackDownloadButton extends StatelessWidget {
       key: const ValueKey('progress'),
       listenable: Listenable.merge([download, ?job]),
       builder: (context, _) {
-        // 이 버튼이 맡은 레벨만 센다 (폴더 버튼이면 그 폴더 안의 것).
+        // Count only this button's levels (for a folder button, those inside it).
         final ids = download.levelsFor(scope) ?? const <int>[];
         final total = max(1, ids.length);
         final finished = ids.where(download.finishedIds.contains).length;
         final failedCount = ids.where(download.failedIds.contains).length;
         final isCurrent = ids.contains(download.currentLevelId);
 
-        // 지금 받는 레벨의 진행률까지 더해서 막대가 계단처럼 뛰지 않게 한다.
+        // Include the current level's progress so the bar doesn't jump in steps.
         final current = isCurrent ? (job?.fraction ?? 0) : 0.0;
         final value = ((finished + current) / total).clamp(0.0, 1.0);
         final failed = failedCount > 0 ? tr(' · 실패 $failedCount', ' · $failedCount failed') : '';
@@ -1381,7 +1384,7 @@ class _DetailFooter extends StatelessWidget {
   }
 }
 
-/// 고정된 팩 표시. 똑바로 세우면 작은 크기에서 글자처럼 보여서 웹처럼 비스듬히 눕힌다.
+/// Pinned pack marker. Upright it reads like a letter at small sizes, so it is tilted like on the website.
 class _PinIcon extends StatelessWidget {
   const _PinIcon(this.icon, {this.size, this.color});
 

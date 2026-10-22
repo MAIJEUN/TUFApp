@@ -16,7 +16,7 @@ import 'browse_page.dart';
 import 'profile/profile_header.dart';
 import 'profile/profile_navigation.dart';
 
-/// tr('클리어', 'Passes') 화면: TUF에 올라온 모든 클리어 기록 (웹의 클리어 목록).
+/// Passes page: every pass on TUF (the website's pass list).
 class ClearsPage extends StatelessWidget {
   const ClearsPage({super.key});
 
@@ -74,7 +74,7 @@ class _Toolbar extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         DropdownMenu<ClearSort>(
-          // 고른 항목의 글은 처음 만들 때만 채워지므로, 언어가 바뀌면 새로 만든다.
+          // The selected label is only filled in on creation, so recreate the menu when the language changes.
           key: ValueKey(appLanguage),
           initialSelection: clears.sort,
           label: Text(tr('정렬', 'Sort')),
@@ -85,7 +85,7 @@ class _Toolbar extends StatelessWidget {
           dropdownMenuEntries: [for (final sort in ClearSort.values) DropdownMenuEntry(value: sort, label: sort.label)],
         ),
         const SizedBox(width: 8),
-        // 무작위 정렬에는 순서가 없다.
+        // Random sort has no direction.
         OrderButton(
           descending: clears.descending,
           onPressed: clears.sort == ClearSort.random ? null : clears.toggleOrder,
@@ -116,7 +116,7 @@ class _Toolbar extends StatelessWidget {
   }
 }
 
-/// 난이도 범위, 특수 난이도, 키 수, 세계 최초, 게임 버전.
+/// Difficulty range, special difficulties, key count, world's first and game version.
 class _FilterCard extends StatelessWidget {
   const _FilterCard({required this.clears, required this.catalog});
 
@@ -249,8 +249,8 @@ class _Choice<T> extends StatelessWidget {
   );
 }
 
-/// 클리어 한 줄. 곡과 플레이어를 함께 보여준다 (모양은 [PassRow]).
-/// 줄을 누르면 클리어 화면, 플레이어를 누르면 플레이어 페이지.
+/// One pass row with song and player ([PassRow] layout).
+/// Tapping the row opens the pass; tapping the player opens their page.
 class ClearRow extends StatelessWidget {
   const ClearRow({super.key, required this.entry});
 
@@ -270,7 +270,7 @@ class ClearRow extends StatelessWidget {
       onTap: () => ProfileNavigation.openPass(context, pass.id),
       videoBackdrop: !hidden,
       leading: PassDifficultyIcon(icon: difficulty?.icon, hidden: hidden),
-      // 레벨 카드와 같은 순서: 위에 "#번호 - 작곡가", 가운데 곡 이름.
+      // Same order as level cards: "#id - artist" on top, song in the middle.
       top: hidden ? null : ['#${level.id}', if (level.artist.isNotEmpty) level.artist].join(' - '),
       title: SlideOverflow(
         child: slidingText(hidden ? tr('숨겨진 레벨', 'Hidden level') : level.song, style: theme.textTheme.titleMedium),
@@ -281,7 +281,7 @@ class ClearRow extends StatelessWidget {
   }
 }
 
-/// 사진과 이름, 국가. 누르면 그 사람의 플레이어 페이지.
+/// Avatar, name and country. Tapping opens the player page.
 class _Player extends StatelessWidget {
   const _Player({required this.pass});
 
@@ -309,7 +309,7 @@ class _Player extends StatelessWidget {
                     size: 36,
                   ),
                   const SizedBox(width: 10),
-                  // 이름 아래에 다른 정보가 없으니 국기는 이름 아래에 둔다.
+                  // Nothing else goes under the name here, so the flag sits below it.
                   Flexible(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,

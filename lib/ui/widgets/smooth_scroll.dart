@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart' show Ticker;
 import 'package:flutter/rendering.dart' show ScrollDirection;
 
-/// 마우스 휠로 스크롤할 때 한 번에 뛰지 않고 부드럽게 미끄러지게 하는 컨트롤러.
+/// Scroll controller that glides smoothly on mouse wheel input instead of jumping.
 ///
-/// 휠 이벤트는 Scrollable이 [ScrollPosition.pointerScroll]로 넘기므로 그 부분만 바꾼다.
-/// 드래그, 스크롤바, 키보드 스크롤은 기본 동작 그대로다.
+/// Scrollable forwards wheel events through [ScrollPosition.pointerScroll], so only that is replaced.
+/// Dragging, the scrollbar and keyboard scrolling keep the default behavior.
 class SmoothScrollController extends ScrollController {
   SmoothScrollController({super.debugLabel});
 
@@ -42,7 +42,7 @@ class _SmoothScrollPosition extends ScrollPositionWithSingleContext {
 
     updateUserScrollDirection(delta > 0 ? ScrollDirection.reverse : ScrollDirection.forward);
 
-    // 굴리는 중이면 목표만 옮긴다. 속도가 끊기지 않고 이어진다.
+    // While gliding, only move the target so the velocity carries on.
     if (activity case final _WheelScrollActivity wheel) {
       wheel.target = (wheel.target + delta).clamp(minScrollExtent, maxScrollExtent);
       return;
@@ -54,14 +54,14 @@ class _SmoothScrollPosition extends ScrollPositionWithSingleContext {
   }
 }
 
-/// 브라우저처럼 휠을 굴리면 목표 위치를 정하고, 매 프레임 남은 거리의 일정 비율만큼 따라간다.
-/// 휠을 연달아 굴리면 목표만 멀어지므로 멈췄다 다시 출발하는 일 없이 매끄럽게 이어진다.
+/// Like browsers: a wheel tick sets a target, and every frame covers a fixed fraction of the remaining distance.
+/// Repeated ticks just push the target further, so scrolling continues without stopping and restarting.
 class _WheelScrollActivity extends ScrollActivity {
   _WheelScrollActivity(ScrollPositionWithSingleContext super.delegate, TickerProvider vsync, this.target) {
     _ticker = vsync.createTicker(_tick)..start();
   }
 
-  /// 남은 거리가 이 시간(초)마다 약 1/e로 줄어든다. 0.07이면 약 0.2초 만에 거의 도착한다.
+  /// The remaining distance shrinks by about 1/e every this many seconds; 0.07 arrives in roughly 0.2 s.
   static const _timeConstant = 0.07;
 
   double target;
@@ -87,7 +87,7 @@ class _WheelScrollActivity extends ScrollActivity {
 
     final step = remaining * (1 - exp(-dt / _timeConstant));
     _velocity = step / dt;
-    // 끝에 닿아 더 갈 수 없으면 멈춘다.
+    // Stop at the edge.
     if (delegate.setPixels(position + step) != 0) delegate.goIdle();
   }
 
@@ -107,14 +107,14 @@ class _WheelScrollActivity extends ScrollActivity {
   }
 }
 
-/// 항상 보이는 스크롤바 + 부드러운 휠 스크롤을 붙인다.
-/// 기본 데스크톱 스크롤바는 겹치지 않도록 끈다.
+/// Adds an always-visible scrollbar and smooth wheel scrolling.
+/// The default desktop scrollbar is turned off so they don't overlap.
 class SmoothScrollbar extends StatelessWidget {
   const SmoothScrollbar({super.key, required this.controller, required this.builder});
 
   final SmoothScrollController controller;
 
-  /// 스크롤 뷰에 넘길 [ScrollBehavior]를 받아 스크롤 뷰를 만든다.
+  /// Builds the scroll view with the [ScrollBehavior] to pass to it.
   final Widget Function(BuildContext context, ScrollBehavior behavior) builder;
 
   @override

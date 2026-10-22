@@ -14,7 +14,7 @@ import 'profile/creator_profile_page.dart';
 import 'profile/profile_header.dart';
 import 'profile/profile_navigation.dart';
 
-/// tr('제작자', 'Creators') 화면: 레벨을 만든 사람들의 목록 (웹의 /creators).
+/// Creators page: people who make levels (the website's /creators).
 class CreatorsPage extends StatelessWidget {
   const CreatorsPage({super.key});
 
@@ -69,7 +69,7 @@ class _Toolbar extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         DropdownMenu<CreatorSort>(
-          // 고른 항목의 글은 처음 만들 때만 채워지므로, 언어가 바뀌면 새로 만든다.
+          // The selected label is only filled in on creation, so recreate the menu when the language changes.
           key: ValueKey(appLanguage),
           initialSelection: creators.sort,
           label: Text(tr('정렬', 'Sort')),
@@ -109,7 +109,7 @@ class _Toolbar extends StatelessWidget {
   }
 }
 
-/// 인증 상태와 큐레이션 유형으로 거르기.
+/// Filters by verification status and curation type.
 class _FilterCard extends StatelessWidget {
   const _FilterCard({required this.creators, required this.curations});
 
@@ -206,26 +206,26 @@ class _FilterCard extends StatelessWidget {
   }
 }
 
-/// 제작자 한 줄 (웹의 CreatorCard): 사진, 이름과 인증 상태, 계정, 대표 큐레이션 아이콘,
-/// 정렬 기준 값(강조)과 클리어 수·좋아요 수. 누르면 제작자 페이지.
+/// One creator row (the website's CreatorCard): avatar, name and verification, account, curation icons,
+/// the sort value (emphasized) and clear/like counts. Tapping opens the creator page.
 class CreatorRow extends StatelessWidget {
   const CreatorRow({super.key, required this.creator, required this.sort});
 
   final CreatorListEntry creator;
   final CreatorSort sort;
 
-  /// 대표 큐레이션 아이콘 자리. 개수가 달라도 오른쪽 칸들이 줄마다 같은 자리에 오게 폭을 정해 둔다.
+  /// Fixed width for the curation icons so the columns to the right line up regardless of how many there are.
   static const _slotSize = 28.0;
   static const _maxSlots = 5;
   static const _slotsWidth = _maxSlots * (_slotSize + 4) + (_maxSlots - 1) * 6;
 
-  /// 카드 안쪽 폭이 이보다 좁으면 큐레이션 아이콘을 뺀다 (이름 칸이 200 남짓은 남게).
+  /// Below this inner card width the curation icons are hidden (keeping roughly 200px for the name).
   static const _slotsMinWidth = 960.0;
 
-  /// 이름 정렬이면 이름은 이미 보이므로 레벨 수를 강조한다 (웹과 같다).
+  /// When sorted by name the name is already visible, so the level count is emphasized (as on the website).
   static CreatorSort primaryFor(CreatorSort sort) => sort == CreatorSort.name ? CreatorSort.chartsTotal : sort;
 
-  /// 강조 칸 옆에 함께 보여줄 값. 웹처럼 클리어 수와 좋아요 수 중 강조 칸이 아닌 것.
+  /// Values shown next to the emphasized one: clears and likes, minus the emphasized key (as on the website).
   static List<CreatorSort> secondaryFor(CreatorSort sort) =>
       [CreatorSort.totalChartClears, CreatorSort.totalChartLikes].where((key) => key != primaryFor(sort)).toList();
 
@@ -243,7 +243,7 @@ class CreatorRow extends StatelessWidget {
     return HoverCard(
       onTap: () => ProfileNavigation.openCreator(context, creator.id),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      // 좁은 창에서는 이름 칸이 너무 좁아지지 않게 큐레이션 아이콘을 뺀다.
+      // In narrow windows, drop the curation icons so the name column doesn't get too narrow.
       child: LayoutBuilder(
         builder: (context, constraints) {
           final showSlots = constraints.maxWidth >= _slotsMinWidth;
@@ -307,7 +307,7 @@ class CreatorRow extends StatelessWidget {
   }
 }
 
-/// 이름과 값 한 칸 (리더보드와 같은 모양). 강조 칸은 순위 칩처럼 칠한다.
+/// A label and value (same look as the leaderboard). The emphasized one is filled like a rank chip.
 class _Stat extends StatelessWidget {
   const _Stat({required this.creator, required this.sort, this.emphasized = false});
 

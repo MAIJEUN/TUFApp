@@ -4,8 +4,8 @@ import 'package:flutter/foundation.dart';
 
 import '../core/tuf_api_client.dart';
 
-/// 페이지와 함께 스크롤하며 끝에 가까워지면 다음 묶음을 불러오는 목록
-/// (프로필의 기록·레벨, 클리어 목록, 리더보드).
+/// A list that scrolls with its page and loads the next batch near the end
+/// (profile passes and levels, passes, leaderboard, creators).
 abstract class PagedList<T> extends ChangeNotifier {
   PagedList(this.api);
 
@@ -17,11 +17,11 @@ abstract class PagedList<T> extends ChangeNotifier {
   bool loadingMore = false;
   String? error;
 
-  /// 다음 묶음을 받다가 실패한 이유. 있으면 저절로 다시 받지 않고, [retryLoadMore]를 기다린다.
-  /// (그러지 않으면 화면이 다시 그려질 때마다 곧바로 또 요청해서 서버에 요청이 쏟아진다.)
+  /// Why loading the next batch failed. While set, it is not requested again until [retryLoadMore]
+  /// (otherwise every rebuild would retry immediately and flood the server).
   String? loadMoreError;
 
-  /// 조건이 바뀌어 처음부터 다시 받을 때마다 늘어난다. 화면이 맨 위로 돌아갈 때 쓴다.
+  /// Incremented on every reload from the start; the page scrolls back to the top when it changes.
   int generation = 0;
 
   int _request = 0;
@@ -29,20 +29,20 @@ abstract class PagedList<T> extends ChangeNotifier {
   bool _disposed = false;
   Timer? _debounce;
 
-  /// [offset]부터 한 묶음.
+  /// One batch starting at [offset].
   @protected
   Future<({List<T> items, int total, bool hasMore})> fetch(int offset);
 
-  /// 같은 항목을 두 번 넣지 않게 비교할 값.
+  /// Key used to skip duplicate items.
   @protected
   Object keyOf(T item);
 
-  /// 처음 볼 때 한 번만 불러온다.
+  /// Loads once, the first time the list is shown.
   void ensureLoaded() {
     if (!_started) reload();
   }
 
-  /// 처음부터 다시 받는다. 늦게 온 이전 응답은 버린다.
+  /// Reloads from the start, dropping late responses from earlier requests.
   Future<void> reload() async {
     _started = true;
     _debounce?.cancel();
@@ -63,7 +63,7 @@ abstract class PagedList<T> extends ChangeNotifier {
     } on TufApiException catch (e) {
       if (request == _request) error = e.message;
     } on Object catch (e) {
-      // 응답 형식이 바뀌는 등 예상하지 못한 오류도 '불러오는 중'에 멈춰 있지 않게 알린다.
+      // Report unexpected errors too (like a changed response format) instead of staying on "Loading".
       if (request == _request) error = '$e';
     } finally {
       if (request == _request) {
@@ -73,7 +73,7 @@ abstract class PagedList<T> extends ChangeNotifier {
     }
   }
 
-  /// 검색어처럼 연달아 바뀌는 조건은 잠깐 기다렸다가 다시 받는다.
+  /// Debounced reload for conditions that change in quick succession, like search text.
   @protected
   void reloadSoon() {
     _debounce?.cancel();
@@ -92,7 +92,7 @@ abstract class PagedList<T> extends ChangeNotifier {
       final fresh = page.items.where((item) => !known.contains(keyOf(item))).toList();
       items.addAll(fresh);
       total = page.total;
-      // 새 항목이 하나도 없으면 (서버가 같은 묶음을 또 주면) 더 묻지 않는다.
+      // Stop asking when a batch has nothing new (the server returned the same batch again).
       hasMore = page.hasMore && fresh.isNotEmpty;
     } on TufApiException catch (e) {
       if (request == _request) loadMoreError = e.message;
@@ -106,7 +106,7 @@ abstract class PagedList<T> extends ChangeNotifier {
     }
   }
 
-  /// 실패한 다음 묶음을 다시 받는다 (목록 맨 아래의 '다시 시도').
+  /// Retries a failed next batch ("Retry" at the bottom of the list).
   Future<void> retryLoadMore() {
     loadMoreError = null;
     return loadMore();

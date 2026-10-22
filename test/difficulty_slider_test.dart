@@ -4,7 +4,7 @@ import 'package:tufapp/core/models/difficulty.dart';
 import 'package:tufapp/ui/widgets/difficulty_slider.dart';
 
 void main() {
-  // 폭 600, 양옆 여백 24 → 난이도 i의 x = 24 + 138 * i
+  // Width 600 with 24 padding on each side → x of difficulty i = 24 + 138 * i
   final difficulties = [for (var i = 0; i < 5; i++) Difficulty(id: i, name: 'P$i', color: '#808080')];
 
   Future<List<(int, int)>> pumpSlider(WidgetTester tester, {int lower = 0, int upper = 4}) async {
@@ -47,8 +47,8 @@ void main() {
   testWidgets('노브가 서로 넘어가면 놓을 때 순서를 바로잡는다', (tester) async {
     final calls = await pumpSlider(tester, lower: 1, upper: 2);
 
-    final gesture = await tester.startGesture(const Offset(162, 46)); // 1번 노브
-    await gesture.moveTo(const Offset(576, 46)); // 4번 자리까지
+    final gesture = await tester.startGesture(const Offset(162, 46)); // knob 1
+    await gesture.moveTo(const Offset(576, 46)); // to position 4
     await gesture.up();
     await tester.pumpAndSettle();
 

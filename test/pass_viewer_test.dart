@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:tufapp/app/controllers.dart';
 import 'package:tufapp/core/l10n.dart';
 import 'package:tufapp/core/models/level.dart';
 import 'package:tufapp/core/models/pass.dart';
+import 'package:tufapp/core/tuf_api_client.dart';
 import 'package:tufapp/ui/pages/pass_viewer_page.dart';
 
-/// 클리어 기록 화면: 점수·판정·표시가 보여야 한다.
+/// Pass page: score, judgements and flags must be shown.
 void main() {
   final level = Level.fromJson({
     'id': 11372,
@@ -60,20 +63,20 @@ void main() {
     expect(find.text('67,016.00'), findsOneWidget);
     expect(find.text('98.83%'), findsOneWidget);
     expect(find.text('1x'), findsOneWidget);
-    // 체감 난이도는 있고, 적어 둔 예상 난이도가 없으면 그 줄은 아예 빼고 보여준다.
+    // There is a feeling rating; without an expected rating that row is left out entirely.
     expect(find.text('U16'), findsOneWidget);
     expect(find.text('체감 난이도'), findsOneWidget);
     expect(find.text('예상 난이도'), findsNothing);
     expect(find.text('없음'), findsNothing);
-    // 판정: 웹과 같은 자리에 같은 값.
+    // Judgements: same values in the same places as the website.
     expect(find.text('6,275'), findsOneWidget);
     expect(find.text('9'), findsOneWidget);
     expect(find.text('36'), findsOneWidget);
-    // 표시.
+    // Flags.
     expect(find.text('WF'), findsOneWidget);
     expect(find.text('16키'), findsOneWidget);
     expect(find.text('v2'), findsOneWidget);
-    // 영상 제목은 재생기 안에 나오므로 따로 적지 않는다.
+    // The video title is shown inside the player, so it isn't repeated.
     expect(find.text('세계 최초 클리어'), findsNothing);
   });
 
@@ -83,7 +86,7 @@ void main() {
     final app = AppController();
     addTearDown(app.dispose);
 
-    // 실제 기록 #66676 (레벨 #650).
+    // Real pass #66676 (level #650).
     final xPerfect = LevelPass.fromJson({
       'id': 66676,
       'playerId': 7,
@@ -126,16 +129,38 @@ void main() {
     expect(find.text('121'), findsOneWidget);
     expect(find.text('2,919'), findsOneWidget);
     expect(find.text('167'), findsOneWidget);
-    // 가운데 정확은 흰색 (정확−/정확+의 초록과 구분).
+    // The center Perfect is white (distinct from the green Perfect−/Perfect+).
     final perfect = tester.widget<Text>(find.text('2,919'));
     expect(perfect.style?.color, const Color(0xFFFFFFFF));
-    // 새 표시들 (사이트와 같은 이름).
+    // New flags (same names as the website).
     for (final flag in ['WF PP', '자동 제출', '8키', 'X-Perfect']) {
       expect(find.text(flag), findsOneWidget, reason: flag);
     }
     expect(find.text('<3.4.0'), findsNothing, reason: '3.4.0 이후 기록');
     expect(find.text('v2'), findsNothing);
   });
+
+  testWidgets('점수와 플레이어를 모두 받지 못하면 불러오는 중에 머물지 않는다', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1280, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final app = AppController(api: TufApiClient(client: MockClient((_) async => http.Response('{}', 500))));
+    addTearDown(app.dispose);
+
+    await tester.pumpWidget(
+      AppScope(
+        controller: app,
+        child: MaterialApp(
+          theme: ThemeData.dark(),
+          home: PassViewerPage(level: level, pass: pass),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('점수 불러오는 중...'), findsNothing);
+    expect(find.text('점수를 불러오지 못했어요'), findsOneWidget);
+  });
+
   testWidgets('영어로 보인다', (tester) async {
     appLanguage = AppLanguage.en;
     addTearDown(() => appLanguage = AppLanguage.ko);

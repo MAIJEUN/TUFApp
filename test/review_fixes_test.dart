@@ -13,7 +13,7 @@ import 'package:tufapp/core/level_library.dart';
 import 'package:tufapp/core/level_manager.dart';
 import 'package:tufapp/core/tuf_api_client.dart';
 
-/// 코드 검토에서 고친 것들이 다시 깨지지 않는지 본다.
+/// Guards fixes made during code review from regressing.
 void main() {
   group('다음 묶음을 받다가 실패하면', () {
     test('저절로 다시 받지 않고, 다시 시도를 눌러야 받는다', () async {
@@ -26,7 +26,7 @@ void main() {
       expect(list.loadMoreError, isNotNull);
       final calls = list.calls;
 
-      // 화면이 다시 그려지며 몇 번을 불러도 요청하지 않는다.
+      // No requests however often it is called during rebuilds.
       for (var i = 0; i < 5; i++) {
         await list.loadMore();
       }
@@ -143,7 +143,7 @@ void main() {
   });
 }
 
-/// 한 번에 두 개씩 주고, [failNext]면 한 번 실패한다.
+/// Returns two items per batch, failing once if [failNext].
 class _FlakyList extends PagedList<int> {
   _FlakyList() : super(TufApiClient(client: MockClient((_) async => http.Response('{}', 404))));
 

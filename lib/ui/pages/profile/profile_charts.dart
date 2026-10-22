@@ -6,7 +6,7 @@ import '../../../core/l10n.dart';
 import '../../../core/profile_stats.dart';
 import '../../widgets/common.dart';
 
-/// 그래프 색. 앱 테마에서 가져온다.
+/// Chart colors, taken from the app theme.
 class _ChartColors {
   _ChartColors(ThemeData theme)
     : axis = theme.textTheme.labelSmall!.copyWith(color: theme.colorScheme.onSurfaceVariant),
@@ -22,7 +22,7 @@ class _ChartColors {
   final Color surface;
 }
 
-/// 그래프 위에 뜨는 작은 설명 상자 (앱의 다른 떠 있는 상자와 같은 바탕).
+/// Small tooltip box over a chart (same background as other floating boxes in the app).
 BoxDecoration _tooltipBox(ThemeData theme) => BoxDecoration(
   color: theme.colorScheme.surfaceContainerHigh,
   borderRadius: BorderRadius.circular(12),
@@ -30,7 +30,7 @@ BoxDecoration _tooltipBox(ThemeData theme) => BoxDecoration(
   boxShadow: const [BoxShadow(color: Color(0x40000000), blurRadius: 16, offset: Offset(0, 4))],
 );
 
-/// 눈금 간격을 1, 2, 5 × 10ⁿ 중에서 고른다.
+/// Picks a tick step of 1, 2 or 5 × 10ⁿ.
 double _niceStep(double range, int count) {
   if (range <= 0) return 1;
   final rough = range / count;
@@ -53,15 +53,15 @@ Color _hex(String? value, Color fallback) {
   return parsed == null ? fallback : Color(parsed);
 }
 
-// ───────────────────────── 난이도 그래프 ─────────────────────────
+// ───────────────────────── Difficulty chart ─────────────────────────
 
-/// 난이도별 막대 그래프. 막대 색은 난이도 색이고, 마우스를 올리면 아이콘과 개수를 보여준다.
+/// Bar chart per difficulty, colored by difficulty. Hovering shows the icon and count.
 class DifficultyBarChart extends StatefulWidget {
   const DifficultyBarChart({super.key, required this.bars, required this.levels});
 
   final List<DifficultyBar> bars;
 
-  /// 레벨 수 그래프인지 (아니면 클리어 수).
+  /// Whether bars count levels (otherwise clears).
   final bool levels;
 
   static const height = 300.0;
@@ -91,7 +91,7 @@ class _DifficultyBarChartState extends State<DifficultyBarChart> {
               children: [
                 Positioned.fill(
                   child: TweenAnimationBuilder<double>(
-                    // 처음 보일 때와 값이 바뀔 때 막대가 자란다 (사이트의 recharts처럼).
+                    // Bars grow when first shown and when values change (like the website's recharts).
                     key: ValueKey(Object.hashAll(bars.map((bar) => bar.count))),
                     tween: Tween(begin: 0, end: 1),
                     duration: const Duration(milliseconds: 700),
@@ -163,7 +163,7 @@ class _DifficultyBarChartState extends State<DifficultyBarChart> {
   }
 }
 
-/// 막대 그래프의 자리 계산 (그리기와 마우스 위치 찾기에 함께 쓴다).
+/// Bar chart geometry, shared by painting and hit testing.
 class _BarLayout {
   _BarLayout(this.bars, this.size) {
     final top = bars.fold(0, (value, bar) => max(value, bar.count));
@@ -183,7 +183,7 @@ class _BarLayout {
   Rect barRect(int index, double progress) {
     final height = plot.height * bars[index].count / yMax * progress;
     final left = plot.left + slot * index;
-    // 막대 사이가 벌어 보이지 않게 반 픽셀씩 겹친다 (사이트의 barCategoryGap -0.5).
+    // Overlap by half a pixel so no gaps show between bars (the website's barCategoryGap -0.5).
     return Rect.fromLTRB(left - 0.25, plot.bottom - height, left + slot + 0.25, plot.bottom);
   }
 
@@ -208,7 +208,7 @@ class _BarPainter extends CustomPainter {
       ..color = colors.grid
       ..strokeWidth = 1;
 
-    // 가로 격자 (점선)와 왼쪽 숫자.
+    // Horizontal grid (dashed) and left labels.
     for (var value = 0.0; value <= layout.yMax + 0.01; value += layout.step) {
       final y = plot.bottom - plot.height * value / layout.yMax;
       for (var x = plot.left; x < plot.right; x += 6) {
@@ -238,7 +238,7 @@ class _BarPainter extends CustomPainter {
       );
     }
 
-    // 아래 축: 선과 이름 (하나 걸러 하나).
+    // Bottom axis: line and names (every other one).
     canvas.drawLine(Offset(plot.left, plot.bottom), Offset(plot.right, plot.bottom), Paint()..color = colors.grid);
     for (var i = 0; i < layout.bars.length; i += 2) {
       _text(canvas, layout.bars[i].label, Offset(plot.left + layout.slot * (i + 0.5), plot.bottom + 6), center: true);
@@ -268,13 +268,13 @@ class _BarPainter extends CustomPainter {
       oldDelegate.layout.size != layout.size;
 }
 
-// ───────────────────────── 순위 변화 ─────────────────────────
+// ───────────────────────── Rank history ─────────────────────────
 
-/// 순위 변화 선 그래프. 1위가 위로 가도록 세로축을 뒤집는다.
+/// Rank history line chart. The vertical axis is flipped so rank 1 is at the top.
 class RankHistoryChart extends StatefulWidget {
   const RankHistoryChart({super.key, required this.points});
 
-  /// 날짜와 순위. 순위가 없는 날은 선이 끊긴다.
+  /// Dates and ranks. The line breaks on days without a rank.
   final List<({DateTime date, int? rank})> points;
 
   static const height = 320.0;
@@ -392,7 +392,7 @@ class _LineLayout {
     return ((position.dx - plot.left) / plot.width * (points.length - 1)).round().clamp(0, points.length - 1);
   }
 
-  /// 세로축 눈금: 위아래 끝을 포함해 대여섯 개.
+  /// Vertical ticks: five or six, including both ends.
   List<int> get ticks {
     final step = _niceStep((high - low).toDouble(), 5).round();
     final start = (low / step).ceil() * step;
@@ -425,12 +425,12 @@ class _LinePainter extends CustomPainter {
     canvas.drawLine(Offset(plot.left, plot.top), Offset(plot.left, plot.bottom), grid);
     canvas.drawLine(Offset(plot.left, plot.bottom), Offset(plot.right, plot.bottom), grid);
 
-    // 아래 축 날짜: 서로 겹치지 않을 만큼만.
+    // Bottom axis dates, only as many as fit without overlapping.
     final points = layout.points;
     if (points.isNotEmpty) {
       final count = max(1, (plot.width / 70).floor());
       final stride = max(1, (points.length / count).ceil());
-      // 1년이 넘으면 연·월, 아니면 월·일.
+      // Year and month beyond a year, otherwise month and day.
       final long = points.last.date.difference(points.first.date).inDays > 366;
       for (var i = 0; i < points.length; i += stride) {
         final date = points[i].date;
@@ -439,7 +439,7 @@ class _LinePainter extends CustomPainter {
       }
     }
 
-    // 선: 끊긴 곳은 이어 그리지 않는다. 처음 보일 때 왼쪽부터 그려진다.
+    // Line: gaps are not bridged. It draws in from the left when first shown.
     final line = Paint()
       ..color = colors.line
       ..strokeWidth = 3
@@ -460,7 +460,7 @@ class _LinePainter extends CustomPainter {
       if (path == null || previous == null) {
         path = Path()..moveTo(point.dx, point.dy);
       } else {
-        // 계단처럼 꺾이지 않게 가운데에서 부드럽게 넘어간다 (recharts의 bump).
+        // Curve through the midpoint instead of stepping (recharts' bump).
         final middle = (previous.dx + point.dx) / 2;
         path.cubicTo(middle, previous.dy, middle, point.dy, point.dx, point.dy);
       }

@@ -26,7 +26,7 @@ void main() {
     expect(await store.bytesFor(url), [1, 2, 3, 4]);
     expect(requests, 1);
 
-    // 같은 실행 중에도, 앱을 새로 켠 것과 같은 상황에서도 파일에서 읽는다.
+    // Reads from the file, both within the same run and as if the app were restarted.
     expect(await store.bytesFor(url), [1, 2, 3, 4]);
     final restarted = ImageCacheStore.forTesting(directory: dir, client: client);
     expect(await restarted.bytesFor(url), [1, 2, 3, 4]);

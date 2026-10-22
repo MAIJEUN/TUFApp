@@ -2,8 +2,8 @@ import '../json.dart';
 import '../l10n.dart';
 import 'level.dart';
 
-/// 커뮤니티 레벨 팩 (목록 한 칸).
-/// GET /v2/database/levels/packs 의 packs[] 항목.
+/// A community level pack (one list card).
+/// An item of packs[] from GET /v2/database/levels/packs.
 class LevelPack {
   const LevelPack({
     required this.id,
@@ -35,7 +35,7 @@ class LevelPack {
     );
   }
 
-  /// 예: "HXvV76zK". 웹 주소(/packs/{id})에도 그대로 쓴다.
+  /// e.g. "HXvV76zK", also used in the website URL (/packs/{id}).
   final String id;
   final String name;
   final String? description;
@@ -43,11 +43,11 @@ class LevelPack {
   final int levelCount;
   final int favoritesCount;
 
-  /// 운영진이 고정한 팩 (공식 팩 등).
+  /// Pinned by staff (official packs etc.).
   final bool isPinned;
   final PackOwner? owner;
 
-  /// 목록 카드에 미리 보여줄 앞쪽 레벨 몇 개.
+  /// The first few levels previewed on the list card.
   final List<PackPreviewLevel> preview;
 
   String get webUrl => 'https://tuforums.com/packs/$id';
@@ -65,7 +65,7 @@ class PackOwner {
   final String? avatarUrl;
 }
 
-/// 목록 카드 미리보기용 레벨 (id, 곡 이름, 난이도 id만 온다).
+/// Level preview for a list card (only id, song and difficulty id).
 class PackPreviewLevel {
   const PackPreviewLevel({required this.id, required this.song, required this.diffId});
 
@@ -77,7 +77,7 @@ class PackPreviewLevel {
   final int diffId;
 }
 
-/// 팩 안의 항목: 폴더이거나 레벨이다.
+/// An item in a pack: a folder or a level.
 sealed class PackNode {
   const PackNode({required this.id});
 
@@ -90,7 +90,7 @@ class PackFolder extends PackNode {
   final String name;
   final List<PackNode> children;
 
-  /// 이 폴더 아래(하위 폴더 포함)의 모든 레벨.
+  /// Every level under this folder, including subfolders.
   Iterable<PackLevelEntry> get allLevels => packLevelsIn(children);
 }
 
@@ -100,7 +100,7 @@ class PackLevelEntry extends PackNode {
   final Level level;
 }
 
-/// 여러 항목 아래의 모든 레벨을 순서대로.
+/// Every level under the given items, in order.
 Iterable<PackLevelEntry> packLevelsIn(List<PackNode> nodes) sync* {
   for (final node in nodes) {
     switch (node) {
@@ -112,11 +112,11 @@ Iterable<PackLevelEntry> packLevelsIn(List<PackNode> nodes) sync* {
   }
 }
 
-/// 팩 상세 (폴더 구조 포함). GET /v2/database/levels/packs/{id}?tree=true
+/// Pack details with folder structure. GET /v2/database/levels/packs/{id}?tree=true
 class LevelPackDetail {
   const LevelPackDetail({required this.pack, required this.items});
 
-  /// [resolveLevel]은 팩 응답의 간단한 레벨(난이도·태그가 id뿐)을 카드에 보여줄 수 있게 채운다.
+  /// [resolveLevel] fills in the pack's bare levels (difficulty and tags as ids only) so cards can show them.
   factory LevelPackDetail.fromJson(Map<String, dynamic> json, {Level Function(Level level)? resolveLevel}) {
     List<PackNode> parse(List<Map<String, dynamic>> items) {
       final sorted = [...items]..sort((a, b) => asInt(a['sortOrder']).compareTo(asInt(b['sortOrder'])));

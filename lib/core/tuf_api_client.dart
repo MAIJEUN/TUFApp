@@ -25,14 +25,14 @@ class TufApiException implements Exception {
   String toString() => message;
 }
 
-/// TUF API(https://api.tuforums.com) 클라이언트.
+/// Client for the TUF API (https://api.tuforums.com).
 class TufApiClient {
   TufApiClient({http.Client? client}) : _client = client ?? http.Client();
 
   static final Uri baseUri = Uri.parse('https://api.tuforums.com/');
   static const _headers = {'User-Agent': 'TUFApp/0.2'};
 
-  /// 서버가 이만큼 답하지 않으면 실패로 본다 (연결이 멈춰서 화면이 영영 기다리지 않게).
+  /// Requests fail after this long without a response, so a stalled connection never leaves a page waiting forever.
   static const requestTimeout = Duration(seconds: 20);
 
   final http.Client _client;
@@ -58,10 +58,10 @@ class TufApiClient {
     return json.whereType<Map<String, dynamic>>().map(Difficulty.fromJson).toList();
   }
 
-  /// 레벨에 붙는 태그 목록 (그룹 정보 포함).
+  /// Level tags, with their groups.
   Future<List<FacetItem>> getTags() => _getFacetItems('v2/database/difficulties/tags', tr('태그', 'tag'));
 
-  /// 큐레이션 유형 목록 (C3, V2, Epic 등).
+  /// Curation types (C3, V2, Epic, ...).
   Future<List<FacetItem>> getCurationTypes() =>
       _getFacetItems('v2/admin/curations/types', tr('큐레이션 유형', 'curation type'));
 
@@ -71,7 +71,7 @@ class TufApiClient {
     return json.whereType<Map<String, dynamic>>().map(FacetItem.fromJson).toList();
   }
 
-  /// 레벨 하나의 클리어 기록 (리더보드).
+  /// All passes of a level (its leaderboard).
   Future<List<LevelPass>> getLevelPasses(int levelId) async {
     final json = await _getJson('v2/database/passes/level/$levelId');
     if (json is! List) {
@@ -80,7 +80,7 @@ class TufApiClient {
     return json.whereType<Map<String, dynamic>>().map(LevelPass.fromJson).toList();
   }
 
-  /// 기록 하나의 자세한 정보 (랭킹 점수에 보탠 몫, 순위 포함).
+  /// Details of one pass, including its ranked score contribution and rank.
   Future<PassDetail> getPass(int id) async {
     final json = await _getJson('v2/database/passes/$id');
     if (json is! Map<String, dynamic>) {
@@ -89,7 +89,7 @@ class TufApiClient {
     return PassDetail.fromJson(json);
   }
 
-  /// 기록을 낸 사람의 정보 (점수, 순위 등).
+  /// The player behind a pass (scores, rank, ...).
   Future<PlayerProfile> getPlayer(int id) async {
     final json = await _getJson('v2/database/players/$id');
     if (json is! Map<String, dynamic>) {
@@ -98,7 +98,7 @@ class TufApiClient {
     return PlayerProfile.fromJson(json);
   }
 
-  /// 모든 클리어 기록 검색 (웹의 클리어 목록).
+  /// Searches all passes (the website's pass list).
   Future<({List<PlayerPassEntry> passes, int total, int? seed})> searchPasses(ClearSearchQuery query) async {
     final json = await _getJson('v2/database/passes', query.toQueryParameters());
     if (json is! Map<String, dynamic>) {
@@ -111,14 +111,14 @@ class TufApiClient {
     );
   }
 
-  /// 번호로 클리어 기록 찾기 (검색창에 "#번호"). 없으면 빈 목록.
+  /// Finds a pass by number ("#id" in the search box). Empty if not found.
   Future<List<PlayerPassEntry>> findPassesById(int id) async {
     final json = await _getJson('v2/database/passes/byId/$id');
     if (json is! Map<String, dynamic>) return const [];
     return asObjectList(json['results']).map(PlayerPassEntry.fromJson).toList();
   }
 
-  /// 플레이어 리더보드. 웹처럼 정지된 플레이어는 뺀다.
+  /// Player leaderboard. Banned players are excluded, like on the website.
   Future<({List<LeaderboardPlayer> players, int total})> getLeaderboard({
     String query = '',
     LeaderboardSort sort = LeaderboardSort.rankedScore,
@@ -144,7 +144,7 @@ class TufApiClient {
     );
   }
 
-  /// 제작자 목록 (웹의 제작자 페이지). [facetQuery]는 큐레이션 유형 조건 ([buildFacetQuery]).
+  /// Creator list (the website's creators page). [facetQuery] filters by curation type ([buildFacetQuery]).
   Future<({List<CreatorListEntry> creators, int total})> getCreators({
     String query = '',
     CreatorSort sort = CreatorSort.chartsTotal,
@@ -172,7 +172,7 @@ class TufApiClient {
     );
   }
 
-  /// 플레이어 페이지 (점수, 통계, 대회 입상, 모듈 배치).
+  /// Player page (scores, stats, tournament placements, module layout).
   Future<PlayerProfileDetail> getPlayerProfile(int id) async {
     final json = await _getJson('v3/players/$id/profile');
     if (json is! Map<String, dynamic> || json['id'] == null) {
@@ -181,7 +181,7 @@ class TufApiClient {
     return PlayerProfileDetail.fromJson(json);
   }
 
-  /// 플레이어의 기록 목록. 정렬과 검색은 서버가 한다.
+  /// A player's passes. Sorting and search happen on the server.
   Future<({List<PlayerPassEntry> passes, int total})> getPlayerPasses(
     int id, {
     int offset = 0,
@@ -205,7 +205,7 @@ class TufApiClient {
     return (passes: asObjectList(json['passes']).map(PlayerPassEntry.fromJson).toList(), total: asInt(json['total']));
   }
 
-  /// 순위 변화. [from]/[to]가 없으면 전체 기간.
+  /// Rank history. Without [from]/[to], the whole period.
   Future<List<RankHistoryPoint>> getRankHistory(int id, {DateTime? from, DateTime? to}) async {
     String day(DateTime date) => date.toUtc().toIso8601String().substring(0, 10);
     final json = await _getJson('v3/players/$id/rank-history', {
@@ -220,7 +220,6 @@ class TufApiClient {
     return asObjectList(json['series']).map(RankHistoryPoint.fromJson).toList();
   }
 
-  /// 제작자 페이지.
   Future<CreatorProfileDetail> getCreatorProfile(int id) async {
     final json = await _getJson('v3/creators/$id/profile');
     if (json is! Map<String, dynamic>) {
@@ -229,7 +228,7 @@ class TufApiClient {
     return CreatorProfileDetail.fromJson(json);
   }
 
-  /// 공개된 레벨 팩 목록. 웹의 팩 페이지와 같은 요청이다.
+  /// Public level packs; the same request as the website's packs page.
   Future<({List<LevelPack> packs, int total})> searchPacks({
     String query = '',
     PackSort sort = PackSort.recent,
@@ -250,7 +249,7 @@ class TufApiClient {
     return (packs: asObjectList(json['packs']).map(LevelPack.fromJson).toList(), total: asInt(json['total']));
   }
 
-  /// 팩 하나를 폴더 구조까지 받는다.
+  /// A single pack with its folder structure.
   Future<LevelPackDetail> getPack(String id, {Level Function(Level level)? resolveLevel}) async {
     final json = await _getJson('v2/database/levels/packs/${Uri.encodeComponent(id)}', {'tree': 'true'});
     if (json is! Map<String, dynamic>) {
@@ -259,20 +258,21 @@ class TufApiClient {
     return LevelPackDetail.fromJson(json, resolveLevel: resolveLevel);
   }
 
-  /// 레벨 zip의 내용 정보. CDN에 없는 레벨이면 null.
+  /// Contents of a level's zip, or null if the level isn't on the CDN.
   Future<CdnLevelMetadata?> getLevelCdnMetadata(int id) async {
     final json = await _getJson('v2/database/levels/$id/cdnData');
     final metadata = json is Map<String, dynamic> ? json['metadata'] : null;
     return metadata is Map<String, dynamic> ? CdnLevelMetadata.fromJson(metadata) : null;
   }
 
-  /// 영상 링크(YouTube, Bilibili 등)의 썸네일 이미지 주소. 서버가 캐시해 두며, Bilibili는 TUF 이미지 프록시 주소로 준다.
+  /// Thumbnail URL of a video link (YouTube, Bilibili, ...). Cached by the
+  /// server; Bilibili comes back as a TUF image proxy URL.
   Future<String?> getVideoThumbnailUrl(String videoLink) async {
     final json = await _getJson('v2/media/video-details/${Uri.encodeComponent(videoLink)}');
     return json is Map<String, dynamic> ? asStringOrNull(json['image']) : null;
   }
 
-  /// 헤더까지만 받은 응답. 본문은 호출자가 스트림으로 읽는다.
+  /// A response with headers only; the caller streams the body.
   Future<http.StreamedResponse> openDownload(String url) async {
     final request = http.Request('GET', Uri.parse(url))..headers.addAll(_headers);
 
@@ -294,7 +294,7 @@ class TufApiClient {
     return response;
   }
 
-  /// [query] 값은 글자이거나, 같은 이름으로 여러 번 보낼 글자 목록이다.
+  /// [query] values are strings, or lists of strings sent as repeated keys.
   Future<Object?> _getJson(String path, [Map<String, Object>? query]) async {
     var uri = baseUri.resolve(path);
     if (query != null) uri = uri.replace(queryParameters: query);

@@ -11,8 +11,8 @@ import 'profile_modules.dart';
 import 'profile_navigation.dart';
 import 'profile_page_frame.dart';
 
-/// 플레이어 페이지 (사이트의 /profile/{id}). 머리글 아래에 사이트에서 정한 순서대로 모듈을 놓고,
-/// 모든 기록은 레벨 찾기 목록처럼 맨 아래에 이어 붙인다.
+/// Player page (the website's /profile/{id}). Modules follow the header in the website's order,
+/// and all passes are appended at the bottom like the levels list.
 class PlayerProfilePage extends StatelessWidget {
   const PlayerProfilePage({super.key, required this.playerId});
 
@@ -29,7 +29,7 @@ class PlayerProfilePage extends StatelessWidget {
       final passes = list as PlayerPassList;
       final entry = passes.items[index];
       final id = entry.pass.id;
-      // 점수 높은 순으로 볼 때, 랭크 점수에 들어간 마지막 기록 아래에 경계를 긋는다.
+      // When sorted by score, draw a line below the last pass that counts toward the ranked score.
       final cutoff =
           passes.sort == PlayerPassSort.score &&
           passes.descending &&
@@ -104,7 +104,7 @@ class PlayerProfilePage extends StatelessWidget {
               ),
           ],
         ),
-        // 내용이 없는 모듈은 사이트처럼 보여주지 않는다. 기록 목록은 맨 아래에 따로 있다.
+        // Like the website, empty modules are hidden. The pass list sits separately at the bottom.
         for (final module in player.modules.layoutFor(player: true))
           ?switch (module.type) {
             'bio' when !player.bio.isEmpty => BioModule(title: tr('내 소개', 'Bio'), bio: player.bio),
@@ -126,7 +126,7 @@ class PlayerProfilePage extends StatelessWidget {
     },
   );
 
-  /// 랭크 점수에 들어간 기록 중 가장 적게 보탠 것.
+  /// The smallest contribution among passes counted in the ranked score.
   static int? _lowestTopScore(PlayerProfileDetail player) {
     MapEntry<int, double>? lowest;
     for (final entry in player.topScores.entries) {

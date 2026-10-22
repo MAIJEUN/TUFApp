@@ -7,7 +7,7 @@ import 'package:tufapp/core/level_library.dart';
 import 'package:tufapp/core/library_organizer.dart';
 import 'package:tufapp/core/tuf_api_client.dart';
 
-/// 탐색기처럼 고르고 옮기는 부분(선택 규칙, 여러 개 옮기기/지우기)을 확인한다.
+/// Explorer-style selection and moving (selection rules, moving/deleting several entries).
 void main() {
   late Directory root;
   late LibraryController library;
@@ -33,7 +33,7 @@ void main() {
     await root.delete(recursive: true);
   });
 
-  /// 폴더 2개와 레벨 3개가 있는 라이브러리를 연다.
+  /// Opens a library with 2 folders and 3 levels.
   Future<void> openSample() async {
     await Directory(p.join(root.path, 'a')).create();
     await Directory(p.join(root.path, 'b')).create();
@@ -83,7 +83,7 @@ void main() {
     library.select(entries[3], toggle: true);
 
     expect([for (final e in library.dragGroupFor(entries[2])) e.name], ['level1', 'level2']);
-    // 선택에 없는 항목을 끌면 그것만
+    // Dragging an unselected entry moves just that entry
     expect([for (final e in library.dragGroupFor(entries[4])) e.name], ['level3']);
   });
 

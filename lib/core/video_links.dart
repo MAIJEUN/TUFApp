@@ -1,7 +1,7 @@
-/// 영상 링크 다루기. 사이트(utils/videoLink.js)와 같은 규칙을 쓴다.
+/// Video link helpers, following the website's rules (utils/videoLink.js).
 ///
-/// TUF의 videoLink 칸에는 링크 여러 개가 빈칸으로 이어져 올 수 있다. 첫 번째가 대표 영상이다.
-/// 지원하는 곳: YouTube, Bilibili, Douyin.
+/// TUF's videoLink field may hold several links separated by spaces; the first one is the main video.
+/// Supported: YouTube, Bilibili, Douyin.
 enum VideoProvider { youtube, bilibili, douyin }
 
 abstract final class VideoLinks {
@@ -20,11 +20,11 @@ abstract final class VideoLinks {
   static final _douyinPath = RegExp(r'/(?:share/(?:video|note)|video)/(\d{15,22})');
   static final _douyinId = RegExp(r'^\d{15,22}$');
 
-  /// 빈칸으로 이어진 링크들을 나눈다.
+  /// Splits space-separated links.
   static List<String> split(String? raw) =>
       raw == null ? const [] : raw.trim().split(RegExp(r'\s+')).where((part) => part.isNotEmpty).toList();
 
-  /// 대표 영상 (첫 번째 링크). 없으면 null.
+  /// The main video (first link), or null.
   static String? primary(String? raw) => split(raw).firstOrNull;
 
   static VideoProvider? providerOf(String? raw) {
@@ -38,7 +38,7 @@ abstract final class VideoLinks {
     return null;
   }
 
-  /// YouTube 영상 id (11자). 대표 링크가 YouTube가 아니면 null.
+  /// YouTube video id (11 characters), or null if the main link isn't YouTube.
   static String? youtubeId(String? raw) {
     final link = primary(raw);
     if (link == null || providerOf(link) != VideoProvider.youtube) return null;
@@ -48,14 +48,14 @@ abstract final class VideoLinks {
     return null;
   }
 
-  /// Bilibili BV id. 대표 링크가 Bilibili가 아니면 null.
+  /// Bilibili BV id, or null if the main link isn't Bilibili.
   static String? bilibiliId(String? raw) {
     final link = primary(raw);
     if (link == null || providerOf(link) != VideoProvider.bilibili) return null;
     return _bilibiliId.firstMatch(link)?.group(1);
   }
 
-  /// Douyin 영상 id (15~22자리 숫자). 영상·공유·재생기 주소와 modal_id/vid 값에서 꺼낸다.
+  /// Douyin video id (15–22 digits), taken from video, share or player URLs and modal_id/vid parameters.
   static String? douyinId(String? raw) {
     final link = primary(raw);
     if (link == null || providerOf(link) != VideoProvider.douyin) return null;
@@ -69,23 +69,23 @@ abstract final class VideoLinks {
     return null;
   }
 
-  /// 앱 안에서 띄울 재생기 주소. 지원하지 않는 링크면 null.
+  /// Player URL to embed in the app, or null for unsupported links.
   static String? embedUrl(String? raw, {bool autoplay = false}) {
     final play = autoplay ? 1 : 0;
     if (youtubeId(raw) case final id?) {
-      // 사이트처럼 링크의 시작 시각(t=)을 이어 받는다.
+      // Keep the link's start time (t=), like the website.
       final start = RegExp(r'[?&]t=(\d+)s?').firstMatch(primary(raw)!)?.group(1);
       return 'https://www.youtube.com/embed/$id?autoplay=$play&rel=0${start == null ? '' : '&start=$start'}';
     }
     if (bilibiliId(raw) case final id?) {
       return 'https://player.bilibili.com/player.html?isOutside=true&bvid=$id&p=1&autoplay=$play';
     }
-    // mode=pc가 없으면 공식 재생기가 좁은 칸에서 세로(모바일) 화면으로 뜬다.
+    // Without mode=pc the official player shows the vertical mobile layout in a narrow box.
     if (douyinId(raw) case final id?) return 'https://open.douyin.com/player/video?vid=$id&autoplay=$play&mode=pc';
     return null;
   }
 
-  /// Douyin 공식 재생기는 보낸 곳(referrer)이 있어야 열린다. 나머지는 사이트와 같이 엄격하게 둔다.
+  /// The official Douyin player only opens with a referrer. Everything else stays strict, like the website.
   static String referrerPolicy(String? raw) =>
       providerOf(raw) == VideoProvider.douyin ? 'unsafe-url' : 'strict-origin-when-cross-origin';
 }

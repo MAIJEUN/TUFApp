@@ -166,7 +166,7 @@ void main() {
         FacetItem(id: 2, name: 'V1'),
         FacetItem(id: 3, name: 'H2'),
         FacetItem(id: 4, name: 'Epic'),
-        // 웹은 O0을 숨기지 않는다.
+        // The website doesn't hide O0.
         FacetItem(id: 5, name: 'O0'),
       ];
       const hidden = [FacetItem(id: 6, name: 'C0'), FacetItem(id: 7, name: 'V0')];

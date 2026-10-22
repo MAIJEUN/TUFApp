@@ -5,7 +5,7 @@ import 'package:tufapp/core/l10n.dart';
 import 'package:tufapp/core/models/pack.dart';
 import 'package:tufapp/ui/pages/packs_page.dart';
 
-/// 팩 목록과 팩 내용이 오류 없이 그려지고, 폴더를 펼치고 접을 수 있어야 한다.
+/// The pack list and pack contents render without errors, and folders expand and collapse.
 void main() {
   Map<String, dynamic> level(int id, String song) => {
     'id': id,
@@ -98,7 +98,7 @@ void main() {
         controller: app,
         child: MaterialApp(
           theme: ThemeData.dark(),
-          // 글자가 커져도 넘치지 않아야 한다.
+          // Must not overflow with a larger text scale.
           builder: (context, child) => MediaQuery(
             data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1.15)),
             child: child!,
@@ -120,14 +120,14 @@ void main() {
     final job = PackDownload(scope: 'abc', label: 'AWC', items: items, packId: 'abc');
     job.finishedIds.add(items.first.level.id);
     app.packs.download = job;
-    // 팩 목록이 다시 그려지게 알린다 (받기를 시작할 때처럼). 접고 펴기는 검색을 다시 하지 않는다.
+    // Make the pack list rebuild (as when a download starts). Expanding and collapsing doesn't search again.
     app.packs.toggleFolder(-1);
     await tester.pump(const Duration(milliseconds: 300));
 
     final bar = tester.widget<LinearProgressIndicator>(find.byType(LinearProgressIndicator));
     expect(bar.value, closeTo(1 / 3, 0.01), reason: '3개 중 1개');
 
-    // 다른 팩을 받는 중이면 이 카드는 그대로다.
+    // This card is unaffected while another pack downloads.
     app.packs.download = PackDownload(scope: 'x', label: 'x', items: items, packId: 'other');
     app.packs.toggleFolder(-1);
     await tester.pump(const Duration(milliseconds: 300));

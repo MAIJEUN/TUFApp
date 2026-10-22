@@ -4,17 +4,17 @@ import '../../core/l10n.dart';
 import '../../core/models/pass.dart';
 import 'hover_tip.dart';
 
-/// 판정 색. 이른 쪽과 늦은 쪽이 같은 색이고, 가운데로 갈수록 초록에 가깝다 (사이트와 같은 배치).
+/// Judgement colors. Early and late sides share colors, getting greener toward the center (same layout as the website).
 abstract final class JudgementColors {
   static const perfect = Color(0xFF6BD68A);
   static const near = Color(0xFFF2D06B);
   static const far = Color(0xFFF4A259);
   static const worst = Color(0xFFF2545B);
 
-  /// X-Perfect 기록의 가운데 정확. 정확−/정확+(초록)와 구분되게 흰색으로 둔다.
+  /// Center Perfect of X-Perfect passes, white to stand apart from Perfect−/Perfect+ (green).
   static const xPerfect = Color(0xFFFFFFFF);
 
-  /// 퓨어 X-퍼펙트의 정확도처럼 특별한 값에 쓰는 백금색.
+  /// Platinum for special values like the accuracy of a pure X-Perfect.
   static const platinum = Color(0xFFE6EEF6);
   static const platinumGlow = Color(0xFFA8CCE8);
 
@@ -27,8 +27,8 @@ abstract final class JudgementColors {
   };
 }
 
-/// 기록에 붙는 표시들 (사이트의 PassFlags와 같은 순서와 이름).
-/// 세계 최초, 자동 제출, 키 수, 홀드 설정, 게임 버전, X-Perfect.
+/// Flags on a pass (same order and names as the website's PassFlags):
+/// world's first, auto-submitted, key count, hold setting, game version, X-Perfect.
 List<({String label, String? tip})> passFlags(LevelPass pass) => [
   if (pass.isWorldsFirst) (label: 'WF', tip: tr('세계 최초 클리어!', "World's First Clear!")),
   if (pass.isWorldsFirstPP) (label: 'WF PP', tip: tr('세계 최초 PP 클리어!', "World's First Pure Perfect!")),
@@ -49,14 +49,14 @@ List<({String label, String? tip})> passFlags(LevelPass pass) => [
   if (pass.isXPerfectMode) (label: 'X-Perfect', tip: null),
 ];
 
-/// 표시 하나 (작은 둥근 칸). 설명이 있으면 마우스를 올렸을 때 보여준다.
+/// One flag (a small rounded chip). Shows its description on hover if it has one.
 class PassFlagChip extends StatelessWidget {
   const PassFlagChip({super.key, required this.label, this.tip, this.compact = false});
 
   final String label;
   final String? tip;
 
-  /// 리더보드 줄처럼 좁은 곳에서 쓰는 작은 크기.
+  /// Smaller size for tight places like leaderboard rows.
   final bool compact;
 
   @override
@@ -77,7 +77,7 @@ class PassFlagChip extends StatelessWidget {
   }
 }
 
-/// 랭킹 점수에 보탠 몫. 초록은 실제로 보탠 것, 회색은 보탤 수 있었던 것.
+/// Ranked score contribution. Green is actually added, gray is what it could have added.
 class ImpactChip extends StatelessWidget {
   const ImpactChip({super.key, required this.text, required this.positive});
 

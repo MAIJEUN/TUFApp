@@ -22,13 +22,13 @@ void main() {
     expect(staff.isCommunity, isFalse);
     expect(staff.score, isNull);
 
-    // 팩 화면처럼 목록 정보로 바꿔 끼워도 투표 정보는 남는다.
+    // Vote info survives replacing the info from the catalog, as on the packs page.
     final resolved = community.withInfo(name: 'Rolling', icon: 'x');
     expect(resolved.isCommunity, isTrue);
     expect(resolved.score, 0.97);
   });
 
-  /// 20×20 흰 네모에 테를 두르고, 테가 그려진 자리의 색을 본다.
+  /// Rings a 20×20 white square and samples colors where the ring is drawn.
   Future<ui.Image> render(WidgetTester tester, double score) async {
     final key = GlobalKey();
     await tester.pumpWidget(
@@ -63,7 +63,7 @@ void main() {
 
   testWidgets('신뢰도 25%면 웹처럼 오른쪽(시계 45°~135°)만 채운다', (tester) async {
     final image = await render(tester, 0.25);
-    // 위젯은 (4,4)~(26,26), 네모는 (5,5)~(25,25). 테는 그 바깥 1px.
+    // The widget spans (4,4)–(26,26), the square (5,5)–(25,25), and the ring the 1px outside it.
     expect(isGreen(await pixel(tester, image, 25, 15)), isTrue, reason: '오른쪽 가운데');
     expect(isGreen(await pixel(tester, image, 4, 15)), isFalse, reason: '왼쪽 가운데');
     expect(isGreen(await pixel(tester, image, 15, 4)), isFalse, reason: '위 가운데');
@@ -75,7 +75,7 @@ void main() {
     for (final (x, y) in [(25, 15), (4, 15), (15, 4), (15, 25)]) {
       expect(isGreen(await pixel(tester, image, x, y)), isTrue, reason: '($x, $y)');
     }
-    // 테는 아이콘 바깥 1px까지만. 그보다 먼 곳은 비어 있다.
+    // The ring only reaches 1px outside the icon; farther out is empty.
     expect((await pixel(tester, image, 2, 15)).a, lessThan(0.1));
   });
 
@@ -90,7 +90,7 @@ void main() {
   });
 
   testWidgets('아이콘 모양 테를 한 장으로 구워도 아이콘은 그대로이고 둘레만 초록이다', (tester) async {
-    // 20×20 흰 네모 아이콘 (PNG).
+    // 20×20 white square icon (PNG).
     final png = (await tester.runAsync(() async {
       final recorder = ui.PictureRecorder();
       Canvas(recorder).drawRect(const Rect.fromLTWH(0, 0, 20, 20), Paint()..color = Colors.white);
@@ -124,12 +124,12 @@ void main() {
         ),
       ),
     );
-    // 그림을 받고 디코딩할 때까지 기다린다.
+    // Wait until the image is loaded and decoded.
     for (var i = 0; i < 20; i++) {
       await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
       await tester.pump(const Duration(milliseconds: 50));
     }
-    // 처음 받은 아이콘은 살짝 나타나는 애니메이션이 있다. 끝까지 기다린다.
+    // Newly loaded icons fade in; wait for it to finish.
     for (var i = 0; i < 15; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }

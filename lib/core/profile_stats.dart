@@ -8,9 +8,10 @@ import 'models/pass.dart';
 import 'models/profile.dart';
 import 'models/search_models.dart';
 
-/// 프로필 머리글과 모듈에 보여줄 값들. 사이트(utils/profileStatGroups.js, profileIconSlots.js)와 같은 규칙.
+/// Values shown in profile headers and modules. Same rules as the website (utils/profileStatGroups.js,
+/// profileIconSlots.js).
 
-/// 통계 한 줄. [passId]가 있으면 그 기록으로 가는 단추를 붙인다.
+/// One stat line. With [passId], a button links to that pass.
 class StatRow {
   const StatRow(this.label, this.value, {this.tooltip, this.passId});
 
@@ -27,24 +28,24 @@ class StatGroup {
   final List<StatRow> rows;
 }
 
-/// 머리글 아이콘 칸 하나 (최고 난이도, 큐레이션 유형 등).
+/// One icon slot in a profile header (top difficulty, curation type, etc.).
 class IconSlot {
   const IconSlot({required this.letter, this.iconUrl, this.badge = 0, this.tooltip});
 
-  /// 아이콘이 없을 때 대신 보여주는 글자 (P, G, GQ 등).
+  /// Text shown when there is no icon (P, G, GQ, ...).
   final String letter;
   final String? iconUrl;
   final int badge;
   final String? tooltip;
 }
 
-// ───────────────────────── 숫자 표시 ─────────────────────────
+// ───────────────────────── Number formatting ─────────────────────────
 
 String formatCount(Object? value) => _group(asDoubleOrNull(value)?.truncate() ?? 0);
 
 String formatFixed(Object? value, int digits) => (asDoubleOrNull(value) ?? 0).toStringAsFixed(digits);
 
-/// 소수 둘째 자리까지, 천 단위 쉼표. 예: 460,778.52
+/// Two decimals with thousands separators, e.g. 460,778.52
 String formatPoints(Object? value) {
   final number = asDoubleOrNull(value) ?? 0;
   final fixed = number.abs().toStringAsFixed(2);
@@ -54,7 +55,7 @@ String formatPoints(Object? value) {
 
 String _group(int value) => value.toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (match) => ',');
 
-/// 정확도(0~1)를 퍼센트로. 100%에 아주 가까우면 9를 이어서 보여준다 (99.9996%처럼, 사이트와 같다).
+/// Accuracy (0–1) as a percentage. Values very close to 100% keep their nines (like 99.9996%), as on the website.
 String formatAccuracyRatio(Object? value, {int minDecimals = 2}) {
   final ratio = asDoubleOrNull(value);
   if (ratio == null) return '0%';
@@ -82,7 +83,7 @@ String formatAccuracyRatio(Object? value, {int minDecimals = 2}) {
   return '$rounded%';
 }
 
-/// 밀리초 → "1h 23m", "4m 5s", "12.3 s"
+/// Milliseconds → "1h 23m", "4m 5s", "12.3 s"
 String formatDurationMs(Object? value) {
   final ms = asDoubleOrNull(value) ?? 0;
   if (ms <= 0) return '0';
@@ -100,12 +101,12 @@ String formatStatDate(Object? value) {
   return formatLongDate(date);
 }
 
-// ───────────────────────── 통계 묶음 ─────────────────────────
+// ───────────────────────── Stat groups ─────────────────────────
 
 Map<String, dynamic> _section(Map<String, dynamic> facts, String key) =>
     facts[key] is Map<String, dynamic> ? facts[key] as Map<String, dynamic> : const {};
 
-/// P/G/U/특수로 클리어 수를 나눈다 (이름이 P1, G12처럼 생긴 난이도만 PGU로 센다).
+/// Splits clear counts into P/G/U/special (only difficulties named like P1 or G12 count as PGU).
 Map<String, int> bucketByDifficultyName(Map<String, dynamic>? counts, DifficultyCatalog? catalog) {
   final buckets = {'PLANETARY': 0, 'GALACTIC': 0, 'UNIVERSAL': 0, 'SPECIAL': 0};
   for (final entry in (counts ?? const {}).entries) {
@@ -124,7 +125,7 @@ Map<String, int> bucketByDifficultyName(Map<String, dynamic>? counts, Difficulty
   return buckets;
 }
 
-/// 플레이어 머리글을 펼쳤을 때 보이는 통계 묶음.
+/// Stat groups shown when a player header is expanded.
 List<StatGroup> playerStatGroups(PlayerProfileDetail player, DifficultyCatalog? catalog) {
   final facts = player.funFacts;
   if (facts.isEmpty) return const [];
@@ -222,7 +223,7 @@ List<StatGroup> playerStatGroups(PlayerProfileDetail player, DifficultyCatalog? 
   ];
 }
 
-/// 판정 합계로 구한 정확도 (사이트의 calcAcc와 같은 가중치).
+/// Accuracy from judgement totals (same weights as the website's calcAcc).
 String _xaccOf(Map<String, dynamic> j) {
   final ed = asInt(j['earlyDouble']);
   final es = asInt(j['earlySingle']);
@@ -241,7 +242,7 @@ String _trimNumber(double value, int digits) {
   return text.contains('.') ? text.replaceFirst(RegExp(r'\.?0+$'), '') : text;
 }
 
-/// 제작자 머리글을 펼쳤을 때 보이는 통계 묶음.
+/// Stat groups shown when a creator header is expanded.
 List<StatGroup> creatorStatGroups(CreatorProfileDetail creator, DifficultyCatalog? catalog) {
   final facts = creator.funFacts;
   if (facts.isEmpty) return const [];
@@ -290,9 +291,9 @@ List<StatGroup> creatorStatGroups(CreatorProfileDetail creator, DifficultyCatalo
   ];
 }
 
-// ───────────────────────── 아이콘 칸 ─────────────────────────
+// ───────────────────────── Icon slots ─────────────────────────
 
-/// P1~P20 → 0, P5~8 → 1 … (GQ/UQ 단계로 묶을 때).
+/// P1–P4 → 0, P5–P8 → 1, … (for grouping into GQ/UQ tiers).
 int? qTierOf(int number) => number < 1 || number > 20 ? null : min((number - 1) ~/ 4, 4);
 
 ({String letter, int number})? _parsePgu(String? name) {
@@ -303,7 +304,7 @@ int? qTierOf(int number) => number < 1 || number > 20 ? null : min((number - 1) 
   return (letter: match.group(1)!.toUpperCase(), number: number);
 }
 
-/// 플레이어 머리글의 다섯 칸: 가장 높이 깬 P, G, U 난이도와, 세계 최초로 깬 G/U를 묶은 GQ, UQ 단계.
+/// The five slots of a player header: highest P, G and U cleared, and the GQ/UQ tiers from world's first G/U clears.
 List<IconSlot> playerIconSlots(PlayerProfileDetail player, DifficultyCatalog? catalog) {
   final facts = player.funFacts;
   final clears = facts['clearsByDifficultyNoDupes'] is Map<String, dynamic>
@@ -372,7 +373,7 @@ List<IconSlot> playerIconSlots(PlayerProfileDetail player, DifficultyCatalog? ca
   return [pgu('P'), pgu('G'), pgu('U'), q('G'), q('U')];
 }
 
-/// 머리글의 난이도 칸을 펼쳤을 때: 난이도마다 클리어 수. 세계 최초로 깬 G/U는 해당 GQ/UQ에도 더한다.
+/// Clears per difficulty for the expanded header. World's first G/U clears also count toward their GQ/UQ tier.
 Map<int, int> playerClearsByDifficulty(PlayerProfileDetail player, DifficultyCatalog? catalog) {
   final facts = player.funFacts;
   final clears = facts['clearsByDifficultyNoDupes'] is Map<String, dynamic>
@@ -391,11 +392,11 @@ Map<int, int> playerClearsByDifficulty(PlayerProfileDetail player, DifficultyCat
   return result;
 }
 
-/// 제작자 머리글의 칸: 큐레이션 유형 C·V·O·H 묶음마다 가장 높은 단계, 그다음 나머지를 돌아가며 최대 5칸.
+/// Creator header slots: the highest tier of each curation group (C, V, O, H), then the rest in turn, up to 5.
 List<IconSlot> creatorIconSlots(CreatorProfileDetail creator, FacetCatalog? curationTypes) =>
     curationIconSlots(creator.curationTypeCounts, creator.displayCurationTypeIds, curationTypes);
 
-/// [creatorIconSlots]와 같은 규칙을 큐레이션 개수만으로 (제작자 목록의 카드처럼 프로필 전체가 없을 때).
+/// Same rules as [creatorIconSlots] from curation counts only (for list cards without a full profile).
 List<IconSlot> curationIconSlots(
   Map<int, int> curationTypeCounts,
   List<int> displayCurationTypeIds,
@@ -454,7 +455,7 @@ List<IconSlot> curationIconSlots(
     if (slots.length >= 5) break;
     if (used.add(entry.type.id)) slots.add(slotOf(entry.type, entry.count));
   }
-  // 남은 자리는 묶음을 돌아가며 하나씩 채운다.
+  // Fill the remaining slots one group at a time.
   var added = true;
   while (slots.length < 5 && added) {
     added = false;
@@ -471,9 +472,9 @@ List<IconSlot> curationIconSlots(
   return slots.take(5).toList();
 }
 
-// ───────────────────────── 난이도 그래프 ─────────────────────────
+// ───────────────────────── Difficulty chart ─────────────────────────
 
-/// 난이도 그래프의 막대 하나.
+/// One bar of the difficulty chart.
 class DifficultyBar {
   const DifficultyBar({required this.difficulty, required this.label, required this.count});
 
@@ -482,8 +483,9 @@ class DifficultyBar {
   final int count;
 }
 
-/// 난이도별 개수를 막대로. PGU 전부를 빈칸 없이 늘어놓는다 (레벨 그래프는 Q, P0, Unranked, Impossible도).
-/// 이름이 J로 끝나는 난이도는 J를 뗀 난이도에 더한다.
+/// Counts per difficulty as bars, listing every PGU difficulty (level charts also include Q, P0, Unranked and
+/// Impossible).
+/// Difficulties ending in J are added to the same difficulty without the J.
 List<DifficultyBar> difficultyBars(Map<String, dynamic>? counts, DifficultyCatalog? catalog, {required bool levels}) {
   if (catalog == null) return const [];
   final rows = <({Difficulty difficulty, String label, int count, num sort})>[];

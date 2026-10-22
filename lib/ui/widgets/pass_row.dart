@@ -11,11 +11,12 @@ import 'pass_badges.dart';
 import 'slide_overflow.dart';
 import 'video_backdrop.dart';
 
-/// 클리어 기록 한 줄의 공통 틀. 레벨 리더보드, '클리어' 목록, 플레이어 페이지의 기록이 함께 쓴다.
+/// Shared layout of a pass row, used by level leaderboards, the passes list and player pages.
 ///
-/// 레벨 카드와 같은 크기(여백 12, 안쪽 높이 72, 왼쪽 칸 72, 칸 사이 16)이고, 같은 짜임이다:
-/// 왼쪽 칸 → 세 줄(위 흐린 줄, 가운데 제목, 아래 제작자·판정과 오른쪽 끝의 표시) → [extra] → 점수·정확도·배속 → 영상과 날짜.
-/// 점수·정확도·배속은 웹처럼 이름을 위에 작게 적은 칸으로, 줄마다 같은 자리에 온다.
+/// Same size as a level card (padding 12, inner height 72, leading column 72, gaps 16) and the same structure:
+/// leading column → three lines (dim top line, title, bottom line with creator/judgements and flags at the right end)
+/// → [extra] → score, accuracy and speed → video and date.
+/// Score, accuracy and speed are labeled columns like on the website, in the same place on every row.
 class PassRow extends StatelessWidget {
   const PassRow({
     super.key,
@@ -36,46 +37,47 @@ class PassRow extends StatelessWidget {
 
   final LevelPass pass;
 
-  /// 왼쪽 칸 (난이도 아이콘, 순위와 사진 등). 레벨 카드의 난이도 칸과 같은 폭이다.
+  /// Leading column (difficulty icon, rank and avatar, ...), as wide as a level card's difficulty column.
   final Widget leading;
 
-  /// 위 흐린 줄.
+  /// Dim top line.
   final String? top;
 
-  /// 가운데 줄 (곡 이름, 플레이어 이름 등).
+  /// Middle line (song name, player name, ...).
   final Widget title;
 
-  /// 아래 줄 맨 앞의 흐린 글 (레벨 제작자 등).
+  /// Dim text at the start of the bottom line (level creator, ...).
   final String? bottomText;
 
-  /// 아래 줄에 판정 묶음을 표시 앞에 둘지 (레벨 리더보드처럼 같은 레벨끼리 비교할 때).
+  /// Whether the bottom line shows the judgements before the flags (when comparing passes on one level, like
+  /// leaderboards).
   final bool showJudgements;
 
-  /// 세 줄과 점수 칸 사이에 놓는 칸 ('클리어' 목록의 플레이어).
+  /// Column between the three lines and the score columns (the player on the passes list).
   final Widget? extra;
 
-  /// 랭크 점수에 보탠 몫 (플레이어 페이지).
+  /// Ranked score contribution (player pages).
   final double? impact;
 
-  /// 반영되지 않았지만 보탤 수 있었던 몫.
+  /// Contribution it could have made but doesn't.
   final double? potentialImpact;
   final bool showDate;
 
-  /// 배경에 영상 썸네일을 깔지 (숨겨진 레벨은 끈다).
+  /// Whether to show the video thumbnail as the background (off for hidden levels).
   final bool videoBackdrop;
 
-  /// 리더보드 순위. 있으면 웹처럼 줄 왼쪽에 카드 높이만 한 "#1"을 흐리게 깐다.
+  /// Leaderboard rank. If set, a dim card-height "#1" sits behind the left of the row, like on the website.
   final int? rank;
   final VoidCallback onTap;
 
-  /// 레벨 카드의 줄 높이와 같다 (위 22, 가운데 26, 틈 4, 아래 20 = 72).
+  /// Same line heights as a level card (top 22, middle 26, gap 4, bottom 20 = 72).
   static const topLine = 22.0;
   static const titleLine = 26.0;
   static const gap = 4.0;
   static const bottomLine = 20.0;
 
-  /// 오른쪽 숫자 칸들의 폭.
-  /// 가장 긴 값(점수 "67,016.00"과 몫 칩, "100.00%", "1.35x")에 맞춰서 칸 사이가 고르게 보이게 한다.
+  /// Widths of the number columns on the right,
+  /// sized for the longest values (score "67,016.00" with its chip, "100.00%", "1.35x") so the gaps look even.
   static const scoreWidth = 108.0;
   static const accuracyWidth = 84.0;
   static const speedWidth = 52.0;
@@ -136,8 +138,8 @@ class PassRow extends StatelessWidget {
                   const SizedBox(height: gap),
                   SizedBox(
                     height: bottomLine,
-                    // 레벨 카드의 태그 줄처럼: 제작자·판정은 왼쪽에서 넘치면 흐르고,
-                    // 표시 칩은 시간·타일·BPM처럼 오른쪽 끝에 붙는다.
+                    // Like a level card's tag line: creator and judgements scroll when they overflow on the left,
+                    // and flag chips stick to the right end like time/tiles/BPM.
                     child: LayoutBuilder(
                       builder: (context, constraints) => Row(
                         children: [
@@ -159,7 +161,7 @@ class PassRow extends StatelessWidget {
                           ),
                           if (flags.isNotEmpty) ...[
                             const SizedBox(width: 16),
-                            // 좁은 창에서는 줄의 60%까지만 쓰고 넘치면 흐른다.
+                            // In narrow windows, use at most 60% of the line and scroll on overflow.
                             ConstrainedBox(
                               constraints: BoxConstraints(maxWidth: constraints.maxWidth * 0.6),
                               child: SlideOverflow(
@@ -192,7 +194,7 @@ class PassRow extends StatelessWidget {
                   softWrap: false,
                   style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
                 ),
-                // 칩이 붙는 줄은 점수 칸만 위로 올라간다. 정확도·배속은 다른 줄과 같은 자리에 있다.
+                // On rows with a chip only the score column moves up; accuracy and speed stay aligned with other rows.
                 below: chip,
               ),
             ),
@@ -210,8 +212,9 @@ class PassRow extends StatelessWidget {
                 value: Text('${formatSpeed(pass.speed)}x', style: theme.textTheme.titleMedium),
               ),
             ),
-            // 레벨 카드의 받기 칸 자리. 영상 단추는 레벨 카드처럼 세로 가운데, 날짜는 오른쪽 아래 모서리.
-            // 둘 다 자리가 정해져 있어서, 영상이 없거나 날짜가 짧아도 다른 것은 움직이지 않는다.
+            // Where a level card has its download column: the video button vertically
+            // centered like on level cards, the date in the bottom right corner.
+            // Both have fixed places, so nothing else moves when there is no video or the date is short.
             SizedBox(
               width: tailWidth,
               height: LevelCard.contentHeight,
@@ -249,21 +252,21 @@ class PassRow extends StatelessWidget {
   }
 }
 
-/// 이름을 위에 작게 적은 값 칸 (웹의 '점수 / 정확도 / 배속').
+/// A value with a small label above it (the website's "Score / Accuracy / Speed").
 class _Labeled extends StatelessWidget {
   const _Labeled({required this.label, required this.value, this.below});
 
   final String label;
   final Widget value;
 
-  /// 값 아래에 붙는 것 (점수의 몫 칩). 있으면 이 칸만 위쪽에 놓는다.
+  /// Widget below the value (the score's contribution chip). If set, only this column moves up.
   final Widget? below;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final raised = below != null;
-    // 점수 아래에 몫 칩까지 붙으면 줄 높이(72)를 넘을 수 있어서, 넘칠 때만 살짝 줄인다.
+    // A score with a chip below can exceed the row height (72), so it shrinks slightly only when it overflows.
     return SizedBox(
       height: LevelCard.contentHeight,
       child: Align(
@@ -289,7 +292,7 @@ class _Labeled extends StatelessWidget {
   }
 }
 
-/// 정확도. 클리어 화면처럼 완벽한 기록은 빛나게.
+/// Accuracy. Perfect passes glow, like on the pass page.
 class _Accuracy extends StatelessWidget {
   const _Accuracy({required this.pass});
 
@@ -316,8 +319,8 @@ class _Accuracy extends StatelessWidget {
   }
 }
 
-/// 판정 개수를 한 칸에 묶은 것 (웹과 같은 순서와 색).
-/// X-Perfect 기록이면 정확−/정확+까지 아홉 칸이고, 가운데 정확은 흰색이다.
+/// Judgement counts in one strip (same order and colors as the website).
+/// X-Perfect passes get nine cells including Perfect−/Perfect+, with the center Perfect in white.
 class JudgementStrip extends StatelessWidget {
   const JudgementStrip({super.key, required this.pass});
 
@@ -358,7 +361,7 @@ class JudgementStrip extends StatelessWidget {
   }
 }
 
-/// 난이도 아이콘 칸 (플레이어 페이지와 '클리어' 목록). 숨겨진 레벨은 자물쇠.
+/// Difficulty icon column (player pages and the passes list). Hidden levels show a lock.
 class PassDifficultyIcon extends StatelessWidget {
   const PassDifficultyIcon({super.key, required this.icon, this.hidden = false});
 
@@ -373,8 +376,8 @@ class PassDifficultyIcon extends StatelessWidget {
   );
 }
 
-/// 웹의 리더보드 줄처럼 왼쪽에 카드 높이만 하게 깔리는 순위 ("#1").
-/// 배경이라 다른 요소의 자리에는 영향이 없다. 1·2·3위는 금·은·빨강 (웹과 같은 색).
+/// Card-height rank ("#1") behind the left of the row, like the website's leaderboard rows.
+/// It is a background, so it doesn't affect layout. 1st–3rd are gold, silver and red (same colors as the website).
 class RankWatermark extends StatelessWidget {
   const RankWatermark({super.key, required this.rank});
 

@@ -8,11 +8,11 @@ import '../../core/models/difficulty.dart';
 import '../theme.dart';
 import 'common.dart';
 
-/// TUF 웹의 DifficultySlider를 옮긴 난이도 범위 슬라이더.
-/// 난이도 색 그라데이션 트랙 위에 난이도 아이콘 노브 두 개로 범위를 고른다.
+/// Difficulty range slider ported from the TUF website's DifficultySlider.
+/// Two difficulty icon knobs pick a range on a track colored with the difficulty gradient.
 ///
-/// - 끄는 중에는 노브가 손을 바로 따라오고, 놓았을 때 [onChanged]를 한 번 호출한다 (검색도 한 번만).
-/// - 밖에서 값이 바뀌면(초기화 등) 노브와 선택 범위가 부드럽게 이동한다.
+/// - While dragging, the knob follows the pointer and [onChanged] fires once on release (so there is one search).
+/// - When the value changes from outside (a reset, etc.), the knobs and range animate smoothly.
 class DifficultySlider extends StatefulWidget {
   const DifficultySlider({
     super.key,
@@ -45,7 +45,7 @@ class _DifficultySliderState extends State<DifficultySlider> {
   late int _lower = _clamp(widget.lower);
   late int _upper = _clamp(widget.upper);
 
-  /// 0: 처음 잡은 노브가 [_lower], 1: [_upper], null: 끄는 중 아님
+  /// 0: the grabbed knob is [_lower], 1: [_upper], null: not dragging
   int? _dragKnob;
 
   int get _maxIndex => max(0, widget.difficulties.length - 1);
@@ -77,7 +77,7 @@ class _DifficultySliderState extends State<DifficultySlider> {
     if (widget.difficulties.isEmpty) return;
     if (event.kind == PointerDeviceKind.mouse && (event.buttons & kPrimaryMouseButton) == 0) return;
 
-    // 웹과 같이 누른 위치에서 더 가까운 노브를 움직인다.
+    // Like the website, move the knob closer to the pressed position.
     final index = _indexAt(event.localPosition.dx, width);
     setState(() {
       _dragKnob = (_lower - index).abs() <= (_upper - index).abs() ? 0 : 1;
@@ -99,7 +99,7 @@ class _DifficultySliderState extends State<DifficultySlider> {
     }
   }
 
-  /// 놓았을 때 순서를 바로잡고 알린다. 노브는 서로 넘어갈 수 있다.
+  /// On release, order the values and report them. Knobs may cross each other.
   void _commit() {
     if (_dragKnob == null) return;
     setState(() {
@@ -121,7 +121,7 @@ class _DifficultySliderState extends State<DifficultySlider> {
     final dragging = _dragKnob != null;
     final duration = dragging ? Duration.zero : _moveDuration;
 
-    // 끄는 노브가 현재 낮은 쪽인지 (노브가 서로 넘어가면 바뀐다)
+    // Whether the dragged knob is currently the lower one (changes when knobs cross).
     final draggingLow = dragging && ((_dragKnob == 0) == (_lower <= _upper));
 
     return LayoutBuilder(
@@ -181,7 +181,7 @@ class _DifficultySliderState extends State<DifficultySlider> {
     final color = colors[index];
     final x = xAt(position, list.length, width);
 
-    // "GQ0 (G1~G4)" → 위에 "GQ0", 아래에 "(G1~G4)"
+    // "GQ0 (G1~G4)" → "GQ0" on top, "(G1~G4)" below
     final words = difficulty.name.split(' ');
     final glow = _glowColor(difficulty, color);
 
@@ -247,7 +247,7 @@ class _DifficultySliderState extends State<DifficultySlider> {
     ];
   }
 
-  /// 웹과 같이 U14 이상과 Q 난이도는 흰색으로 빛나게 한다.
+  /// Like the website, U14 and above and Q difficulties glow white.
   static Color _glowColor(Difficulty difficulty, Color color) {
     final name = difficulty.name;
     if (name.startsWith('U')) {
@@ -259,8 +259,8 @@ class _DifficultySliderState extends State<DifficultySlider> {
   }
 }
 
-/// 전체 트랙은 흐리게, 고른 범위는 선명하게 + 은은한 빛으로 그린다.
-/// [low]/[high]는 애니메이션 중 소수가 될 수 있다.
+/// Draws the whole track dimmed and the selected range vivid with a soft glow.
+/// [low]/[high] can be fractional during animations.
 class _TrackPainter extends CustomPainter {
   const _TrackPainter({required this.colors, required this.low, required this.high});
 
@@ -301,7 +301,7 @@ class _TrackPainter extends CustomPainter {
     canvas.drawRRect(range, Paint()..shader = _rangeGradient().createShader(rangeRect));
   }
 
-  /// 범위 안에 들어가는 난이도 색으로 그라데이션을 만든다. 끝이 소수여도 위치를 맞춘다.
+  /// Builds the gradient from the difficulty colors in range, positioned correctly even with fractional ends.
   LinearGradient _rangeGradient() {
     final first = low.floor();
     final last = min(colors.length - 1, high.ceil());

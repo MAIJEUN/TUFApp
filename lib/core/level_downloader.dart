@@ -28,7 +28,7 @@ class CancelToken {
 
   bool get isCancelled => _cancelled;
 
-  /// 취소되는 순간 끝난다. 데이터가 오지 않고 멈춘 받기도 바로 멈출 수 있게 쓴다.
+  /// Completes as soon as the token is cancelled, so even a stalled download can stop right away.
   Future<void> get whenCancelled => _whenCancelled.future;
 
   void cancel() {
@@ -47,12 +47,12 @@ class LevelDownloader {
 
   static const _reportInterval = Duration(milliseconds: 100);
 
-  /// 이만큼 아무 데이터도 오지 않으면 연결이 멈춘 것으로 보고 실패시킨다.
+  /// A download that receives no data for this long is treated as stalled and fails.
   static const idleTimeout = Duration(seconds: 30);
 
   final TufApiClient _api;
 
-  /// TUF CDN에 올라간 zip 링크인지 확인. 구글 드라이브 등 외부 링크는 직접 받을 수 없다.
+  /// Whether the link is a zip on the TUF CDN. External links (Google Drive etc.) can't be downloaded directly.
   static bool isTufCdnLink(String? url) {
     final uri = url == null ? null : Uri.tryParse(url);
     if (uri == null || !uri.hasScheme) return false;
@@ -60,7 +60,7 @@ class LevelDownloader {
     return host == 'cdn.tuforums.com' || (host == 'api.tuforums.com' && uri.path.toLowerCase().startsWith('/cdn/'));
   }
 
-  /// [url]을 [destinationPath]에 받는다. ".part" 파일에 먼저 쓰고, 끝까지 받은 경우에만 최종 경로로 옮긴다.
+  /// Downloads [url] to [destinationPath]. Writes to a ".part" file first and moves it into place only when complete.
   Future<void> download(
     String url,
     String destinationPath, {
@@ -80,8 +80,9 @@ class LevelDownloader {
     try {
       onProgress?.call(DownloadProgress(0, total));
 
-      // 데이터가 오는 동안 받고, 취소되거나 한동안 아무것도 오지 않으면 바로 구독을 끊는다
-      // (구독을 끊으면 연결도 닫힌다). 조각이 올 때만 취소를 확인하면 멈춘 연결은 영영 끝나지 않는다.
+      // Read while data arrives; cancel the subscription (which closes
+      // the connection) on cancel or after a quiet period.
+      // Checking for cancellation only when a chunk arrives would never end a stalled connection.
       final finished = Completer<void>();
       final subscription = response.stream
           .timeout(idleTimeout)
@@ -141,7 +142,7 @@ class LevelDownloader {
         try {
           await partFile.delete();
         } on FileSystemException {
-          // 이미 없으면 무시
+          // Already gone.
         }
       }
     }

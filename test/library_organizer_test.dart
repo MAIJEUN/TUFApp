@@ -10,7 +10,7 @@ void main() {
   late LevelLibrary library;
   late LibraryOrganizer organizer;
 
-  /// 레벨 폴더를 만들고 목록에 넣는다.
+  /// Creates a level folder and adds it to the index.
   Future<InstalledLevel> addLevel(int id, String folderName, {int size = 100}) async {
     await Directory(p.join(root.path, folderName)).create(recursive: true);
     await File(p.join(root.path, folderName, 'main.adofai')).writeAsString('{}');
@@ -39,7 +39,7 @@ void main() {
     const icon = 'https://api.tuforums.com/cdn/images/pack_icon/x/original';
     final packFolder = p.join(root.path, 'AWC Original Levels');
     await LibraryOrganizer.writeFolderInfo(packFolder, const FolderInfo(iconUrl: 'old', packId: 'HX'));
-    // 두 번째는 숨김 파일을 덮어쓴다.
+    // The second write overwrites a hidden file.
     await LibraryOrganizer.writeFolderInfo(packFolder, const FolderInfo(iconUrl: icon, packId: 'HX'));
     await addLevel(1, 'AWC Original Levels/AWC 2023/#1 song1');
 
@@ -58,7 +58,7 @@ void main() {
 
   test("이름에 '+'가 든 폴더는 '_'로 바꾸고, 레벨 안의 파일은 건드리지 않는다", () async {
     await addLevel(1, 'FAINT/Tier 0 + 1/#263 230+BPM');
-    // 레벨 안의 파일 이름은 차트가 가리키므로 그대로 둬야 한다.
+    // File names inside a level are referenced by the chart and must stay as they are.
     await File(p.join(root.path, 'FAINT/Tier 0 + 1/#263 230+BPM/song+.ogg')).writeAsString('');
     await Directory(p.join(root.path, 'Tier 0 _ 1')).create(); // 바꿀 이름이 이미 있는 경우
 
@@ -68,7 +68,7 @@ void main() {
     expect(File(p.join(root.path, 'FAINT/Tier 0 _ 1/#263 230_BPM/song+.ogg')).existsSync(), isTrue);
     expect(await organizer.fixUnloadableNames(), 0, reason: '한 번 바꾸면 다시 바꿀 것이 없다');
 
-    // 직접 만들거나 이름을 바꿀 때도 '+'는 자동으로 바뀐다.
+    // '+' is replaced automatically when creating or renaming too.
     await organizer.createFolder('', 'A+B');
     expect(Directory(p.join(root.path, 'A_B')).existsSync(), isTrue);
   });
@@ -108,7 +108,7 @@ void main() {
     expect(Directory(p.join(root.path, 'Camellia', '#1 song1')).existsSync(), isTrue);
     expect(Directory(p.join(root.path, '#1 song1')).existsSync(), isFalse);
     expect(library.get(1)!.folderName, 'Camellia/#1 song1');
-    // 앱을 다시 켜도 같은 경로를 가리킨다.
+    // Points to the same path after reopening the app.
     final reopened = await LevelLibrary.open(root.path);
     expect(reopened.get(1)!.folderName, 'Camellia/#1 song1');
   });
@@ -163,7 +163,7 @@ void main() {
   });
 
   test('목록에 없어도 .adofai가 있으면 레벨로 본다', () async {
-    // 사용자가 직접 넣어 둔 레벨 폴더
+    // A level folder added by hand
     await Directory(p.join(root.path, 'AWC', '2024', '직접 넣은 레벨')).create(recursive: true);
     await File(p.join(root.path, 'AWC', '2024', '직접 넣은 레벨', 'main.adofai')).writeAsString('{}');
 

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tufapp/ui/widgets/side_by_side.dart';
 
-/// 자세히 보기 화면의 두 칸: 영상이 오른쪽 칸을 꽉 채우고, 왼쪽 칸이 그 높이에 맞춰 늘어난다.
+/// Detail page columns: the video fills the right column and the left column stretches to its height.
 void main() {
   const width = 700.0;
   Future<void> pump(WidgetTester tester, {required double leftHeight}) => tester.pumpWidget(

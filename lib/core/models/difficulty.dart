@@ -23,18 +23,18 @@ class Difficulty {
 
   final int id;
 
-  /// 예: "U5", "GQ0 (G1~G4)", "Unranked"
+  /// e.g. "U5", "GQ0 (G1~G4)", "Unranked"
   final String name;
 
-  /// 예: "PGU", "SPECIAL", "LEGACY"
+  /// e.g. "PGU", "SPECIAL", "LEGACY"
   final String? type;
 
-  /// 예: "#613E8C"
+  /// e.g. "#613E8C"
   final String? color;
   final String? icon;
   final int sortOrder;
 
-  /// 이 난이도의 기본 PP 점수. 0이면 정해진 값이 없다.
+  /// Base PP score of this difficulty; 0 if none.
   final int baseScore;
 
   /// "GQ0 (G1~G4)" → "GQ0"

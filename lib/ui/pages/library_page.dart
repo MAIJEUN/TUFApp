@@ -11,7 +11,7 @@ import '../widgets/motion.dart';
 import '../widgets/slide_overflow.dart';
 import '../widgets/smooth_scroll.dart';
 
-/// 가운데 정렬된 최대 폭 안에서 내용이 항상 가로를 꽉 채우게 한다.
+/// Content always fills the width inside the centered max width.
 Widget _constrain(Widget child) => Center(
   child: ConstrainedBox(
     constraints: const BoxConstraints(maxWidth: pageMaxWidth),
@@ -24,11 +24,11 @@ Widget _constrain(Widget child) => Center(
 
 Widget _section(Widget child) => SliverToBoxAdapter(child: _constrain(child));
 
-/// 받은 레벨을 폴더째 관리하는 화면. 윈도우 탐색기처럼 다룰 수 있다.
+/// Manages downloaded levels by folder, like Windows Explorer.
 ///
-/// - 한 번 누르면 선택(Ctrl 토글, Shift 범위), 두 번 누르면 열기
-/// - 끌어서 폴더나 위 경로로 옮기기
-/// - 오른쪽 클릭 메뉴, F2(이름 변경) / Delete(삭제) / Backspace(위로) / Ctrl+A(모두 선택) / Esc(선택 해제)
+/// - Click to select (Ctrl toggles, Shift selects a range), double-click to open
+/// - Drag onto a folder or the path to move
+/// - Context menu, F2 (rename) / Delete / Backspace (up) / Ctrl+A (select all) / Esc (deselect)
 class LibraryPage extends StatefulWidget {
   const LibraryPage({super.key});
 
@@ -40,7 +40,7 @@ class _LibraryPageState extends State<LibraryPage> {
   final _scroll = SmoothScrollController();
   final _focus = FocusNode(debugLabel: 'library');
 
-  /// 이미 보여준 항목. 새로 생긴 것만 나타나는 애니메이션을 준다.
+  /// Entries already shown; only new ones get the entrance animation.
   final _shownPaths = <String>{};
 
   @override
@@ -88,7 +88,7 @@ class _LibraryPageState extends State<LibraryPage> {
     final library = app.library;
 
     return ListenableBuilder(
-      // app.levels는 검색할 때마다 알림이 와서 여기서는 듣지 않는다.
+      // app.levels notifies on every search, so it isn't listened to here.
       listenable: Listenable.merge([library, app.installs]),
       builder: (context, _) {
         final entries = library.entries;
@@ -104,7 +104,7 @@ class _LibraryPageState extends State<LibraryPage> {
           onKeyEvent: (node, event) => _onKey(library, event),
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
-            // 빈 곳을 누르면 선택을 풀고 키보드 입력을 이 화면이 받는다.
+            // Clicking empty space clears the selection and gives this page keyboard focus.
             onTap: () {
               _focus.requestFocus();
               library.clearSelection();
@@ -163,12 +163,12 @@ class _LibraryPageState extends State<LibraryPage> {
                           );
                         },
                       ),
-                      // 떠 있는 선택 막대에 마지막 항목이 가리지 않도록 넉넉히 둔다.
+                      // Leave room so the floating selection bar doesn't cover the last entry.
                       _section(const SizedBox(height: 88)),
                     ],
                   ),
                 ),
-                // 목록 위에 떠 있어서 나타나고 사라져도 항목이 밀리지 않는다.
+                // Floats over the list so entries don't shift when it appears or disappears.
                 Positioned(
                   left: 0,
                   right: 0,
@@ -190,9 +190,9 @@ class _LibraryPageState extends State<LibraryPage> {
   }
 }
 
-// ───────────────────────── 항목 한 줄 ─────────────────────────
+// ───────────────────────── Entry row ─────────────────────────
 
-/// 선택·드래그·오른쪽 클릭을 붙인 한 줄. 폴더면 여기에 떨어뜨려 옮길 수도 있다.
+/// A row with selection, dragging and a context menu. Folders also accept drops.
 class _EntryRow extends StatefulWidget {
   const _EntryRow({required this.entry, required this.library, required this.focus, required this.onOpen});
 
@@ -210,7 +210,7 @@ class _EntryRowState extends State<_EntryRow> {
 
   bool get _selected => widget.library.selection.contains(widget.entry.relativePath);
 
-  /// 마지막으로 그렸을 때의 선택 상태.
+  /// Selection state at the last build.
   late bool _wasSelected = _selected;
 
   @override
@@ -234,15 +234,15 @@ class _EntryRowState extends State<_EntryRow> {
     super.dispose();
   }
 
-  /// 선택이 바뀌어도 화면 전체를 다시 그리지 않고, 상태가 바뀐 줄만 다시 그린다.
-  /// 선택된 줄은 끌고 갈 묶음이 달라지므로 함께 다시 그린다.
+  /// Rebuilds only rows whose selection changed instead of the whole page.
+  /// Selected rows also rebuild because the group they drag changes.
   void _onSelectionChanged() {
     final selected = _selected;
     if (selected == _wasSelected && !selected) return;
     setState(() {});
   }
 
-  /// 이미 골라 둔 여러 항목 중 하나를 눌렀을 때, 끌지 않고 떼면 그것 하나만 남긴다.
+  /// When one of several selected entries is pressed and released without dragging, keep only that one.
   bool _collapseOnTap = false;
 
   void _handleTap() {
@@ -254,12 +254,12 @@ class _EntryRowState extends State<_EntryRow> {
     );
   }
 
-  /// 탐색기처럼 누르는 순간 고른다.
-  /// (onTap은 두 번 누르기인지 확인하느라 한참 늦게 불린다.)
+  /// Selects on press, like Explorer
+  /// (onTap fires late because it waits to rule out a double tap).
   void _handlePointerDown(PointerDownEvent event) {
     if (event.buttons != kPrimaryButton) return;
     final modified = HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isShiftPressed;
-    // 골라 둔 묶음을 그대로 끌고 갈 수 있게, 묶음 안을 누르면 뗄 때까지 기다린다.
+    // Pressing inside the selection waits for release so the whole selection can be dragged.
     _collapseOnTap = _selected && !modified;
     if (_collapseOnTap) {
       widget.focus.requestFocus();
@@ -274,7 +274,7 @@ class _EntryRowState extends State<_EntryRow> {
     widget.library.select(widget.entry);
   }
 
-  /// 폴더에만 떨어뜨릴 수 있고, 자기 자신이나 이미 그 안에 있는 항목은 받지 않는다.
+  /// Only folders accept drops, and not the folder itself or entries already inside it.
   bool _accepts(List<LibraryEntry> dragged) {
     final entry = widget.entry;
     if (entry is! FolderEntry) return false;
@@ -332,7 +332,7 @@ class _EntryRowState extends State<_EntryRow> {
   }
 }
 
-/// 끌고 다닐 때 마우스를 따라다니는 작은 표시.
+/// Small label that follows the cursor while dragging.
 class _DragFeedback extends StatelessWidget {
   const _DragFeedback({required this.entries});
 
@@ -378,7 +378,7 @@ class _DragFeedback extends StatelessWidget {
   }
 }
 
-/// 실제로 그려지는 카드. 선택되면 테두리와 배경이 바뀌고, 드롭 대상이면 강조된다.
+/// The visible card. Selection changes its border and background; drop targets are highlighted.
 class _EntryCard extends StatelessWidget {
   const _EntryCard({required this.entry, required this.selected, required this.highlighted, required this.library});
 
@@ -452,7 +452,7 @@ class _FolderContent extends StatelessWidget {
       height: 48,
       child: Row(
         children: [
-          // 팩째 받은 폴더는 팩 아이콘으로 보여준다.
+          // Folders downloaded as a pack show the pack's icon.
           if (folder.iconUrl case final icon?)
             SizedBox.square(
               dimension: 36,
@@ -536,7 +536,7 @@ class _LevelContent extends StatelessWidget {
       children: [
         HoverTip(
           message: item.difficulty ?? '?',
-          // 난이도 목록이 아직 안 왔을 수 있다. 오면 아이콘만 다시 그린다.
+          // The difficulty list may not have arrived yet; only the icon rebuilds when it does.
           child: difficulty != null
               ? NetworkIcon(difficulty.icon, size: 44)
               : ListenableBuilder(
@@ -654,7 +654,7 @@ class _EntryMenuButton extends StatelessWidget {
   );
 }
 
-// ───────────────────────── 머리말 / 도구 모음 ─────────────────────────
+// ───────────────────────── Header / toolbar ─────────────────────────
 
 class _Header extends StatelessWidget {
   const _Header({required this.library});
@@ -733,7 +733,7 @@ class _Header extends StatelessWidget {
   }
 }
 
-/// 위로 가기, 현재 위치, 정렬, 새 폴더. 경로에도 끌어다 놓을 수 있다.
+/// Up, current path, sort and new folder. The path segments also accept drops.
 class _Toolbar extends StatelessWidget {
   const _Toolbar({required this.library});
 
@@ -835,7 +835,7 @@ class _Toolbar extends StatelessWidget {
   }
 }
 
-/// 경로 조각 하나. 여기에 끌어다 놓으면 그 폴더로 옮긴다.
+/// One path segment. Dropping on it moves entries into that folder.
 class _CrumbTarget extends StatefulWidget {
   const _CrumbTarget({required this.library, required this.path, required this.isCurrent, required this.label});
 
@@ -857,7 +857,7 @@ class _CrumbTargetState extends State<_CrumbTarget> {
 
     return DragTarget<List<LibraryEntry>>(
       onWillAcceptWithDetails: (details) {
-        // 이미 그 폴더에 있는 항목은 받지 않는다.
+        // Reject entries already in that folder.
         final ok = details.data.every((entry) {
           final index = entry.relativePath.lastIndexOf('/');
           final parent = index < 0 ? '' : entry.relativePath.substring(0, index);
@@ -891,7 +891,7 @@ class _CrumbTargetState extends State<_CrumbTarget> {
   }
 }
 
-/// 아래에서 떠오르는 선택 막대. 목록 위에 겹쳐 그려서 항목 위치를 바꾸지 않는다.
+/// Selection bar rising from the bottom, drawn over the list so entries don't move.
 class _FloatingSelectionBar extends StatelessWidget {
   const _FloatingSelectionBar({required this.visible, required this.child});
 
@@ -909,14 +909,14 @@ class _FloatingSelectionBar extends StatelessWidget {
         opacity: visible ? 1 : 0,
         duration: Motion.fast,
         curve: Motion.curve,
-        // 막대의 빈 곳을 눌러도 뒤의 '빈 곳 누르면 선택 해제'가 불리지 않게 막는다.
+        // Keep taps on the bar's empty space from reaching the "click empty space to deselect" handler behind it.
         child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: () {}, child: child),
       ),
     ),
   );
 }
 
-/// 여러 개를 골랐을 때 나오는 막대.
+/// Bar shown when several entries are selected.
 class _SelectionBar extends StatelessWidget {
   const _SelectionBar({required this.library});
 
@@ -964,7 +964,7 @@ class _SelectionBar extends StatelessWidget {
   }
 }
 
-// ───────────────────────── 메뉴 ─────────────────────────
+// ───────────────────────── Menus ─────────────────────────
 
 Future<void> _showEntryMenu(
   BuildContext context,
@@ -1089,7 +1089,7 @@ Future<String?> _showMenuAt(BuildContext context, Offset position, List<PopupMen
   );
 }
 
-// ───────────────────────── 대화상자 ─────────────────────────
+// ───────────────────────── Dialogs ─────────────────────────
 
 Future<void> _createFolder(BuildContext context, LibraryController library) async {
   final name = await _askName(
@@ -1166,8 +1166,8 @@ Future<String?> _askName(
   builder: (context) => _NameDialog(title: title, label: label, confirm: confirm, initial: initial),
 );
 
-/// 이름을 입력받는 창. 입력 칸은 창이 닫히는 애니메이션이 끝날 때까지 쓰이므로,
-/// 창이 완전히 사라질 때(State.dispose) 정리한다.
+/// Dialog asking for a name. The text field is still used during the closing animation,
+/// so its controller is disposed only when the dialog is gone (State.dispose).
 class _NameDialog extends StatefulWidget {
   const _NameDialog({required this.title, required this.label, required this.confirm, required this.initial});
 
@@ -1213,7 +1213,7 @@ class _NameDialogState extends State<_NameDialog> {
   );
 }
 
-/// 옮길 폴더를 직접 들어가며 고른다. 자기 자신과 그 안쪽으로는 들어갈 수 없다.
+/// Picks a target folder by browsing into it. The moved folder and its subfolders can't be entered.
 class _MoveDialog extends StatefulWidget {
   const _MoveDialog({required this.entries, required this.library});
 

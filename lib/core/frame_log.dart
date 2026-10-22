@@ -3,12 +3,12 @@ import 'dart:io';
 
 import 'package:flutter/scheduler.dart';
 
-/// 느린 프레임을 기록하는 진단 도구.
+/// Diagnostic logger for slow frames.
 ///
-/// 환경 변수 `TUFAPP_PERF=1`로 실행할 때만 켜진다. 평소에는 아무 일도 하지 않는다.
-/// 켜면 정해진 시간을 넘긴 프레임과, 끝날 때 전체 요약을 표준 출력으로 남긴다.
+/// Only enabled with the environment variable `TUFAPP_PERF=1`; does nothing otherwise.
+/// When enabled, writes frames over budget and periodic summaries to stdout.
 abstract final class FrameLog {
-  /// 60Hz 기준 한 프레임 예산.
+  /// One frame at 60 Hz.
   static const _budget = Duration(milliseconds: 16);
 
   static int _frames = 0;
@@ -23,9 +23,9 @@ abstract final class FrameLog {
   static void start() {
     if (!enabled) return;
 
-    stdout.writeln('[perf] 프레임 기록을 시작합니다 (예산 ${_budget.inMilliseconds}ms)');
-    // 가만히 있을 때도 프레임이 계속 그려지는지 보려고 주기적으로 요약한다.
-    Timer.periodic(const Duration(seconds: 5), (_) => report('5초'));
+    stdout.writeln('[perf] logging frames (budget ${_budget.inMilliseconds}ms)');
+    // Summarize periodically to see whether frames keep being drawn while idle.
+    Timer.periodic(const Duration(seconds: 5), (_) => report('5s'));
     SchedulerBinding.instance.addTimingsCallback((timings) {
       for (final timing in timings) {
         _frames++;
@@ -37,28 +37,28 @@ abstract final class FrameLog {
         final total = timing.buildDuration + timing.rasterDuration;
         if (total <= _budget) continue;
         _slow++;
-        _line('느린 프레임 build=${_ms(timing.buildDuration)} raster=${_ms(timing.rasterDuration)}');
+        _line('slow frame build=${_ms(timing.buildDuration)} raster=${_ms(timing.rasterDuration)}');
       }
     });
   }
 
-  /// 오래 걸린 작업을 한 줄 남긴다 (폴더 읽기 같은 것).
+  /// Logs one line for a slow operation (like reading a folder).
   static void note(String what, Duration elapsed, {String detail = ''}) {
     if (!enabled) return;
     _line('$what ${_ms(elapsed)}${detail.isEmpty ? '' : ' ($detail)'}');
   }
 
-  /// 지금까지의 요약을 한 줄로 남긴다.
+  /// Logs a one-line summary so far.
   static void report(String label) {
     if (!enabled) return;
     if (_frames == 0) {
-      _line('$label: 프레임 없음');
+      _line('$label: no frames');
       return;
     }
     _line(
-      '$label: 프레임 $_frames개, 느린 프레임 $_slow개 '
-      '(평균 build=${_ms(_totalBuild ~/ _frames)} raster=${_ms(_totalRaster ~/ _frames)}, '
-      '최대 build=${_ms(_worstBuild)} raster=${_ms(_worstRaster)})',
+      '$label: $_frames frames, $_slow slow '
+      '(avg build=${_ms(_totalBuild ~/ _frames)} raster=${_ms(_totalRaster ~/ _frames)}, '
+      'max build=${_ms(_worstBuild)} raster=${_ms(_worstRaster)})',
     );
     _frames = 0;
     _slow = 0;
@@ -68,7 +68,7 @@ abstract final class FrameLog {
     _totalRaster = Duration.zero;
   }
 
-  /// 시각을 붙여서 남긴다. 어느 화면에서 일어난 일인지 맞춰 보려고.
+  /// Prefixes a timestamp so lines can be matched with what happened on screen.
   static void _line(String text) {
     final now = DateTime.now();
     String two(int v) => v.toString().padLeft(2, '0');

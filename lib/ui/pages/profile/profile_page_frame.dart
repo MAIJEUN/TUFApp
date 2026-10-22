@@ -9,9 +9,9 @@ import '../../widgets/motion.dart';
 import '../../widgets/smooth_scroll.dart';
 import 'profile_list_view.dart';
 
-/// 플레이어·제작자 페이지의 공통 틀. 레벨 화면과 같은 모양이다:
-/// 위 막대, 가운데 정렬된 내용(머리글 카드와 모듈), 맨 아래 긴 목록(기록 · 레벨).
-/// 긴 목록은 페이지와 함께 스크롤하고, 끝에 가까워지면 다음 묶음을 불러온다.
+/// Shared frame of player and creator pages, shaped like the level page:
+/// top bar, centered content (header card and modules), and a long list at the bottom (passes or levels).
+/// The long list scrolls with the page and loads the next batch near the end.
 class ProfilePageFrame<T> extends StatefulWidget {
   const ProfilePageFrame({
     super.key,
@@ -24,22 +24,22 @@ class ProfilePageFrame<T> extends StatefulWidget {
     this.emptyTitle,
   });
 
-  /// 페이지 내용을 받아 온다.
+  /// Loads the page content.
   final Future<T> Function(BuildContext context) load;
   final String Function(T data) titleOf;
 
-  /// 머리글과 모듈들.
+  /// Header and modules.
   final List<Widget> Function(BuildContext context, T data) builder;
 
-  /// 맨 아래 긴 목록. 없으면 null.
+  /// The long list at the bottom, or null.
   final PagedList<Object>? Function(TufApiClient api, T data)? createList;
   final Widget Function(BuildContext context, T data, PagedList<Object> list)? listHeader;
   final Widget Function(BuildContext context, T data, PagedList<Object> list, int index)? itemBuilder;
 
-  /// 목록이 비었을 때의 제목. 없으면 '아무것도 없어요'.
+  /// Title shown when the list is empty; "Nothing here" if null.
   final String? emptyTitle;
 
-  /// 내용 폭 (모든 화면과 같다).
+  /// Content width (same on every page).
   static const maxWidth = pageMaxWidth;
 
   @override
@@ -89,10 +89,13 @@ class _ProfilePageFrameState<T> extends State<ProfilePageFrame<T>> {
       list?.reload();
     } on TufApiException catch (e) {
       if (mounted) setState(() => _error = e.statusCode == 404 ? tr('찾을 수 없어요', 'Not found') : e.message);
+    } on Object catch (e) {
+      // Unexpected errors (like a changed response format) must not leave the page loading forever.
+      if (mounted) setState(() => _error = '$e');
     }
   }
 
-  /// 목록이 짧아 화면이 다 차지 않으면 스크롤하지 않아도 이어서 불러온다.
+  /// If a short list doesn't fill the screen, keep loading without scrolling.
   void _onListChanged() => WidgetsBinding.instance.addPostFrameCallback((_) {
     if (mounted) _maybeLoadMore();
   });

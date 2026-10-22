@@ -4,7 +4,7 @@ import 'package:tufapp/core/video_links.dart';
 import 'package:tufapp/core/video_thumbnails.dart';
 import 'package:tufapp/ui/widgets/embedded_video.dart';
 
-/// 영상 링크 규칙은 사이트(utils/videoLink.js)와 같아야 한다.
+/// Video link rules must match the website (utils/videoLink.js).
 void main() {
   test('링크가 여러 개면 첫 번째가 대표 영상이다', () {
     const raw = 'https://www.youtube.com/watch?v=xpYUP2sOpQk  https://www.bilibili.com/video/BV1EaHy61EpY';
@@ -25,7 +25,7 @@ void main() {
     ]) {
       expect(VideoLinks.youtubeId(link), 'xpYUP2sOpQk', reason: link);
     }
-    // 시작 시각은 재생기에도 넘긴다.
+    // The start time is passed on to the player.
     expect(VideoLinks.embedUrl('https://youtu.be/xpYUP2sOpQk?t=42'), endsWith('&start=42'));
   });
 
@@ -55,7 +55,7 @@ void main() {
   });
 
   test('레벨의 팀은 teamObject에서도 읽고, 받은 횟수를 읽는다', () {
-    // 자세히 보기 응답(/levels/10797)은 team이 null이고 teamObject만 있다.
+    // The detail response (/levels/10797) has team null and only teamObject.
     final level = Level.fromJson({
       'id': 10797,
       'song': '777',

@@ -17,15 +17,15 @@ import '../widgets/slide_overflow.dart';
 import '../widgets/smooth_scroll.dart';
 import 'level_viewer_page.dart' show sideGap, videoKey;
 
-/// 클리어 기록 하나를 자세히 본다: 레벨, 기록을 낸 사람, 점수와 판정, 영상.
-/// 레벨 자세히 보기의 리더보드에서 한 줄을 누르면 열린다.
+/// Pass details: level, player, score and judgements, video.
+/// Opens when a row of a level's leaderboard is tapped.
 class PassViewerPage extends StatefulWidget {
   const PassViewerPage({super.key, required this.level, required this.pass, this.detail});
 
   final Level level;
   final LevelPass pass;
 
-  /// 여는 쪽이 이미 받아 둔 기록 정보 (랭킹 점수 몫, 순위). 있으면 다시 받지 않는다.
+  /// Pass details the caller already fetched (ranked score contribution, rank); skips refetching if given.
   final PassDetail? detail;
 
   static Future<void> open(BuildContext context, {required Level level, required LevelPass pass, PassDetail? detail}) =>
@@ -47,6 +47,9 @@ class _PassViewerPageState extends State<PassViewerPage> {
   late PassDetail? _detail = widget.detail;
   bool _started = false;
 
+  /// Whether both requests finished (successfully or not), so the score line stops saying "Loading".
+  bool _loaded = false;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -61,29 +64,30 @@ class _PassViewerPageState extends State<PassViewerPage> {
     super.dispose();
   }
 
-  /// 랭킹 점수와 순위는 따로 받아 온다. 실패해도 기록 자체는 그대로 보여준다.
+  /// Ranked score and rank are fetched separately. On failure the pass itself is still shown.
   Future<void> _load() async {
     final api = AppScope.of(context).api;
     await Future.wait([if (_detail == null) _loadDetail(api), _loadPlayer(api)]);
+    if (mounted) setState(() => _loaded = true);
   }
 
-  /// 이 기록이 랭킹 점수에 보탠 몫과 순위.
+  /// What this pass adds to the ranked score, and the player's rank.
   Future<void> _loadDetail(TufApiClient api) async {
     try {
       final detail = await api.getPass(widget.pass.id);
       if (mounted) setState(() => _detail = detail);
-    } on TufApiException {
-      // 점수 몫은 못 보여줘도 기록은 그대로 보여준다.
+    } on Object {
+      // The pass is still shown without its score contribution.
     }
   }
 
-  /// 그 사람이 지금까지 깬 난이도와 클리어 수.
+  /// The player's top difficulty and pass count.
   Future<void> _loadPlayer(TufApiClient api) async {
     try {
       final player = await api.getPlayer(widget.pass.playerId);
       if (mounted) setState(() => _player = player);
-    } on TufApiException {
-      // 이름과 국가는 기록 안에 이미 있다.
+    } on Object {
+      // Name and country are already in the pass.
     }
   }
 
@@ -122,25 +126,25 @@ class _PassViewerPageState extends State<PassViewerPage> {
             _section(
               Padding(
                 padding: const EdgeInsets.only(top: 16),
-                // 누르면 레벨 자세히 보기로 간다.
+                // Tapping opens the level details.
                 child: LevelCard(level: widget.level, compact: false),
               ),
             ),
             _section(
               Padding(
                 padding: const EdgeInsets.only(top: 16, bottom: 32),
-                // 왼쪽에 기록, 오른쪽 위에 사람, 그 아래에 영상.
-                // 영상이 오른쪽 칸을 꽉 채우고, 왼쪽 기록 칸이 그 높이에 맞춰 늘어난다.
+                // Pass on the left, player at the top right with the video below.
+                // The video fills the right column and the pass column on the left stretches to its height.
                 child: SideBySide(
                   gap: sideGap,
                   left: _PassDetails(pass: pass),
                   right: (context, videoHeight) => Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _PlayerCard(pass: pass, player: _player, detail: _detail),
+                      _PlayerCard(pass: pass, player: _player, detail: _detail, loading: !_loaded),
                       if (video != null) ...[
                         const SizedBox(height: sideGap),
-                        // 왼쪽 글이 더 길어 자리가 남으면 영상이 그만큼 더 가져간다.
+                        // If the left column is taller, the video takes the extra space.
                         Expanded(
                           child: SizedBox(
                             key: videoKey,
@@ -161,13 +165,14 @@ class _PassViewerPageState extends State<PassViewerPage> {
   }
 }
 
-/// 기록을 낸 사람. 점수와 순위는 받아오는 대로 채운다.
+/// The player behind the pass. Score and rank fill in as they arrive.
 class _PlayerCard extends StatelessWidget {
-  const _PlayerCard({required this.pass, required this.player, required this.detail});
+  const _PlayerCard({required this.pass, required this.player, required this.detail, required this.loading});
 
   final LevelPass pass;
   final PlayerProfile? player;
   final PassDetail? detail;
+  final bool loading;
 
   @override
   Widget build(BuildContext context) {
@@ -176,7 +181,7 @@ class _PlayerCard extends StatelessWidget {
     final player = this.player;
     final score = detail?.score;
 
-    // 누르면 그 사람의 플레이어 페이지로 간다.
+    // Tapping opens the player page.
     return Card(
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
@@ -211,8 +216,10 @@ class _PlayerCard extends StatelessWidget {
                       alignment: Alignment.centerLeft,
                       child: player == null && score == null
                           ? Text(
-                              tr('점수 불러오는 중...', 'Loading score...'),
-                              key: const ValueKey('loading'),
+                              loading
+                                  ? tr('점수 불러오는 중...', 'Loading score...')
+                                  : tr('점수를 불러오지 못했어요', "Couldn't load the score"),
+                              key: ValueKey(loading),
                               style: theme.textTheme.bodyMedium?.copyWith(color: muted),
                             )
                           : Row(
@@ -223,7 +230,7 @@ class _PlayerCard extends StatelessWidget {
                                   formatScore(score?.current ?? player?.rankedScore ?? 0),
                                   style: theme.textTheme.titleMedium,
                                 ),
-                                // 이 기록이 랭킹 점수에 보탠 몫 (사이트와 같은 표기).
+                                // What this pass adds to the ranked score (same notation as the website).
                                 if (score != null && score.countsForRanked && score.impact > 0) ...[
                                   const SizedBox(width: 8),
                                   ImpactChip(text: '+${formatScore(score.impact)}', positive: true),
@@ -257,7 +264,7 @@ class _PlayerCard extends StatelessWidget {
                               ],
                             ),
                     ),
-                    // 이 기록이 없었을 때의 랭킹 점수.
+                    // Ranked score without this pass.
                     if (score != null && score.previous > 0)
                       HoverTip(
                         message: tr('이 기록이 없었을 때의 랭킹 점수', 'Ranked score without this pass'),
@@ -277,7 +284,7 @@ class _PlayerCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 16),
-              // 순위는 하나만 보여준다 (사이트와 같이 전체 랭킹 순위).
+              // Only one rank is shown: the overall rank, as on the website.
               FadeSwitcher(
                 scale: true,
                 child: (detail?.rank ?? 0) == 0
@@ -306,7 +313,7 @@ class _PlayerCard extends StatelessWidget {
   }
 }
 
-/// 점수·정확도·속도·난이도와 판정.
+/// Score, accuracy, speed, difficulty and judgements.
 class _PassDetails extends StatelessWidget {
   const _PassDetails({required this.pass});
 
@@ -322,7 +329,7 @@ class _PassDetails extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-          // 오른쪽 칸과 높이가 같으므로, 남는 자리를 위아래로 나눠 가진다.
+          // Same height as the right column, so the spare space is split above and below.
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             _StatRow(label: tr('점수', 'Score'), value: formatScore(pass.score)),
@@ -340,7 +347,7 @@ class _PassDetails extends StatelessWidget {
               value: '${formatSpeed(pass.speed)}x',
               last: pass.feelingRating == null && pass.expectedRating == null,
             ),
-            // 적어 둔 난이도가 없으면 줄 자체를 빼고, 마지막 줄은 아래 여백을 없앤다.
+            // Rows without a rating are left out, and the last row has no bottom padding.
             if (pass.feelingRating case final feeling?)
               _StatRow(label: tr('체감 난이도', 'Feeling rating'), value: feeling, last: pass.expectedRating == null),
             if (pass.expectedRating case final expected?)
@@ -374,7 +381,7 @@ class _StatRow extends StatelessWidget {
   final String value;
   final bool last;
 
-  /// 글자색과 번지는 빛의 색. 퓨어 퍼펙트 정확도처럼 특별한 값을 돋보이게 한다.
+  /// Text color and glow color, to highlight special values like a pure perfect accuracy.
   final (Color, Color)? glow;
 
   @override
@@ -407,13 +414,13 @@ class _StatRow extends StatelessWidget {
   }
 }
 
-/// 판정 개수. 웹처럼 위에 빠름·정확·느림, 아래에 더 어긋난 판정을 둔다.
+/// Judgement counts. Like the website: early/perfect/late on top, the farther-off judgements below.
 class _JudgementBox extends StatelessWidget {
   const _JudgementBox({required this.judgements, required this.xPerfect});
 
   final PassJudgements judgements;
 
-  /// X-Perfect 기록이면 윗줄에 정확−/정확+를 더한다 (사이트와 같은 배치).
+  /// X-Perfect passes add Perfect−/Perfect+ to the top row (same layout as the website).
   final bool xPerfect;
 
   @override
@@ -491,7 +498,7 @@ class _Judgement extends StatelessWidget {
   }
 }
 
-/// 기록 영상. 레벨 화면과 같은 방식으로 앱 안에서 재생한다.
+/// Pass video, played in the app like on the level page.
 class _PassVideo extends StatefulWidget {
   const _PassVideo({required this.videoLink});
 
@@ -510,7 +517,7 @@ class _PassVideoState extends State<_PassVideo> {
     final theme = Theme.of(context);
     final embed = !_failed && EmbeddedVideo.canPlay(widget.videoLink);
 
-    // 영상 제목은 재생기 안에 이미 나오므로 따로 적지 않는다. 크기는 부모가 정해 준 칸에 맞춘다.
+    // The player already shows the video title. Sized by the parent's box.
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: SizedBox.expand(

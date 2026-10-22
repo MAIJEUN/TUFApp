@@ -3,7 +3,7 @@ import 'dart:convert';
 import '../json.dart';
 import '../l10n.dart';
 
-/// 태그나 큐레이션 유형 하나. 두 목록의 응답 모양이 같아서 함께 쓴다.
+/// A tag or curation type. Both lists share the same response shape.
 /// GET /v2/database/difficulties/tags, GET /v2/admin/curations/types
 class FacetItem {
   const FacetItem({
@@ -31,27 +31,31 @@ class FacetItem {
   final String? icon;
   final String? color;
 
-  /// 예: "Play Style", "Key Limit", "Chart". 없으면 '기타'로 묶는다.
+  /// e.g. "Play Style", "Key Limit", "Chart". Items without one go under "Other".
   final String? group;
   final int groupSortOrder;
   final int sortOrder;
 }
 
-/// 난이도 아이콘 둘레에 표시하지 않는 큐레이션 유형.
-/// 웹의 HIDDEN_CURATION_ARC_TYPE_NAMES와 같게 C0, V0 둘만 숨긴다 (O0 같은 이름은 그대로 보여준다).
+/// Curation types not drawn around difficulty icons.
+/// Matches the website's HIDDEN_CURATION_ARC_TYPE_NAMES: only C0 and V0 are hidden (names like O0 still show).
 const hiddenCurationArcTypeNames = {'C0', 'V0'};
 
 bool isHiddenCurationArcType(FacetItem item) => hiddenCurationArcTypeNames.contains(item.name);
 
-/// 한 묶음(그룹)의 항목들.
+/// Items of one group.
 class FacetGroup {
-  const FacetGroup(this.title, this.items);
+  const FacetGroup(this.name, this.items);
 
-  final String title;
+  /// Group name from the server; null for items without a group.
+  final String? name;
   final List<FacetItem> items;
+
+  /// Resolved when shown, so it follows language changes.
+  String get title => name ?? tr('기타', 'Other');
 }
 
-/// 태그/큐레이션 목록을 그룹 순서대로 정리해 둔다.
+/// Tags or curation types arranged in group order.
 class FacetCatalog {
   FacetCatalog(List<FacetItem> items)
     : all = List.unmodifiable(items),
@@ -64,7 +68,7 @@ class FacetCatalog {
 
   FacetItem? byId(int id) => _byId[id];
 
-  /// 주어진 id들을 그룹·정렬 순서대로 정리해 돌려준다. 모르는 id는 건너뛴다.
+  /// Returns the given ids in group and sort order, skipping unknown ids.
   List<FacetItem> resolve(Iterable<int> ids) {
     final items = [for (final id in ids) ?_byId[id]];
     items.sort((a, b) {
@@ -75,7 +79,7 @@ class FacetCatalog {
   }
 
   static List<FacetGroup> _group(List<FacetItem> items) {
-    // 그룹이 없는 항목은 맨 뒤 '기타'로 모은다.
+    // Items without a group go last, under "Other".
     int groupRank(FacetItem item) => item.group == null ? 1 << 30 : item.groupSortOrder;
 
     final sorted = [...items]
@@ -87,15 +91,15 @@ class FacetCatalog {
         return a.sortOrder.compareTo(b.sortOrder);
       });
 
-    final groups = <String, List<FacetItem>>{};
+    final groups = <String?, List<FacetItem>>{};
     for (final item in sorted) {
-      groups.putIfAbsent(item.group ?? tr('기타', 'Other'), () => []).add(item);
+      groups.putIfAbsent(item.group, () => []).add(item);
     }
     return [for (final entry in groups.entries) FacetGroup(entry.key, List.unmodifiable(entry.value))];
   }
 }
 
-/// 고른 태그(또는 큐레이션 유형)들. [matchAll]이면 모두 가진 레벨만, 아니면 하나라도 가진 레벨.
+/// Selected tags (or curation types). [matchAll] finds levels with all of them, otherwise levels with any.
 class FacetSelection {
   const FacetSelection({this.ids = const {}, this.matchAll = false});
 
@@ -104,12 +108,12 @@ class FacetSelection {
 
   bool get isEmpty => ids.isEmpty;
 
-  /// 서버가 받는 모양: {"mode":"simple","op":"and|or","ids":[...]}
+  /// The server's format: {"mode":"simple","op":"and|or","ids":[...]}
   Map<String, Object?> toJson() => {'mode': 'simple', 'op': matchAll ? 'and' : 'or', 'ids': ids.toList()..sort()};
 }
 
-/// 태그와 큐레이션 유형을 함께 보내는 facetQuery(v1) 값.
-/// 둘 다 고르면 둘 다 만족하는 레벨만 찾는다. 아무것도 없으면 null.
+/// facetQuery (v1) value combining tags and curation types.
+/// When both are set, levels must match both. null if nothing is selected.
 String? buildFacetQuery({FacetSelection? tags, FacetSelection? curationTypes}) {
   final hasTags = tags != null && !tags.isEmpty;
   final hasCurations = curationTypes != null && !curationTypes.isEmpty;

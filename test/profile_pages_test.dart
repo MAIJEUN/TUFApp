@@ -14,11 +14,11 @@ import 'package:tufapp/core/tuf_api_client.dart';
 import 'package:tufapp/ui/pages/profile/creator_profile_page.dart';
 import 'package:tufapp/ui/pages/profile/player_profile_page.dart';
 
-/// 실제 응답(2026-10)을 돌려주는 가짜 서버로 플레이어·제작자 페이지를 그린다.
+/// Renders player and creator pages against a fake server returning real responses (2026-10).
 void main() {
   String fixture(String name) => File('test/fixtures/$name.json').readAsStringSync();
 
-  /// 요청한 주소에 맞는 응답. 없는 것은 404.
+  /// Response for each requested path; anything else is 404.
   final routes = <String, String Function()>{
     '/v3/players/25/profile': () => fixture('player_25_profile'),
     '/v3/players/25/passes': () => fixture('player_25_passes'),
@@ -54,14 +54,14 @@ void main() {
         child: MaterialApp(theme: ThemeData.dark(), home: page),
       ),
     );
-    // 응답은 가짜라 바로 오지만, 그림·애니메이션이 끝날 때까지 기다린다.
+    // Fake responses arrive immediately, but wait for images and animations to finish.
     for (var i = 0; i < 20; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
     return app;
   }
 
-  /// 페이지는 보이는 만큼만 그리므로, [finder]가 나올 때까지 아래로 끈다.
+  /// The page only builds what is visible, so drag down until [finder] shows up.
   Future<void> scrollTo(WidgetTester tester, Finder finder) async {
     final page = find.byType(Scrollable).first;
     for (var i = 0; i < 60 && finder.evaluate().isEmpty; i++) {
@@ -85,13 +85,13 @@ void main() {
     expect(find.textContaining('팔로워 171명'), findsOneWidget);
     expect(find.text('460,778.52'), findsWidgets, reason: '랭크 점수');
 
-    // 모듈: 소개는 비어 있어서 빠진다.
+    // Modules: the bio is empty, so it is left out.
     for (final title in ['토너먼트', '점수 상세', '난이도별 클리어', '순위 변화', '점수']) {
       await scrollTo(tester, find.text(title));
     }
     expect(find.text('내 소개'), findsNothing);
 
-    // 기록 목록은 페이지 맨 아래에 이어 붙는다. 랭크에 보탠 점수가 초록 칸으로.
+    // The pass list is appended at the bottom. Contributions to the ranked score show as green chips.
     await scrollTo(tester, find.text('326개 클리어'));
     await scrollTo(tester, find.text('QuomodocunquizE 『CROWN』'));
     expect(find.text('+67,016.00'), findsOneWidget);

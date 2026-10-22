@@ -9,8 +9,8 @@ import 'hover_tip.dart';
 import 'slide_overflow.dart';
 import 'smooth_scroll.dart';
 
-/// 레벨의 모든 정보를 한 창에 보여준다 (사이트의 '전체 정보').
-/// 난이도·점수·길이 같은 값과, 채보·이펙트를 만든 사람들, 다른 이름(별칭)까지.
+/// All of a level's info in one dialog (the website's "Full info"):
+/// values like difficulty, score and length, the charters and VFX artists, and aliases.
 class LevelInfoDialog extends StatelessWidget {
   const LevelInfoDialog({super.key, required this.level});
 
@@ -21,7 +21,7 @@ class LevelInfoDialog extends StatelessWidget {
     builder: (context) => LevelInfoDialog(level: level),
   );
 
-  /// 역할별로 사람들을 모은다 (순서는 서버가 정한 순서 그대로).
+  /// Credits for a role, in the server's order.
   List<LevelCredit> _creditsFor(String role) => ([
     ...level.credits,
   ]..sort((a, b) => a.sortOrder.compareTo(b.sortOrder))).where((credit) => credit.role?.toLowerCase() == role).toList();
@@ -72,7 +72,7 @@ class LevelInfoDialog extends StatelessWidget {
                     children: [
                       if (level.team case final team?) _InfoRow(label: tr('팀', 'Team'), value: team),
                       _InfoRow(label: tr('난이도', 'Difficulty'), value: level.difficulty?.name ?? '#${level.diffId}'),
-                      // 레벨에 따로 정해진 점수가 없으면 0으로 오므로, 그때는 난이도의 기본 점수를 쓴다.
+                      // Levels without their own base score send 0, so fall back to the difficulty's base score.
                       _InfoRow(
                         label: tr('기반 점수', 'Base score'),
                         value: '${formatNumber(level.baseScoreOverride ?? level.difficulty?.baseScore ?? 0)} PP',
@@ -133,7 +133,7 @@ class LevelInfoDialog extends StatelessWidget {
   }
 }
 
-/// 내용이 길면 스크롤한다 (앱의 부드러운 스크롤을 쓴다).
+/// Scrolls long content (with the app's smooth scrolling).
 class _Scrollable extends StatefulWidget {
   const _Scrollable({required this.child});
 
@@ -162,7 +162,7 @@ class _ScrollableState extends State<_Scrollable> {
   );
 }
 
-/// "난이도   U16" 한 줄.
+/// One "Difficulty   U16" row.
 class _InfoRow extends StatelessWidget {
   const _InfoRow({required this.label, required this.value});
 
@@ -189,7 +189,7 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
-/// 채보·이펙트를 만든 사람 목록.
+/// People who charted or did VFX.
 class _People extends StatelessWidget {
   const _People({required this.title, required this.credits});
 
@@ -215,7 +215,7 @@ class _People extends StatelessWidget {
                       '다른 이름: ${credit.creatorAliases.join(', ')}',
                       'Also known as: ${credit.creatorAliases.join(', ')}',
                     ),
-              // 누르면 제작자 페이지로 간다.
+              // Tapping opens the creator page.
               child: Material(
                 color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(8),
@@ -223,7 +223,7 @@ class _People extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                   onTap: switch (credit.creatorId) {
                     final id? => () {
-                      // 창을 닫은 뒤에는 이 창의 context를 쓸 수 없으므로 navigator를 먼저 잡아 둔다.
+                      // This dialog's context is unusable once it closes, so grab the navigator first.
                       final navigator = Navigator.of(context)..pop();
                       navigator.push(MaterialPageRoute(builder: (context) => CreatorProfilePage(creatorId: id)));
                     },

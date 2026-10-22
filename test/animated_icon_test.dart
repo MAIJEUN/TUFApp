@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:tufapp/core/image_cache_store.dart';
 
-/// 줄여서 보여주는 아이콘도 GIF면 움직여야 한다.
+/// Downscaled icons must still animate when they are GIFs.
 void main() {
   late Directory dir;
   late ImageCacheStore original;
@@ -52,14 +52,14 @@ void main() {
   });
 }
 
-/// 2×2 크기에 빨강 한 장, 파랑 한 장이 0.1초마다 넘어가는 GIF.
+/// A 2×2 GIF alternating a red and a blue frame every 0.1 s.
 Uint8List _twoFrameGif() {
   final bytes = BytesBuilder()
     ..add('GIF89a'.codeUnits)
-    // 화면 크기 2×2, 색상표 2색.
+    // 2×2 screen, 2-color palette.
     ..add([2, 0, 2, 0, 0x80, 0, 0])
     ..add([0xFF, 0, 0, 0, 0, 0xFF])
-    // 계속 되풀이.
+    // Loop forever.
     ..add([0x21, 0xFF, 0x0B, ...'NETSCAPE2.0'.codeUnits, 3, 1, 0, 0, 0]);
 
   for (final color in [0, 1]) {
@@ -77,7 +77,7 @@ Uint8List _twoFrameGif() {
   return bytes.toBytes();
 }
 
-/// 압축하지 않은 LZW. 점마다 앞에 초기화 코드를 넣어 코드 폭이 3비트에서 늘지 않게 한다.
+/// Uncompressed LZW: a clear code before every pixel keeps the code width at 3 bits.
 List<int> _lzw(List<int> pixels) {
   const clear = 4, end = 5, width = 3;
   final codes = [

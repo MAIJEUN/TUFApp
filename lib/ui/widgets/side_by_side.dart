@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-/// 자세히 보기 화면의 두 칸: 왼쪽에 글, 오른쪽에 영상.
+/// The two columns of detail pages: text on the left, video on the right.
 ///
-/// 사이트처럼 영상이 오른쪽 칸을 가로로 꽉 채우고(16:9), 왼쪽 칸은 그 높이에 맞춰 늘어난다.
-/// 그래서 두 칸의 위아래 끝이 서로 딱 맞는다.
-/// (왼쪽 글이 더 길면 두 칸이 같이 커진다.)
+/// Like the website, the video fills the right column's width (16:9) and the left column stretches to its height,
+/// so both columns line up at the top and bottom.
+/// (If the left text is taller, both grow together.)
 class SideBySide extends StatelessWidget {
   const SideBySide({
     super.key,
@@ -17,7 +17,7 @@ class SideBySide extends StatelessWidget {
 
   final Widget left;
 
-  /// 오른쪽 칸을 만든다. [videoHeight]는 그 칸 폭에 16:9로 맞춘 영상 높이.
+  /// Builds the right column. [videoHeight] is the 16:9 video height for that column's width.
   final Widget Function(BuildContext context, double videoHeight) right;
 
   final double gap;

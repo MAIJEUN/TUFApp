@@ -1,7 +1,7 @@
 import '../json.dart';
 import 'difficulty.dart';
 
-/// TUF 레벨. API 응답에는 훨씬 많은 필드가 있지만 필요한 것만 읽는다.
+/// A TUF level. The API returns many more fields; only the needed ones are read.
 class Level {
   const Level({
     required this.id,
@@ -40,7 +40,7 @@ class Level {
       song: json['song'] as String? ?? '',
       artist: json['artist'] as String? ?? '',
       creator: asStringOrNull(json['creator']),
-      // 자세히 보기 응답에는 team이 비어 있고 팀 정보(teamObject)만 온다.
+      // Detail responses leave team empty and only send teamObject.
       team:
           asStringOrNull(json['team']) ??
           switch (json['teamObject']) {
@@ -79,19 +79,19 @@ class Level {
   final String song;
   final String artist;
 
-  /// 검색 결과에서 "차터 | VFX" 형태로 합쳐진 제작자 문자열.
+  /// Creator string from search results, joined like "charter | VFX".
   final String? creator;
   final String? team;
   final int diffId;
   final Difficulty? difficulty;
 
-  /// 이 레벨에만 따로 정해진 기반 점수(PP). 난이도의 기본값을 대신한다.
+  /// Base score (PP) set for this level only, replacing the difficulty's default.
   final int? baseScore;
 
-  /// TUF CDN 다운로드 링크 (zip). 없으면 창작마당이나 예전 링크를 확인한다.
+  /// TUF CDN download link (zip). Without it, check the Workshop or legacy links.
   final String? dlLink;
 
-  /// CDN 파일 ID. 레벨 파일이 다시 올라가면 바뀌므로 업데이트 확인에 쓴다.
+  /// CDN file ID. It changes when the level file is re-uploaded, so it is used to detect updates.
   final String? fileId;
   final String? legacyDllink;
   final String? workshopLink;
@@ -105,29 +105,29 @@ class Level {
   final int uniqueClears;
   final int likes;
 
-  /// 사이트에서 받은 횟수.
+  /// Download count on the website.
   final int downloadCount;
   final bool isDeleted;
 
   final List<LevelTag> tags;
   final List<LevelCredit> credits;
 
-  /// 이 레벨에 매겨진 큐레이션 유형 id (C2, V1 등). 아이콘은 큐레이션 목록에서 찾는다.
+  /// Curation type ids of this level (C2, V1, ...). Icons come from the curation catalog.
   final List<int> curationTypeIds;
 
-  /// 평가에서 매겨진 예상 난이도 id (평균). Q 레벨이 어느 PGU 난이도쯤인지 보여줄 때 쓴다.
+  /// Average rated difficulty id. Shows roughly which PGU difficulty a Q level is.
   final int? ratedDifficultyId;
 
-  /// 곡이나 작곡가를 부르는 다른 이름들 (검색에 쓰인다).
+  /// Other names for the song or artist (used by search).
   final List<LevelAlias> aliases;
 
-  /// TUF에 등록된 날짜.
+  /// Date the level was added to TUF.
   final DateTime? createdAt;
 
-  /// 응답마다 모양이 다르다.
-  /// - 검색 결과: curation.typeIds
-  /// - 단일 레벨: curations[].types[].id
-  /// - 팩 내용: curations[].typeIds
+  /// The shape differs per response:
+  /// - search results: curation.typeIds
+  /// - single level: curations[].types[].id
+  /// - pack contents: curations[].typeIds
   static List<int> _readCurationTypeIds(Map<String, dynamic> json) {
     final ids = <int>{};
 
@@ -150,7 +150,7 @@ class Level {
     return ids.toList();
   }
 
-  /// 팩 응답처럼 난이도·태그가 id로만 온 레벨을 목록에서 찾은 값으로 채울 때 쓴다.
+  /// Fills in difficulty and tags for levels that only came with ids (like pack responses).
   Level copyWith({Difficulty? difficulty, List<LevelTag>? tags}) => Level(
     id: id,
     song: song,
@@ -181,21 +181,21 @@ class Level {
     createdAt: createdAt,
   );
 
-  /// 난이도의 기본값과 다르게 정해진 기반 점수(PP). 변동이 없으면 null.
+  /// Base score (PP) that differs from the difficulty's default, or null.
   int? get baseScoreOverride {
     final score = baseScore;
     if (score == null || score <= 0) return null;
     return score == difficulty?.baseScore ? null : score;
   }
 
-  /// 레벨 길이. 정보가 없으면 null.
+  /// Level length, or null if unknown.
   Duration? get length {
     final ms = levelLengthInMs;
     return ms != null && ms > 0 ? Duration(milliseconds: ms.round()) : null;
   }
 
-  /// 표시용 제작자 이름. 웹 프론트엔드의 formatCreatorDisplay와 같은 규칙:
-  /// 팀 → 차터/VFX 크레딧 ("A & B", "A | B", "A & 2 more | B") → 검색 결과의 creator 문자열.
+  /// Creator name for display, following the website's formatCreatorDisplay:
+  /// team → charter/VFX credits ("A & B", "A | B", "A & 2 more | B") → the creator string from search results.
   String? get creatorDisplay {
     if (team != null) return team;
 
@@ -225,7 +225,7 @@ class Level {
   }
 }
 
-/// 곡·작곡가를 부르는 다른 이름. 예: field "artist", alias "cametek".
+/// Another name for a song or artist, e.g. field "artist", alias "cametek".
 class LevelAlias {
   const LevelAlias({required this.field, required this.alias});
 
@@ -263,13 +263,13 @@ class LevelTag {
   final String? color;
   final String? description;
 
-  /// 플레이어들이 투표로 붙인 태그인지 (웹의 커뮤니티 태그). 관리자가 붙인 태그는 false.
+  /// Whether players voted this tag on (the website's community tags). false for tags set by staff.
   final bool isCommunity;
 
-  /// 커뮤니티 태그의 신뢰도 (0~1). 웹은 이만큼 태그 둘레에 초록 테를 채운다.
+  /// Confidence of a community tag (0–1). The website fills that much of a green ring around the tag.
   final double? score;
 
-  /// 다른 정보(이름, 아이콘)로 바꾸되 투표 정보는 그대로 둔다.
+  /// Replaces name and icon info but keeps the vote info.
   LevelTag withInfo({required String name, String? icon, String? color, String? description}) => LevelTag(
     id: id,
     name: name,
@@ -298,14 +298,14 @@ class LevelCredit {
     );
   }
 
-  /// 예: "charter", "vfxer"
+  /// e.g. "charter", "vfxer"
   final String? role;
   final int sortOrder;
 
-  /// 제작자 페이지를 열 때 쓴다. 검색 결과에는 없을 수 있다.
+  /// Used to open the creator page. May be missing in search results.
   final int? creatorId;
   final String? creatorName;
 
-  /// 그 사람이 쓰는 다른 이름들.
+  /// Other names this person uses.
   final List<String> creatorAliases;
 }

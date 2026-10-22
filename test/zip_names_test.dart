@@ -8,12 +8,12 @@ import 'package:path/path.dart' as p;
 import 'package:tufapp/core/level_library.dart';
 import 'package:tufapp/core/zip_names.dart';
 
-/// 옛 압축 도구는 파일 이름을 UTF-8 표시 없이 그 컴퓨터의 코드 페이지로 적는다.
-/// 그대로 풀면 이름이 깨져서 레벨이 노래를 못 찾는다.
+/// Old archivers store file names in the machine's code page without the UTF-8 flag.
+/// Extracting them as is garbles the names and the level can't find its music.
 void main() {
-  // '자산 49oz.png' 의 CP949 바이트 (실제로 깨졌던 이름).
+  // CP949 bytes of '자산 49oz.png' (a name that actually broke).
   final korean = <int>[...'9'.codeUnits, 0xC0, 0xDA, 0xBB, 0xEA, ...' 49oz.png'.codeUnits];
-  // '曲.mp3' 의 Shift-JIS 바이트.
+  // Shift-JIS bytes of '曲.mp3'.
   final japanese = <int>[0x8B, 0xC8, ...'.mp3'.codeUnits];
 
   late Directory temp;
@@ -45,7 +45,7 @@ void main() {
   });
 
   test('일본어 이름은 레벨 파일에 적힌 이름을 보고 고른다', () {
-    // 이 바이트는 한국어 코드 페이지로도 읽히므로(엉뚱한 글자로), 레벨 파일과 견줘 봐야 제대로 고른다.
+    // These bytes also decode under the Korean code page (as the wrong characters), so the level file decides.
     final out = extractTo(
       buildZip([
         ZipEntry(japanese, [1, 2, 3]),
@@ -81,7 +81,7 @@ void main() {
   });
 
   test('한 zip 안에 서로 다른 언어의 이름이 섞여 있어도 고친다', () {
-    // 한글(CP949)과 서유럽(CP1252) 이름이 한 zip에 같이 들어 있다.
+    // Korean (CP949) and Western European (CP1252) names in the same zip.
     final out = extractTo(
       buildZip([
         ZipEntry(korean, [1]),
@@ -118,7 +118,7 @@ class ZipEntry {
   final bool utf8Flag;
 }
 
-/// 압축하지 않은(저장) zip을 손으로 만든다. 이름 바이트와 UTF-8 표시를 그대로 정할 수 있다.
+/// Builds an uncompressed (stored) zip by hand, with exact name bytes and UTF-8 flag.
 List<int> buildZip(List<ZipEntry> entries) {
   final out = BytesBuilder();
   final directory = BytesBuilder();
@@ -133,22 +133,22 @@ List<int> buildZip(List<ZipEntry> entries) {
     final flags = entry.utf8Flag ? 0x800 : 0;
 
     uint32(out, 0x04034B50);
-    uint16(out, 20); // 필요한 버전
+    uint16(out, 20); // version needed
     uint16(out, flags);
-    uint16(out, 0); // 저장 (압축 안 함)
-    uint16(out, 0); // 시각
-    uint16(out, 0); // 날짜
+    uint16(out, 0); // stored (no compression)
+    uint16(out, 0); // time
+    uint16(out, 0); // date
     uint32(out, crc);
     uint32(out, entry.data.length);
     uint32(out, entry.data.length);
     uint16(out, entry.name.length);
-    uint16(out, 0); // 추가 정보 없음
+    uint16(out, 0); // no extra field
     out.add(entry.name);
     out.add(entry.data);
 
     uint32(directory, 0x02014B50);
-    uint16(directory, 20); // 만든 버전
-    uint16(directory, 20); // 필요한 버전
+    uint16(directory, 20); // version made by
+    uint16(directory, 20); // version needed
     uint16(directory, flags);
     uint16(directory, 0);
     uint16(directory, 0);
@@ -157,11 +157,11 @@ List<int> buildZip(List<ZipEntry> entries) {
     uint32(directory, entry.data.length);
     uint32(directory, entry.data.length);
     uint16(directory, entry.name.length);
-    uint16(directory, 0); // 추가 정보
-    uint16(directory, 0); // 설명
-    uint16(directory, 0); // 디스크 번호
-    uint16(directory, 0); // 속성
-    uint32(directory, 0); // 속성
+    uint16(directory, 0); // extra field
+    uint16(directory, 0); // comment
+    uint16(directory, 0); // disk number
+    uint16(directory, 0); // attributes
+    uint32(directory, 0); // attributes
     uint32(directory, offset);
     directory.add(entry.name);
   }
@@ -177,7 +177,7 @@ List<int> buildZip(List<ZipEntry> entries) {
   uint16(out, entries.length);
   uint32(out, directoryBytes.length);
   uint32(out, directoryOffset);
-  uint16(out, 0); // 전체 설명 없음
+  uint16(out, 0); // no archive comment
 
   return out.toBytes();
 }

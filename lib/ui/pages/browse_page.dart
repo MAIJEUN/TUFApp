@@ -6,7 +6,7 @@ import '../widgets/common.dart';
 import '../widgets/motion.dart';
 import '../widgets/smooth_scroll.dart';
 
-/// 가운데 정렬된 최대 폭 안에서 가로를 꽉 채운다 (레벨 찾기와 같은 폭).
+/// Fills the width inside the centered max width (same as the levels page).
 Widget browseConstrain(Widget child) => Center(
   child: ConstrainedBox(
     constraints: const BoxConstraints(maxWidth: pageMaxWidth),
@@ -19,8 +19,8 @@ Widget browseConstrain(Widget child) => Center(
 
 Widget _section(Widget child) => SliverToBoxAdapter(child: browseConstrain(child));
 
-/// 끝없이 이어지는 목록 화면의 틀. 레벨 찾기 화면과 같은 모양이다:
-/// 제목, 도구 줄, (필터), 결과 수, 목록, 맨 아래 상태.
+/// Scaffold for an infinite list page, shaped like the levels page:
+/// title, toolbar, (filters), result count, list, footer.
 class BrowsePage<T> extends StatefulWidget {
   const BrowsePage({
     super.key,
@@ -41,10 +41,10 @@ class BrowsePage<T> extends StatefulWidget {
   final String subtitle;
   final Widget toolbar;
 
-  /// 도구 줄 아래에 펼쳐지는 필터 카드.
+  /// Filter card that expands below the toolbar.
   final Widget? filter;
 
-  /// "클리어 63,029개"처럼 결과 수.
+  /// Result count text, like "63,029 passes".
   final String Function(int total) countText;
   final Widget Function(BuildContext context, T item, int index) itemBuilder;
   final Object Function(T item) itemKey;
@@ -62,7 +62,7 @@ class _BrowsePageState<T> extends State<BrowsePage<T>> {
   final _scroll = SmoothScrollController();
   int _generation = -1;
 
-  /// 이 순서 이전의 줄은 이미 보여준 것이라 애니메이션 없이 만든다.
+  /// Rows before this index were already shown, so they are built without the entrance animation.
   int _shownCount = 0;
 
   @override
@@ -81,7 +81,7 @@ class _BrowsePageState<T> extends State<BrowsePage<T>> {
     if (_scroll.hasClients && _scroll.position.extentAfter < _loadMoreThreshold) widget.list.loadMore();
   }
 
-  /// 새로 검색하면 맨 위로 돌아가고, 화면이 덜 찼으면 더 불러온다.
+  /// Scrolls to the top on a new search and loads more if the list doesn't fill the screen.
   void _afterBuild(PagedList<T> list) {
     final generationChanged = list.generation != _generation;
     _generation = list.generation;
@@ -161,7 +161,7 @@ class _BrowsePageState<T> extends State<BrowsePage<T>> {
                   ),
                 ),
               ),
-              // 새 검색 중에는 이전 결과를 흐리게 보여준다.
+              // Dim the previous results while a new search runs.
               SliverAnimatedOpacity(
                 opacity: searching ? 0.45 : 1,
                 duration: Motion.medium,
@@ -257,7 +257,7 @@ class _Footer extends StatelessWidget {
   }
 }
 
-/// 검색창. 레벨 찾기·팩 화면의 검색창과 같다.
+/// Search box, the same as on the levels and packs pages.
 class BrowseSearchBar extends StatefulWidget {
   const BrowseSearchBar({super.key, required this.initialText, required this.hint, required this.onChanged});
 
@@ -309,7 +309,7 @@ class _BrowseSearchBarState extends State<BrowseSearchBar> {
   );
 }
 
-/// 오름차순·내림차순을 바꾸는 단추.
+/// Toggles ascending/descending order.
 class OrderButton extends StatelessWidget {
   const OrderButton({super.key, required this.descending, required this.onPressed});
 

@@ -8,8 +8,8 @@ import 'package:tufapp/ui/theme.dart';
 import 'package:tufapp/ui/widgets/level_card.dart';
 import 'package:tufapp/ui/widgets/raster_snapshot.dart';
 
-/// 카드 안의 줄 높이가 카드 높이를 넘으면 debug 빌드에서 오버플로 오류가 난다.
-/// 실제 앱에서 보이는 크기(가로 1152, 카드 폭 약 1100)로 그려서 확인한다.
+/// Lines taller than the card throw overflow errors in debug builds.
+/// Rendered at the size seen in the app (1152 wide, cards about 1100) to check.
 void main() {
   final level = Level(
     id: 11372,
@@ -26,7 +26,7 @@ void main() {
   );
 
   Future<void> pumpCard(WidgetTester tester, {required bool compact, double textScale = 1, Level? card}) async {
-    // 실제 창 크기. 기본 테스트 화면(800x600)은 카드 한 줄이 들어가지 않는다.
+    // Real window size; the default test surface (800x600) can't fit a card row.
     await tester.binding.setSurfaceSize(const Size(1280, 800));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(
@@ -36,7 +36,7 @@ void main() {
           theme: buildAppTheme(),
           home: Scaffold(
             body: MediaQuery(
-              // 테스트 글꼴은 실제 글꼴보다 작다. 키워서 재어 봐야 여유가 있는지 알 수 있다.
+              // The test font is smaller than the real one, so scale it up to see whether there is room to spare.
               data: MediaQueryData(textScaler: TextScaler.linear(textScale)),
               child: Align(
                 alignment: Alignment.topLeft,
@@ -73,7 +73,7 @@ void main() {
   testWidgets('보기 방식을 바꾸는 중에도 넘치지 않는다', (tester) async {
     await pumpCard(tester, compact: false);
     await pumpCard(tester, compact: true);
-    // 카드 높이가 줄어드는 애니메이션 중간
+    // Midway through the card height animation
     await tester.pump(const Duration(milliseconds: 60));
     expect(tester.takeException(), isNull);
     await tester.pump(const Duration(milliseconds: 120));
@@ -127,7 +127,7 @@ void main() {
     expect(snapshot.bakeCount, greaterThan(0), reason: '굽지 못하고 그냥 그리면 스크롤이 무거워진다');
   });
 
-  // 웹 levelcard.css: --arc-center 45deg, --rotation-offset: 90deg / count
+  // Website levelcard.css: --arc-center 45deg, --rotation-offset: 90deg / count
   test('큐레이션 아이콘 각도는 웹과 같게 45도를 가운데로 90/개수씩 벌린다', () {
     expect(curationArcAngles(0), isEmpty);
     expect(curationArcAngles(1), [45]);

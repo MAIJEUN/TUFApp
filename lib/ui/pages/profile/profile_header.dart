@@ -13,8 +13,8 @@ import '../../widgets/slide_overflow.dart';
 import '../../widgets/smooth_scroll.dart';
 import 'profile_section.dart';
 
-/// 플레이어·제작자 페이지 맨 위 카드. 클리어 화면의 사람 카드를 크게 한 모양이다.
-/// 사진·이름·계정, 대표 아이콘(최고 난이도 / 큐레이션 유형), 순위, 통계 세 칸과 tr('전체 통계', 'All stats').
+/// Top card of player and creator pages, a larger version of the person card on the passes page:
+/// avatar, name and account, icon slots (top difficulties / curation types), rank, three stats and "All stats".
 class ProfileHeader extends StatelessWidget {
   const ProfileHeader({
     super.key,
@@ -41,36 +41,36 @@ class ProfileHeader extends StatelessWidget {
   final String name;
   final AvatarUrls avatar;
 
-  /// 예전 이름들. 이름에 마우스를 올리면 보인다.
+  /// Former names, shown when hovering the name.
   final List<String> aliases;
 
-  /// 프로필 배너. 있으면 카드 뒤에 흐리게 깐다 (레벨 카드의 영상 썸네일처럼).
+  /// Profile banner, blurred behind the card if present (like video thumbnails on level cards).
   final String? bannerUrl;
   final String? handle;
   final String? country;
 
-  /// 플레이어 순위. null이면 순위 칸이 없다 (제작자).
+  /// Player rank. null hides the rank chip (creators).
   final int? rank;
   final ({int rank, DateTime date})? highestRank;
   final int? profileId;
   final int? followerCount;
 
-  /// 이름 옆에 붙는 표시 (제작자 인증 상태).
+  /// Badge next to the name (creator verification status).
   final Widget? badge;
   final List<IconSlot> iconSlots;
 
-  /// 아이콘 줄 끝 단추로 여는 창 (모든 난이도 / 모든 큐레이션 유형).
+  /// Title of the dialog opened from the end of the icon row (all difficulties / all curation types).
   final String? iconPanelTitle;
   final WidgetBuilder? iconPanel;
 
-  /// 카드 아래 칸에 보이는 대표 통계.
+  /// Key stats shown at the bottom of the card.
   final List<StatRow> stats;
 
-  /// tr('전체 통계', 'All stats') 창의 내용.
+  /// Contents of the "All stats" dialog.
   final List<StatGroup> statGroups;
   final void Function(int passId)? onOpenPass;
 
-  /// 오른쪽 위 단추들 (다른 프로필, 팩 보기 등).
+  /// Buttons at the top right (other profile, view packs, ...).
   final List<ProfileAction> actions;
 
   @override
@@ -224,7 +224,7 @@ class ProfileHeader extends StatelessWidget {
   }
 }
 
-/// 머리글 오른쪽 위 단추 하나.
+/// One button at the top right of the header.
 class ProfileAction {
   const ProfileAction({required this.icon, required this.tooltip, required this.onPressed});
 
@@ -233,7 +233,7 @@ class ProfileAction {
   final VoidCallback onPressed;
 }
 
-/// 순위 색: 1위 금, 2위 은, 3위 동. 그 밖에는 null (기본 글자색).
+/// Rank colors: gold, silver and bronze for 1–3, otherwise null (default text color).
 Color? medalColor(int rank) => switch (rank) {
   1 => const Color(0xFFF2D06B),
   2 => const Color(0xFFDADADA),
@@ -241,7 +241,7 @@ Color? medalColor(int rank) => switch (rank) {
   _ => null,
 };
 
-/// "#1" 순위 칩 (클리어 화면의 순위 칩과 같은 모양). 1~3위는 메달 색, 마우스를 올리면 최고 순위.
+/// "#1" rank chip (same look as on the passes page). Medal colors for 1–3; hovering shows the highest rank.
 class _RankChip extends StatelessWidget {
   const _RankChip({required this.rank, this.highest});
 
@@ -277,7 +277,7 @@ class _RankChip extends StatelessWidget {
   }
 }
 
-/// 둥근 프로필 사진. TUF에 올린 사진이 안 열리면 디스코드 사진, 그것도 없으면 사람 모양.
+/// Round avatar. Falls back to the Discord picture if the TUF upload fails, then to a person icon.
 class ProfileAvatar extends StatelessWidget {
   const ProfileAvatar({super.key, required this.avatar, required this.size});
 
@@ -314,7 +314,7 @@ class ProfileAvatar extends StatelessWidget {
   }
 }
 
-/// 대표 아이콘 하나와 개수 (오른쪽 아래 작은 숫자).
+/// One slot icon with its count (small number at the bottom right).
 class IconSlotView extends StatelessWidget {
   const IconSlotView({super.key, required this.slot, this.size = 40});
 
@@ -374,7 +374,7 @@ class IconSlotView extends StatelessWidget {
   }
 }
 
-/// 아이콘 줄의 단추로 여는 창.
+/// Dialog opened from the icon row button.
 class _PanelDialog extends StatelessWidget {
   const _PanelDialog({required this.title, required this.child});
 
@@ -389,7 +389,7 @@ class _PanelDialog extends StatelessWidget {
   );
 }
 
-/// tr('전체 통계', 'All stats') 창. 레벨 화면의 '전체 정보' 창과 같은 모양이다.
+/// "All stats" dialog, shaped like the "Full info" dialog of the level page.
 class ProfileStatsDialog extends StatelessWidget {
   const ProfileStatsDialog({super.key, required this.title, required this.groups, this.onOpenPass});
 
@@ -500,13 +500,13 @@ class _DialogScrollState extends State<_DialogScroll> {
     controller: _scroll,
     builder: (context, behavior) => ScrollConfiguration(
       behavior: behavior,
-      // 오른쪽에 스크롤 막대 자리를 비워 둔다.
+      // Leave room on the right for the scrollbar.
       child: SingleChildScrollView(controller: _scroll, padding: const EdgeInsets.only(right: 16), child: widget.child),
     ),
   );
 }
 
-/// "총 클리어 횟수   326" 한 줄. 기록이 있는 줄은 그 클리어로 가는 단추가 붙는다.
+/// One "Total passes   326" line. Lines tied to a pass get a button to it.
 class _StatLine extends StatelessWidget {
   const _StatLine({required this.row, this.onOpenPass, required this.close});
 
@@ -537,7 +537,7 @@ class _StatLine extends StatelessWidget {
           if (passId != null && open != null)
             IconButton(
               tooltip: tr('클리어 보기', 'View pass'),
-              // 단추가 있는 줄도 다른 줄과 높이가 같게 작게 둔다.
+              // Keep the button small so lines with one are as tall as the others.
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints.tightFor(width: 28, height: 22),
               iconSize: 16,
@@ -553,7 +553,7 @@ class _StatLine extends StatelessWidget {
   }
 }
 
-/// 모든 난이도 아이콘, 깬 것만 밝게 (아이콘 줄의 단추로 연다).
+/// Every difficulty icon, cleared ones lit (opened from the icon row button).
 class DifficultyGridPanel extends StatelessWidget {
   const DifficultyGridPanel({super.key, required this.difficulties, required this.clears});
 
@@ -600,7 +600,7 @@ class DifficultyGridPanel extends StatelessWidget {
   }
 }
 
-/// 큐레이션 유형을 묶음별로, 레벨 수와 함께 (제작자 아이콘 줄의 단추로 연다).
+/// Curation types by group with level counts (opened from the creator icon row button).
 class CurationPanel extends StatelessWidget {
   const CurationPanel({super.key, required this.types, required this.counts});
 
@@ -640,7 +640,7 @@ class CurationPanel extends StatelessWidget {
   }
 }
 
-/// 제작자 인증 상태 칩 (허가 · 조건 있음 · 대기 중 · 거절). 조건이 있으면 마우스를 올려 볼 수 있다.
+/// Creator verification chip (allowed, conditional, pending, declined). Conditions show on hover.
 class VerificationBadge extends StatelessWidget {
   const VerificationBadge({super.key, required this.label, required this.color, this.conditions});
 
@@ -675,7 +675,7 @@ class VerificationBadge extends StatelessWidget {
   }
 }
 
-/// 버튼처럼 쓰는 작은 진행 표시 (데이터를 받는 동안).
+/// Small progress indicator used like a button while loading.
 class ProfileLoading extends StatelessWidget {
   const ProfileLoading({super.key, this.height = 120});
 
@@ -688,7 +688,7 @@ class ProfileLoading extends StatelessWidget {
   );
 }
 
-/// 접히는 묶음 줄 (토너먼트 시리즈·대회): 꺾쇠, 제목, 개수.
+/// Collapsible group row (tournament series or event): chevron, title, count.
 class ProfileGroupRow extends StatelessWidget {
   const ProfileGroupRow({
     super.key,

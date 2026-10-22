@@ -1,10 +1,10 @@
-// 이미 받아 둔 레벨의 깨진 파일 이름을 되돌린다 (한 번만 쓰는 도구).
-// 앱이 zip을 풀 때 쓰는 것과 같은 방식(ZipNames)으로 코드 페이지를 골라 다시 읽는다.
+// Restores garbled file names in levels downloaded earlier (a one-off tool).
+// Picks the code page and decodes again the same way the app does when extracting (ZipNames).
 //
-//   dart run tool/fix_broken_names.dart <라이브러리 경로> [--apply]
+//   dart run tool/fix_broken_names.dart <library path> [--apply]
 //
-// --apply 없이 실행하면 무엇이 바뀌는지만 보여준다.
-// 레벨 파일(.adofai)이 있는 폴더를 레벨 하나로 보고, 그 레벨 파일에 적힌 이름과 견줘서 고른다.
+// Without --apply it only shows what would change.
+// Each folder with a level file (.adofai) is one level, and names are matched against that level file.
 import 'dart:convert';
 import 'dart:io';
 
@@ -15,7 +15,7 @@ void main(List<String> args) {
   final apply = args.contains('--apply');
   final root = args.firstWhere((a) => !a.startsWith('--'), orElse: () => '');
   if (root.isEmpty) {
-    stderr.writeln('라이브러리 경로가 필요합니다.');
+    stderr.writeln('A library path is required.');
     exitCode = 2;
     return;
   }
@@ -36,27 +36,27 @@ void main(List<String> args) {
       final name = p.basename(entry.path);
       final fixed = fix(name);
       if (fixed == name) {
-        log.add('그대로\t${entry.path}');
+        log.add('unchanged\t${entry.path}');
         continue;
       }
 
       final target = p.join(p.dirname(entry.path), fixed);
       if (FileSystemEntity.typeSync(target) != FileSystemEntityType.notFound) {
-        log.add('건너뜀(이미 있음)\t${entry.path}\t$target');
+        log.add('skipped (exists)\t${entry.path}\t$target');
         continue;
       }
 
-      log.add('${apply ? "바꿈" : "바꿀 것"}\t${entry.path}\t$target');
+      log.add('${apply ? "renamed" : "would rename"}\t${entry.path}\t$target');
       renamed++;
       if (apply) entry.renameSync(target);
     }
   }
 
   stdout.writeln(log.join('\n'));
-  stdout.writeln('레벨 $levels개, 이름 $renamed개');
+  stdout.writeln('$levels levels, $renamed names');
 }
 
-/// 레벨 파일(.adofai)이 들어 있는 폴더들. 그 아래에 또 레벨이 있으면 그것도 따로 센다.
+/// Folders containing a level file (.adofai). Nested levels below them count separately.
 Iterable<String> _levelFolders(String root) sync* {
   final seen = <String>{};
   for (final entry in Directory(root).listSync(recursive: true)) {
@@ -66,11 +66,11 @@ Iterable<String> _levelFolders(String root) sync* {
   }
 }
 
-/// 그 폴더에 바로 든 것들만 본다 (아래에 또 레벨이 있으면 그 레벨이 자기 이름을 고친다).
+/// Only direct children (a nested level fixes its own names).
 bool _isOwn(FileSystemEntity entry, String root) =>
     entry is File || Directory(entry.path).listSync().every((child) => !child.path.toLowerCase().endsWith('.adofai'));
 
-/// 같은 폴더의 레벨 파일. 어떤 코드 페이지로 읽어야 하는지 고를 때 견준다.
+/// The level file in the same folder, used to pick the code page.
 String? _levelText(List<FileSystemEntity> entries) {
   final texts = <String>[];
   for (final entry in entries) {

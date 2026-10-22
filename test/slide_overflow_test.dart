@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tufapp/ui/widgets/slide_overflow.dart';
 
-/// 목록에 수백 개가 놓이는 위젯이라 평소에는 가볍게 그리고,
-/// 마우스를 올렸을 때만 끝까지 흘러갔다가 다시 돌아온다.
+/// Lists hold hundreds of these, so they paint cheaply at rest
+/// and only scroll to the end and back while hovered.
 void main() {
   Future<void> pump(WidgetTester tester, {double width = 100}) async {
     await tester.pumpWidget(
@@ -25,13 +25,13 @@ void main() {
 
   RenderFadeEdges edges(WidgetTester tester) => tester.renderObject<RenderFadeEdges>(find.byType(FadeEdges));
 
-  /// 마우스를 위젯 위로 올린다.
+  /// Moves the mouse over the widget.
   Future<TestGesture> hover(WidgetTester tester) async {
     final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
     await mouse.addPointer(location: Offset.zero);
     addTearDown(mouse.removePointer);
     await mouse.moveTo(tester.getCenter(find.byType(SlideOverflow)));
-    // 마우스가 들어왔는지는 프레임이 끝난 뒤에 확인되고, 흐르기 시작하는 건 그다음 프레임이다.
+    // Mouse entry is detected after the frame ends, and sliding starts on the next frame.
     await tester.pump();
     await tester.pump();
     return mouse;
@@ -77,9 +77,9 @@ void main() {
     await mouse.addPointer(location: Offset.zero);
     addTearDown(mouse.removePointer);
     await mouse.moveTo(tester.getCenter(find.byType(SlideOverflow)));
-    // 마우스만 옮기고 프레임을 따로 요청하지 않는다.
+    // Only the mouse moves; no frame is requested separately.
     expect(tester.binding.hasScheduledFrame, isTrue, reason: '움직이기 시작하면 스스로 프레임을 요청한다');
-    // 첫 프레임은 시작 시각만 정한다.
+    // The first frame only records the start time.
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(edges(tester).offset, greaterThan(0));
@@ -124,7 +124,7 @@ void main() {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     for (var i = 0; i < 10; i++)
-                      // 반투명하게 나타나는 중인 아이콘처럼 자기 레이어를 가진다.
+                      // Has its own layer, like an icon fading in.
                       RepaintBoundary(
                         child: Opacity(opacity: 0.5, child: Container(width: 20, height: 20, color: Colors.red)),
                       ),

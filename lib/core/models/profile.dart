@@ -4,7 +4,7 @@ import 'level.dart';
 import 'pack.dart';
 import 'pass.dart';
 
-/// 플레이어 페이지. GET /v3/players/{id}/profile
+/// Player page. GET /v3/players/{id}/profile
 class PlayerProfileDetail {
   const PlayerProfileDetail({
     required this.id,
@@ -67,42 +67,42 @@ class PlayerProfileDetail {
   final String? country;
   final AvatarUrls avatar;
 
-  /// TUF 계정 이름 (@로 보여준다). 계정과 연결되지 않았으면 null.
+  /// TUF account name (shown with @), or null if no account is linked.
   final String? handle;
 
-  /// 랭크 점수 순위. 0이면 순위 없음.
+  /// Ranked score rank; 0 if unranked.
   final int rank;
 
-  /// 지금까지 가장 높았던 순위와 그 날.
+  /// Highest rank so far and when it was reached.
   final ({int rank, DateTime date})? highestRank;
   final int? followerCount;
   final bool showFollowerCount;
   final ProfileBio bio;
   final Map<PlayerScoreKey, double> scores;
 
-  /// 랭크 점수에 들어간 기록 (기록 id → 보탠 점수).
+  /// Passes counted in the ranked score (pass id → score added).
   final Map<int, double> topScores;
 
-  /// 레벨 파일이 없어 반영되지 않았지만 들어갈 수 있었던 기록.
+  /// Passes that could have counted but don't because the level file is missing.
   final Map<int, double> potentialTopScores;
   final List<TournamentPlacement> placements;
   final List<int> placementOrderIds;
   final ProfileModules modules;
 
-  /// 같은 사람의 제작자 페이지.
+  /// The same person's creator page.
   final int? creatorId;
   final ProfileBanner banner;
   final List<String> aliases;
   final List<YoutubeChannel> youtubeChannels;
 
-  /// 재미있는 통계 (클리어 수, 판정 합계, 기록 등). 사이트가 주는 그대로 둔다.
+  /// Fun facts (clear counts, judgement totals, records, ...), kept as the website sends them.
   final Map<String, dynamic> funFacts;
   final DateTime? createdAt;
 
   double score(PlayerScoreKey key) => scores[key] ?? 0;
 }
 
-/// 플레이어 점수 종류. 이름은 API 필드 이름과 같다.
+/// Player score kinds. Names match the API fields.
 enum PlayerScoreKey {
   rankedScore(
     '랭크 점수',
@@ -139,7 +139,7 @@ enum PlayerScoreKey {
   String get description => tr(_descriptionKo, _descriptionEn);
 }
 
-/// 제작자 페이지. GET /v3/creators/{id}/profile
+/// Creator page. GET /v3/creators/{id}/profile
 class CreatorProfileDetail {
   const CreatorProfileDetail({
     required this.id,
@@ -167,7 +167,7 @@ class CreatorProfileDetail {
   });
 
   factory CreatorProfileDetail.fromJson(Map<String, dynamic> json) {
-    // 응답이 제작자 문서를 감싸서 올 때도 있다.
+    // The creator document is sometimes wrapped.
     final doc = _map(json['creator']) ?? _map(json['doc']) ?? json;
     final user = _map(json['user']) ?? _map(doc['user']);
     final stats = _map(json['stats']) ?? doc;
@@ -210,20 +210,20 @@ class CreatorProfileDetail {
   final String? handle;
   final CreatorVerification verification;
 
-  /// 레벨을 올릴 때 지켜 달라는 조건 (제작자가 적어 둔 글).
+  /// Conditions the creator asks uploaders to follow (free text).
   final String? uploadConditions;
   final int? followerCount;
   final bool showFollowerCount;
   final int chartsTotal;
   final int totalChartClears;
 
-  /// 큐레이션 유형 id → 그 유형이 붙은 레벨 수.
+  /// Curation type id → number of levels with that type.
   final Map<int, int> curationTypeCounts;
 
-  /// 제작자가 머리글에 보이도록 고른 큐레이션 유형 (없으면 자동으로 고른다).
+  /// Curation types the creator picked for the header (chosen automatically if empty).
   final List<int> displayCurationTypeIds;
 
-  /// 같은 사람의 플레이어 페이지.
+  /// The same person's player page.
   final int? playerId;
   final ProfileBio bio;
   final List<TournamentPlacement> placements;
@@ -234,11 +234,11 @@ class CreatorProfileDetail {
   final List<YoutubeChannel> youtubeChannels;
   final Map<String, dynamic> funFacts;
 
-  /// 큐레이션 유형이 하나라도 붙은 레벨 수.
+  /// Number of levels with at least one curation type.
   int get curatedLevels => asInt(_map(funFacts['curation'])?['curatedLevels']);
 }
 
-/// 제작자가 TUF에 레벨을 올리는 것을 허락했는지.
+/// Whether the creator allows their levels to be uploaded to TUF.
 enum CreatorVerification {
   allowed('허가', 'Allowed'),
   conditional('조건 있음', 'Conditional'),
@@ -255,7 +255,7 @@ enum CreatorVerification {
       values.where((status) => status.name == value).firstOrNull ?? pending;
 }
 
-/// 자기소개. 후원자(TUF Stellar)는 글·링크·그림을 블록으로 꾸밀 수 있고, 아니면 글만 보인다.
+/// Bio. TUF Stellar supporters can compose it from text, link and image blocks; otherwise it is plain text.
 class ProfileBio {
   const ProfileBio({this.text, this.blocks = const []});
 
@@ -265,7 +265,7 @@ class ProfileBio {
     final assets = _map(json['bioCanvasImageAssets']) ?? const {};
     final blocks = [for (final block in rawBlocks) ?BioBlock.fromJson(block, assets)];
 
-    // 블록으로 꾸몄는데 후원이 끝났으면, 글·링크 블록만 글로 바꿔 보여준다 (사이트와 같다).
+    // If the supporter status ended, block bios show their text and link blocks as plain text (as on the website).
     if (blocks.isNotEmpty && stellar) return ProfileBio(blocks: blocks);
     if (blocks.isNotEmpty) {
       final text = [
@@ -283,7 +283,7 @@ class ProfileBio {
   bool get isEmpty => blocks.isEmpty && (text == null || text!.isEmpty);
 }
 
-/// 자기소개 블록 하나.
+/// One bio block.
 sealed class BioBlock {
   const BioBlock();
 
@@ -319,7 +319,7 @@ sealed class BioBlock {
     };
   }
 
-  /// 후원이 끝났을 때 글로 바꿔 보여줄 내용. 글로 보여주지 않는 블록은 null.
+  /// Plain text shown once the supporter status ended, or null for blocks not shown as text.
   String? get plainText => null;
 }
 
@@ -366,7 +366,7 @@ class BioEmbedBlock extends BioBlock {
   final String? title;
 }
 
-/// 고른 레벨이나 기록 목록.
+/// A list of featured levels or passes.
 class BioFeaturedBlock extends BioBlock {
   const BioFeaturedBlock({required this.passes, required this.ids});
 
@@ -374,7 +374,7 @@ class BioFeaturedBlock extends BioBlock {
   final List<int> ids;
 }
 
-/// 머리글 위쪽 배너. 사이트의 기본 배너 그림 중 하나이거나, 후원자가 올린 그림.
+/// Header banner: one of the website's preset images, or an image uploaded by a supporter.
 class ProfileBanner {
   const ProfileBanner({this.imageUrl});
 
@@ -382,18 +382,18 @@ class ProfileBanner {
     final custom = asStringOrNull(json['customBannerUrl'])?.trim();
     if (custom != null && custom.startsWith('http') && isStellarActive(user)) return ProfileBanner(imageUrl: custom);
     final preset = asStringOrNull(json['bannerPreset'])?.trim().replaceFirst(RegExp(r'^/+'), '');
-    // 기본 배너(default.svg)는 단순한 그라데이션이라 앱에서 직접 그린다.
+    // The default banner (default.svg) is a simple gradient, drawn by the app itself.
     if (preset == null || preset == defaultPreset) return const ProfileBanner();
     return ProfileBanner(imageUrl: 'https://tuforums.com/$preset');
   }
 
   static const defaultPreset = 'banners/default.svg';
 
-  /// null이면 기본 배너.
+  /// null for the default banner.
   final String? imageUrl;
 }
 
-/// 프로필에 연결된 YouTube 채널.
+/// A YouTube channel linked to the profile.
 class YoutubeChannel {
   const YoutubeChannel({required this.url, required this.label});
 
@@ -412,7 +412,7 @@ class YoutubeChannel {
   final String label;
 }
 
-/// 대회 입상 하나.
+/// One tournament placement.
 class TournamentPlacement {
   const TournamentPlacement({
     required this.id,
@@ -468,39 +468,39 @@ class TournamentPlacement {
     );
   }
 
-  /// 시리즈가 없는 대회는 맨 뒤로 보낸다.
+  /// Tournaments without a series go last.
   static const unseriesedSortWeight = 100;
 
   final int id;
 
-  /// 예: "1st Place"
+  /// e.g. "1st Place"
   final String tierLabel;
 
-  /// 작을수록 높은 순위.
+  /// Lower means a better placement.
   final int? tierRankWeight;
   final int? tournamentId;
   final String tournamentName;
   final int tournamentSortWeight;
   final int? sortYear;
 
-  /// 한 대회에서 여러 번 입상했으면 가장 좋은 것만 보여준다.
+  /// Show only the best placement when someone placed several times in one tournament.
   final bool showBestTiersOnly;
   final String? iconUrl;
   final int? seriesId;
   final String? seriesName;
   final int seriesSortWeight;
 
-  /// 대회 팩 (팩 화면에서 연다).
+  /// Tournament pack (opened on the packs page).
   final String? packRef;
   final String? teamName;
   final int? levelId;
   final String? levelName;
 
-  /// 대기 중·기권·실격·숨김이 아닌 입상.
+  /// A placement that isn't pending, withdrawn, disqualified or hidden.
   final bool isPublic;
 }
 
-/// 사이트의 프로필 모듈 배치. 저장된 배치가 없으면 기본 순서를 쓴다.
+/// Profile module layout from the website. Falls back to the default order without a saved layout.
 class ProfileModules {
   const ProfileModules({this.stored, this.favorites = const {}});
 
@@ -526,10 +526,10 @@ class ProfileModules {
     );
   }
 
-  /// 사용자가 저장한 배치. null이면 기본 배치.
+  /// Layout saved by the user, or null for the default.
   final List<({String id, String type})>? stored;
 
-  /// 즐겨찾기 모듈 id → 담긴 항목.
+  /// Favorites module id → its items.
   final Map<String, List<FavoriteItem>> favorites;
 
   static const playerStock = ['bio', 'tournaments', 'scoreBreakdown', 'difficulty', 'rankHistory', 'scores'];
@@ -537,7 +537,7 @@ class ProfileModules {
   static const creatorStock = ['bio', 'tournaments', 'difficulty', 'charts'];
   static const creatorTypes = {...creatorStock, 'favorite'};
 
-  /// 보여줄 모듈 순서. 꼭 있어야 하는 모듈(플레이어는 기록, 제작자는 레벨)은 없으면 끝에 붙인다.
+  /// Module order to show. Required modules (passes for players, levels for creators) are appended if missing.
   List<({String id, String type})> layoutFor({required bool player}) {
     final stock = player ? playerStock : creatorStock;
     final allowed = player ? playerTypes : creatorTypes;
@@ -553,7 +553,7 @@ class ProfileModules {
   }
 }
 
-/// 즐겨찾기 모듈의 항목 하나 (기록, 레벨, 팩, 플레이어, 제작자).
+/// One item of a favorites module (pass, level, pack, player or creator).
 sealed class FavoriteItem {
   const FavoriteItem();
 
@@ -629,7 +629,7 @@ class FavoriteCreator extends FavoriteItem {
   final int? chartsTotal;
 }
 
-/// 플레이어 페이지의 기록 목록 한 줄: 기록과 그 레벨. GET /v3/players/{id}/passes
+/// One row of a player's pass list: the pass and its level. GET /v3/players/{id}/passes
 class PlayerPassEntry {
   const PlayerPassEntry({required this.pass, required this.level, this.levelHidden = false, this.playerId});
 
@@ -646,12 +646,12 @@ class PlayerPassEntry {
   final LevelPass pass;
   final Level level;
 
-  /// 숨겨진 레벨이면 이름과 아이콘을 가린다.
+  /// Hidden levels have their name and icon masked.
   final bool levelHidden;
   final int? playerId;
 }
 
-/// 기록 목록 정렬. 이름은 API 값과 같다.
+/// Pass list sort. Names match the API values.
 enum PlayerPassSort {
   score('점수', 'Score'),
   impact('랭크', 'Impact'),
@@ -667,12 +667,12 @@ enum PlayerPassSort {
   String get label => tr(_ko, _en);
 }
 
-/// 순위 변화 한 점. GET /v3/players/{id}/rank-history
+/// One point of rank history. GET /v3/players/{id}/rank-history
 class RankHistoryPoint {
   const RankHistoryPoint({required this.date, this.rankedRank, this.generalRank});
 
   factory RankHistoryPoint.fromJson(Map<String, dynamic> json) => RankHistoryPoint(
-    // 날짜만 오므로 (YYYY-MM-DD) UTC 하루로 읽는다.
+    // Only a date arrives (YYYY-MM-DD), so read it as a UTC day.
     date:
         DateTime.tryParse('${asStringOrNull(json['date'])}T00:00:00Z') ??
         DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
@@ -685,12 +685,12 @@ class RankHistoryPoint {
   final int? generalRank;
 }
 
-/// 후원(TUF Stellar) 중인지. 후원자만 움직이는 사진·직접 올린 배너·꾸민 소개를 보여준다.
+/// Whether the user is a TUF Stellar supporter. Only supporters get animated avatars, custom banners and block bios.
 bool isStellarActive(Map<String, dynamic>? user) {
   if (user == null) return false;
   final expires = DateTime.tryParse(asStringOrNull(user['tufStellarSubscriptionExpiresAt']) ?? '');
   if (expires != null && expires.isAfter(DateTime.now())) return true;
-  // 최고 관리자는 늘 쓸 수 있다 (권한 비트 62).
+  // Super admins always have it (permission bit 62).
   final flags = BigInt.tryParse('${user['permissionFlags'] ?? ''}');
   return flags != null && (flags >> 62) & BigInt.one == BigInt.one;
 }

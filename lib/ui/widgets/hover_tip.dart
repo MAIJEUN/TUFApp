@@ -2,19 +2,19 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-/// 목록 카드 안에 수십 개씩 들어가는 작은 툴팁.
+/// Lightweight tooltip for list cards that contain dozens of them.
 ///
-/// 기본 [Tooltip]은 화면의 모든 포인터 이벤트(마우스 이동, 휠)를 툴팁마다 받아 보고,
-/// 그때 애니메이션 컨트롤러를 만든다. 카드마다 10개가 넘으니 휠 한 칸에도 수백 개가 깨어나고,
-/// 빠르게 스크롤하면 오류까지 난다.
-/// 이 위젯은 마우스가 실제로 올라왔을 때만 일하고, 한 번에 하나만 띄운다.
+/// The built-in [Tooltip] inspects every pointer event on screen (mouse moves, wheel) in each tooltip
+/// and creates animation controllers then. With 10+ per card, one wheel tick wakes hundreds of them,
+/// and fast scrolling even throws errors.
+/// This widget only works while the mouse is actually over it and shows one tip at a time.
 class HoverTip extends StatefulWidget {
   const HoverTip({super.key, required this.message, required this.child});
 
   final String message;
   final Widget child;
 
-  /// 마우스를 올리고 이만큼 머물러야 뜬다.
+  /// How long the mouse must rest before the tip shows.
   static const delay = Duration(milliseconds: 500);
 
   @override
@@ -22,7 +22,7 @@ class HoverTip extends StatefulWidget {
 }
 
 class _HoverTipState extends State<HoverTip> {
-  /// 지금 떠 있는 툴팁. 새로 뜨면 이전 것은 닫는다.
+  /// The tip currently shown; showing a new one closes it.
   static _HoverTipState? _shown;
 
   Timer? _timer;
@@ -36,7 +36,7 @@ class _HoverTipState extends State<HoverTip> {
 
   void _schedule() {
     _timer?.cancel();
-    // 다른 툴팁이 떠 있던 중이면 옮겨 다닐 때 기다리지 않는다.
+    // Moving between tips while one is open shows the next one immediately.
     _timer = Timer(_shown != null ? Duration.zero : HoverTip.delay, _show);
   }
 
@@ -104,7 +104,7 @@ class _TipLayout extends SingleChildLayoutDelegate {
       target != oldDelegate.target || verticalOffset != oldDelegate.verticalOffset;
 }
 
-/// 기본 툴팁과 같은 모양의 말풍선. 살짝 나타난다.
+/// Bubble shaped like the built-in tooltip, with a short fade-in.
 class _TipBubble extends StatelessWidget {
   const _TipBubble({required this.message});
 

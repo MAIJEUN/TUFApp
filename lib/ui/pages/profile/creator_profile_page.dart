@@ -12,13 +12,13 @@ import 'profile_modules.dart';
 import 'profile_navigation.dart';
 import 'profile_page_frame.dart';
 
-/// 제작자 페이지 (사이트의 /creator/{id}). 이 제작자의 레벨은 레벨 찾기처럼 맨 아래에 이어 붙인다.
+/// Creator page (the website's /creator/{id}). The creator's levels are appended at the bottom like the levels page.
 class CreatorProfilePage extends StatelessWidget {
   const CreatorProfilePage({super.key, required this.creatorId});
 
   final int creatorId;
 
-  /// 인증 상태 색.
+  /// Color of a verification status.
   static Color verificationColor(CreatorVerification status) => switch (status) {
     CreatorVerification.allowed => const Color(0xFF6BD68A),
     CreatorVerification.conditional => const Color(0xFFFFB74D),
@@ -42,7 +42,7 @@ class CreatorProfilePage extends StatelessWidget {
       final slots = creatorIconSlots(creator, curations);
       final levelsByDifficulty = creator.funFacts['levelsByDifficulty'] as Map<String, dynamic>?;
 
-      // 머리글 칸에 다 보이지 않는 큐레이션 유형이 있을 때만 펼치는 단추를 둔다.
+      // Show the expand button only when some curation types don't fit in the header slots.
       final typedCount = creator.curationTypeCounts.values.where((count) => count > 0).length;
 
       return [

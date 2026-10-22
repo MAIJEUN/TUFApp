@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/l10n.dart';
 import '../../widgets/motion.dart';
 
-/// 프로필의 모듈 하나. 레벨 화면의 '리더보드'처럼 제목은 왼쪽, 단추는 오른쪽에 두고, 접을 수 있다.
+/// One profile module: title on the left, buttons on the right, collapsible (like the level page's "Leaderboard").
 class ProfileSection extends StatefulWidget {
   const ProfileSection({
     super.key,
@@ -16,11 +16,11 @@ class ProfileSection extends StatefulWidget {
 
   final String title;
 
-  /// 제목 옆의 흐린 글 (개수 등).
+  /// Dim text next to the title (a count, etc.).
   final String? subtitle;
   final Widget child;
 
-  /// 제목 줄 오른쪽에 놓는 단추들.
+  /// Buttons on the right of the title row.
   final List<Widget> trailing;
   final bool collapsible;
 
@@ -58,7 +58,7 @@ class _ProfileSectionState extends State<ProfileSection> {
   );
 }
 
-/// 모듈 제목 줄 (레벨 화면의 '리더보드' 줄과 같은 모양).
+/// Module title row (same look as the level page's "Leaderboard" row).
 class ProfileSectionHeader extends StatelessWidget {
   const ProfileSectionHeader({super.key, required this.title, this.subtitle, this.trailing = const []});
 
@@ -86,7 +86,7 @@ class ProfileSectionHeader extends StatelessWidget {
   }
 }
 
-/// 칸 안의 작은 값 상자 (클리어 화면의 판정 상자와 같은 바탕).
+/// Small value box inside a module (same background as the judgement boxes on the pass page).
 class ProfileTile extends StatelessWidget {
   const ProfileTile({super.key, required this.child, this.padding = const EdgeInsets.all(12)});
 

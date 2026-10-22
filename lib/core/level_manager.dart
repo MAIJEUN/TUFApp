@@ -23,13 +23,13 @@ class InstallProgress {
   final DownloadProgress? download;
 }
 
-/// TUF CDN으로 받을 수 없는 레벨 (외부 링크, 창작마당 전용 등).
+/// A level that can't be downloaded from the TUF CDN (external link, Workshop only, etc.).
 class LevelNotDownloadableException implements Exception {
   const LevelNotDownloadableException(this.level);
 
   final Level level;
 
-  /// 대신 안내할 수 있는 링크.
+  /// A link to suggest instead.
   String? get alternativeLink => [level.dlLink, level.workshopLink, level.legacyDllink].whereType<String>().firstOrNull;
 
   @override
@@ -44,7 +44,7 @@ class LevelUpdateInfo {
   final Level remote;
 }
 
-/// 레벨 받기, 업데이트, 삭제를 묶은 진입점.
+/// Entry point for downloading, updating and deleting levels.
 class LevelManager {
   LevelManager(this._api, this.library) : _downloader = LevelDownloader(_api);
 
@@ -55,7 +55,7 @@ class LevelManager {
   final LevelLibrary library;
   final LevelDownloader _downloader;
 
-  /// 레벨을 받아서 라이브러리에 넣는다. 이미 있으면 새 버전으로 교체한다.
+  /// Downloads a level into the library, replacing the existing version if present.
   Future<InstalledLevel> install(
     Level level, {
     void Function(InstallProgress progress)? onProgress,
@@ -88,8 +88,9 @@ class LevelManager {
       await _tryDeleteFile(zipPath);
       cancelToken?.throwIfCancelled();
 
-      // 이미 받은 레벨은 사용자가 옮겨 둔 자리를 그대로 쓴다. 새로 받으면 [parentFolder] 아래에 둔다.
-      // 기록된 자리가 라이브러리 안의 폴더가 아니면 (루트 자신 등) 쓰지 않는다. 그 자리를 통째로 바꿔 버리기 때문이다.
+      // A level already in the library stays where the user moved it; a new one goes under [parentFolder].
+      // A recorded location that isn't a folder inside the library (like the
+      // root) is not used, since it would be replaced wholesale.
       final existing = library.get(level.id);
       final folderName = existing != null && library.safeFolderPathOf(existing) != null
           ? existing.folderName
@@ -120,12 +121,12 @@ class LevelManager {
     }
   }
 
-  /// 라이브러리에서 빼고 폴더도 지운다.
+  /// Removes the level from the index and deletes its folder.
   Future<bool> uninstall(int levelId) async {
     final installed = library.get(levelId);
     if (installed == null) return false;
 
-    // 폴더 이름이 비었거나 라이브러리 밖을 가리키면 지우지 않고 목록에서만 뺀다 (루트를 통째로 지우지 않게).
+    // If the folder name is empty or points outside the library, only remove the entry (never delete the root).
     final path = library.safeFolderPathOf(installed);
     if (path != null) {
       final folder = Directory(path);
@@ -134,7 +135,7 @@ class LevelManager {
     return library.remove(levelId);
   }
 
-  /// 받은 레벨 중 서버에서 파일이 바뀐 것(fileId가 달라진 것)을 찾는다. 조회에 실패한 레벨은 건너뛴다.
+  /// Finds downloaded levels whose file changed on the server (different fileId). Levels that fail to load are skipped.
   Future<List<LevelUpdateInfo>> checkUpdates() async {
     final installed = library.getAll();
     final updates = <LevelUpdateInfo>[];
@@ -160,9 +161,9 @@ class LevelManager {
     return updates..sort((a, b) => a.installed.levelId.compareTo(b.installed.levelId));
   }
 
-  /// zip 압축 해제를 별도 isolate에서 실행한다.
-  /// 클로저는 자신이 만들어진 스코프 전체를 붙잡으므로, [install] 안에서 바로 만들면
-  /// onProgress(→ 위젯 트리)까지 isolate로 보내려다 실패한다. 경로 두 개만 있는 스코프에서 만든다.
+  /// Extracts the zip in a separate isolate.
+  /// A closure captures its whole enclosing scope, so creating it inside [install] would try to send
+  /// onProgress (and with it the widget tree) to the isolate and fail. It is created in a scope holding only two paths.
   static Future<int> _extractInBackground(String zipPath, String destinationDir) =>
       Isolate.run(() => LevelArchive.extract(zipPath, destinationDir));
 
@@ -170,27 +171,27 @@ class LevelManager {
     try {
       return await _api.getLevelCdnMetadata(levelId);
     } on TufApiException {
-      // 메타데이터는 메인 차트를 찾는 데만 쓴다. 없어도 설치는 진행한다.
+      // Metadata is only used to find the main chart; installing works without it.
       return null;
     }
   }
 
-  /// "#{id} {곡 제목}" 형식의 폴더 이름. 예: "#5947 4'33''"
-  /// Windows 폴더 이름에 쓸 수 없는 문자는 '_'로 바꾼다.
+  /// Folder name in the form "#{id} {song}", e.g. "#5947 4'33''".
+  /// Characters not allowed in Windows folder names become '_'.
   @visibleForTesting
   static String folderNameFor(Level level) => safeFolderName('#${level.id} ${level.song}');
 
-  /// 아무 이름(레벨, 팩, 팩 안의 폴더)을 Windows 폴더 이름으로 쓸 수 있게 다듬는다.
-  /// '+'는 Windows에서는 쓸 수 있지만 게임이 경로에 '+'가 있는 레벨을 제대로 불러오지 못해서 함께 바꾼다.
+  /// Makes any name (level, pack, folder in a pack) usable as a Windows folder name.
+  /// '+' is allowed on Windows, but the game can't load levels whose path contains it, so it is replaced too.
   static String safeFolderName(String name) {
     var safe = name.replaceAll(RegExp(r'[<>:"/\\|?*+\x00-\x1F]'), '_').trim();
     if (safe.length > _maxFolderNameLength) safe = safe.substring(0, _maxFolderNameLength);
-    // Windows는 끝의 점/공백을 허용하지 않는다.
+    // Windows doesn't allow trailing dots or spaces.
     safe = safe.replaceAll(RegExp(r'[. ]+$'), '');
     return safe.isEmpty ? '_' : safe;
   }
 
-  /// [source]를 [target] 자리로 옮긴다. 기존 폴더는 백업했다가 성공하면 지우고, 실패하면 되돌린다.
+  /// Moves [source] to [target]. The existing folder is backed up, deleted on success and restored on failure.
   Future<void> _replaceDirectory(String source, String target) async {
     if (!await Directory(target).exists()) {
       await Directory(source).rename(target);
@@ -208,7 +209,7 @@ class LevelManager {
     await _tryDeleteDirectory(backup);
   }
 
-  /// 메인 .adofai의 상대 경로. CDN 메타데이터를 우선하고, 없으면 가장 큰 .adofai를 고른다.
+  /// Relative path of the main .adofai. Prefers the CDN metadata, otherwise the largest .adofai file.
   static Future<String?> _findMainChart(String folder, CdnLevelMetadata? metadata) async {
     final charts = <({String relative, int size})>[];
     await for (final entity in Directory(folder).list(recursive: true, followLinks: false)) {
@@ -221,7 +222,7 @@ class LevelManager {
     }
     if (charts.isEmpty) return null;
 
-    // 압축 해제 시 최상위 폴더를 없앴을 수 있으므로 끝부분이 일치하는지로 비교한다.
+    // The top-level folder may have been flattened during extraction, so compare by suffix.
     final target = metadata?.targetLevelRelativePath?.replaceAll('\\', '/').toLowerCase();
     if (target != null && target.isNotEmpty) {
       final matches = charts.where((c) {
@@ -240,7 +241,7 @@ class LevelManager {
       final file = File(path);
       if (await file.exists()) await file.delete();
     } on FileSystemException {
-      // 정리 실패는 무시
+      // Ignore cleanup failures.
     }
   }
 
@@ -249,18 +250,18 @@ class LevelManager {
       final dir = Directory(path);
       if (await dir.exists()) await dir.delete(recursive: true);
     } on FileSystemException {
-      // 정리 실패는 무시
+      // Ignore cleanup failures.
     }
   }
 }
 
-/// %AppData%\TUFApp\settings.json 에 저장되는 설정. C# 버전과 같은 파일을 쓴다.
+/// Settings stored in %AppData%\TUFApp\settings.json, shared with the C# version.
 class AppSettings {
   AppSettings({required this.libraryPath, this.language});
 
   String libraryPath;
 
-  /// 고른 화면 언어. null이면 시스템 언어를 따른다.
+  /// The chosen UI language. null follows the system language.
   AppLanguage? language;
 
   static Future<String> _settingsDirectory() async {
@@ -285,7 +286,7 @@ class AppSettings {
         }
       }
     } on FormatException {
-      // 설정 파일이 깨졌으면 기본값으로 시작한다.
+      // Start with defaults if the settings file is broken.
     }
     return AppSettings(libraryPath: path ?? await defaultLibraryPath(), language: language);
   }

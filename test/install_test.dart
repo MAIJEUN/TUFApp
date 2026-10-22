@@ -10,8 +10,8 @@ import 'package:tufapp/core/level_library.dart';
 import 'package:tufapp/core/level_manager.dart';
 import 'package:tufapp/core/tuf_api_client.dart';
 
-/// 실제 TUF 서버에서 작은 레벨(#5947, 약 120KB)을 받아 보는 테스트.
-/// 네트워크가 필요하므로 `flutter test --exclude-tags network`로 뺄 수 있다.
+/// Downloads a small level (#5947, about 120 KB) from the real TUF server.
+/// Needs the network; skip with `flutter test --exclude-tags network`.
 void main() {
   test('레벨 받기 → 다시 받기(업데이트) → 삭제', () async {
     final root = await Directory.systemTemp.createTemp('tufapp_install_test_');
@@ -22,8 +22,8 @@ void main() {
       final manager = LevelManager(api, library);
       final level = await api.getLevel(5947);
 
-      // 앱에서는 진행률 콜백이 위젯과 연결돼 있어 isolate로 보낼 수 없다.
-      // 같은 상황을 만들려고 보낼 수 없는 객체(Completer)를 콜백이 붙잡게 한다.
+      // In the app, the progress callback is tied to widgets and can't be sent to an isolate.
+      // To reproduce that, the callback holds an object that can't be sent (a Completer).
       final unsendable = Completer<void>();
       final stages = <InstallStage>[];
       void onProgress(InstallProgress progress) {
@@ -36,7 +36,7 @@ void main() {
       expect(installed.mainChartPath, isNotNull);
       expect(File(p.join(library.folderPathOf(installed), installed.mainChartPath!)).existsSync(), isTrue);
 
-      // 같은 레벨을 다시 받으면 기존 폴더를 교체한다.
+      // Downloading the same level again replaces the existing folder.
       await manager.install(level, onProgress: onProgress);
       expect(library.getAll(), hasLength(1));
       expect(Directory(library.tempPath).listSync(), isEmpty, reason: '임시 파일이 남으면 안 된다');

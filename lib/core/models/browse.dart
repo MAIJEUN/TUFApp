@@ -4,9 +4,9 @@ import 'difficulty.dart';
 import 'pass.dart';
 import 'profile.dart';
 
-// ───────────────────────── 클리어 목록 ─────────────────────────
+// ───────────────────────── Passes ─────────────────────────
 
-/// 클리어 목록 정렬. [apiValue]는 웹과 같은 값이다 (뒤에 _ASC / _DESC가 붙는다).
+/// Pass list sort. [apiValue] matches the website (with an _ASC / _DESC suffix).
 enum ClearSort {
   recent('최신순', 'Date', 'RECENT'),
   score('점수', 'Score', 'SCORE'),
@@ -24,7 +24,7 @@ enum ClearSort {
   final String apiValue;
 }
 
-/// 키 수 표시로 거르기.
+/// Key count filter.
 enum KeyCountFilter {
   all('전체', 'All', 'all'),
   k12('12키', '12K', '12k'),
@@ -38,7 +38,7 @@ enum KeyCountFilter {
   final String apiValue;
 }
 
-/// 세계 최초 기록으로 거르기.
+/// World's first filter.
 enum WorldsFirstFilter {
   none('전체', 'All', 'none'),
   wf('WF', 'WF', 'wf'),
@@ -54,7 +54,7 @@ enum WorldsFirstFilter {
   final String apiValue;
 }
 
-/// 기록을 낸 게임 버전으로 거르기.
+/// Filter by the game version a pass was made on.
 enum GameVersionFilter {
   all('전체', 'All', 'all'),
   latest('최신', 'Latest', 'latest'),
@@ -69,7 +69,7 @@ enum GameVersionFilter {
   final String apiValue;
 }
 
-/// GET /v2/database/passes 요청. 웹의 클리어 목록과 같은 값을 보낸다.
+/// GET /v2/database/passes request, with the same parameters as the website's pass list.
 class ClearSearchQuery {
   const ClearSearchQuery({
     this.query = '',
@@ -90,7 +90,7 @@ class ClearSearchQuery {
   final ClearSort sort;
   final bool descending;
 
-  /// PGU 난이도 범위 (이름). 이 범위의 레벨이거나 [specialDifficulties]에 든 레벨의 기록만 나온다.
+  /// PGU difficulty range (names). Only passes on levels in this range or in [specialDifficulties] are returned.
   final String? minDifficulty;
   final String? maxDifficulty;
   final List<String> specialDifficulties;
@@ -100,7 +100,7 @@ class ClearSearchQuery {
   final int offset;
   final int limit;
 
-  /// 무작위 정렬일 때 다음 묶음도 같은 순서로 이어지게 하는 값.
+  /// Keeps later pages of a random sort in the same order.
   final int? seed;
 
   Map<String, Object> toQueryParameters() => {
@@ -115,15 +115,15 @@ class ClearSearchQuery {
     'wrongJudgementFilter': 'all',
     'minDiff': ?minDifficulty,
     'maxDiff': ?maxDifficulty,
-    // 서버는 배열만 받는다. 같은 이름을 여러 번 보내면 배열이 된다.
+    // The server only accepts an array; repeating the key makes one.
     if (specialDifficulties.isNotEmpty) 'specialDifficulties': specialDifficulties,
     if (sort == ClearSort.random && seed != null) 'seed': '$seed',
   };
 }
 
-// ───────────────────────── 리더보드 ─────────────────────────
+// ───────────────────────── Leaderboard ─────────────────────────
 
-/// 리더보드 정렬 기준. 이름은 API의 sortBy 값과 같다.
+/// Leaderboard sort keys. Names match the API's sortBy values.
 enum LeaderboardSort {
   rankedScore('랭크 점수', 'Ranked Score'),
   totalScoreV2('총 점수', 'Total Score'),
@@ -146,14 +146,14 @@ enum LeaderboardSort {
   final String _en;
   String get label => tr(_ko, _en);
 
-  /// 값이 난이도인 기준 (아이콘으로 보여준다).
+  /// Keys whose value is a difficulty (shown as an icon).
   bool get isDifficulty => this == topDiff || this == top12kDiff;
 
-  /// 값이 개수인 기준 (소수점 없이 보여준다).
+  /// Keys whose value is a count (shown without decimals).
   bool get isCount => const {totalPasses, universalPassCount, worldsFirstCount, worldsFirstPPCount}.contains(this);
 }
 
-/// 리더보드 한 줄. GET /v3/players/leaderboard
+/// One leaderboard row. GET /v3/players/leaderboard
 class LeaderboardPlayer {
   const LeaderboardPlayer({
     required this.id,
@@ -191,16 +191,16 @@ class LeaderboardPlayer {
   final String name;
   final AvatarUrls avatar;
 
-  /// 랭크 점수 순위. 순위가 없으면 0 이하.
+  /// Ranked score rank; 0 or less if unranked.
   final int rank;
   final String? country;
 
-  /// 난이도가 아닌 기준의 값.
+  /// Values of the non-difficulty keys.
   final Map<LeaderboardSort, double> values;
   final Difficulty? topDifficulty;
   final Difficulty? top12kDifficulty;
 
-  /// 제작자 프로필이 이어져 있으면 그 id.
+  /// Id of the linked creator profile, if any.
   final int? creatorId;
 
   double value(LeaderboardSort sort) => values[sort] ?? 0;
@@ -212,9 +212,9 @@ class LeaderboardPlayer {
   };
 }
 
-// ───────────────────────── 제작자 목록 ─────────────────────────
+// ───────────────────────── Creators ─────────────────────────
 
-/// 제작자 목록 정렬 기준. 이름은 API의 sortBy 값과 같고, 글은 웹의 한국어와 같다.
+/// Creator list sort keys. Names match the API's sortBy values and labels match the website.
 enum CreatorSort {
   chartsTotal('총 레벨', 'Total Levels'),
   chartsCharted('채보 레벨', 'Levels Charted'),
@@ -231,7 +231,7 @@ enum CreatorSort {
   String get label => tr(_ko, _en);
 }
 
-/// 제작자 목록 한 줄. GET /v3/creators/leaderboard
+/// One creator list row. GET /v3/creators/leaderboard
 class CreatorListEntry {
   const CreatorListEntry({
     required this.id,
@@ -273,15 +273,15 @@ class CreatorListEntry {
   final AvatarUrls avatar;
   final CreatorVerification verification;
 
-  /// 연동된 TUF 계정. 없으면 null.
+  /// Linked TUF account, or null.
   final String? handle;
   final int? playerId;
   final Map<CreatorSort, int> counts;
 
-  /// 큐레이션 유형 id → 그 유형의 레벨 수.
+  /// Curation type id → number of levels of that type.
   final Map<int, int> curationTypeCounts;
 
-  /// 제작자가 직접 고른 대표 큐레이션 유형 (없으면 자동으로 고른다).
+  /// Curation types the creator picked to display (chosen automatically if empty).
   final List<int> displayCurationTypeIds;
 
   int count(CreatorSort sort) => counts[sort] ?? 0;

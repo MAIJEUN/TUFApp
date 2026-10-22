@@ -13,14 +13,15 @@ import 'ui/theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // TUFAPP_PERF=1로 실행하면 느린 프레임을 기록한다 (평소에는 아무 일도 하지 않는다).
+  // Logs slow frames when run with TUFAPP_PERF=1 (does nothing otherwise).
   FrameLog.start();
-  // 함께 넣은 Roboto 글꼴의 라이선스를 앱 라이선스 목록에 올린다.
+  // Registers the license of the bundled Roboto font.
   LicenseRegistry.addLicense(() async* {
     yield LicenseEntryWithLineBreaks(const ['Roboto'], await rootBundle.loadString('assets/fonts/OFL.txt'));
   });
 
-  // 첫 화면부터 고른 언어로 보이게 설정을 먼저 읽는다. 못 읽으면 initialize가 다시 읽고 오류를 보여 준다.
+  // Read settings first so the first frame is already in the chosen language. If
+  // this fails, initialize reads them again and shows the error.
   AppSettings? settings;
   try {
     settings = await AppSettings.load();
@@ -34,7 +35,7 @@ Future<void> main() async {
   controller.initialize(settings: settings);
 }
 
-/// 언어를 바꾸면 화면 전체를 다시 그린다 (페이지·스크롤 위치·열린 화면은 그대로 둔다).
+/// Rebuilds the whole tree when the language changes (page, scroll positions and open routes are kept).
 class TufApp extends StatefulWidget {
   const TufApp({super.key, required this.controller});
 
@@ -71,7 +72,7 @@ class _TufAppState extends State<TufApp> {
   void _onAppChanged() {
     if (_shown == appLanguage) return;
     _shown = appLanguage;
-    // 글은 build에서 tr()로 고르므로, 모든 위젯을 다시 빌드하면 새 언어로 바뀐다.
+    // Text is picked with tr() during build, so rebuilding every element switches the language.
     void rebuild(Element element) {
       element.markNeedsBuild();
       element.visitChildren(rebuild);

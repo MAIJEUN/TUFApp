@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tufapp/ui/widgets/motion.dart';
 
-/// 나타나는 중에 animate가 false로 바뀌고 곧바로 사라져도 애니메이션이 남지 않아야 한다.
-/// (레벨 관리 목록은 처음 그릴 때만 animate가 true이고 다음 빌드부터 false다.)
+/// No animation may be left behind when animate turns false mid-appearance and the widget is removed right away.
+/// (Library rows have animate true only on the first build and false afterwards.)
 void main() {
   Widget page({required bool show, required bool animate}) => MaterialApp(
     home: Scaffold(

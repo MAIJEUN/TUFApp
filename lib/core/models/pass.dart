@@ -1,7 +1,7 @@
 import '../json.dart';
 import '../l10n.dart';
 
-/// 레벨 하나의 클리어 기록. GET /v2/database/passes/level/{id}
+/// A pass on a level. GET /v2/database/passes/level/{id}
 class LevelPass {
   const LevelPass({
     required this.id,
@@ -59,7 +59,7 @@ class LevelPass {
       is12K: asBool(json['is12K']),
       is16K: asBool(json['is16K']),
       isNoHoldTap: asBool(json['isNoHoldTap']),
-      // 예전 기록은 버전 번호 없이 'ADOFAI 2인지'만 있다.
+      // Old passes only say whether they were on ADOFAI 2, without a version number.
       era: AdofaiEra.fromApi(json['adofaiVersion']) ?? (asBool(json['isAdofaiV2']) ? AdofaiEra.v2 : AdofaiEra.pre340),
       isXPerfectMode: asBool(json['isXPerfectMode']),
       isAutoSubmitted: json['submissionSource'] == 'auto_submission',
@@ -68,16 +68,17 @@ class LevelPass {
 
   final int id;
 
-  /// 기록을 낸 레벨. 기록만 따로 열 때 레벨을 찾는 데 쓴다.
+  /// The level of the pass, used to find it when a pass is opened on its own.
   final int? levelId;
   final int playerId;
   final String playerName;
 
-  /// 프로필 사진. TUF에 올린 사진이 먼저이고, 그게 안 열리면 [playerAvatarFallback](디스코드 사진)을 쓴다.
+  /// Profile picture. The picture uploaded to TUF comes first; if it
+  /// fails to load, [playerAvatarFallback] (Discord) is used.
   final String? playerAvatar;
   final String? playerAvatarFallback;
 
-  /// 두 글자 국가 코드 (예: "KR").
+  /// Two-letter country code (e.g. "KR").
   final String? country;
 
   final double score;
@@ -90,33 +91,32 @@ class LevelPass {
   final String? videoTitle;
   final DateTime? clearedAt;
 
-  /// 기록을 낸 사람이 느낀 난이도 (예: "U16").
+  /// Difficulty as felt by the player (e.g. "U16").
   final String? feelingRating;
 
-  /// 심사에서 예상한 난이도. 없으면 null.
+  /// Difficulty expected by reviewers, or null.
   final String? expectedRating;
 
   final bool isWorldsFirst;
 
-  /// 세계 최초 완벽한 플레이(정확도 100%).
+  /// World's first pure perfect (100% accuracy).
   final bool isWorldsFirstPP;
 
-  /// 쓴 키 수. 예전 기록은 이 값 없이 [is12K]/[is16K]만 있다.
+  /// Number of keys used. Old passes only have [is12K]/[is16K].
   final int? keyCount;
   final bool is12K;
   final bool is16K;
   final bool isNoHoldTap;
 
-  /// 기록을 낸 게임 버전 시기.
   final AdofaiEra era;
 
-  /// 3.4.0의 X-Perfect 판정(정확−, 정확, 정확+)으로 낸 기록.
+  /// Played with 3.4.0's X-Perfect judgements (Perfect−, Perfect, Perfect+).
   final bool isXPerfectMode;
 
-  /// 게임에서 바로 제출된 기록 (영상 제출이 아님).
+  /// Submitted straight from the game (not a video submission).
   final bool isAutoSubmitted;
 
-  /// "16키"처럼 보여줄 키 수. 표시할 게 없으면 null.
+  /// Key count label like "16K", or null if there is nothing to show.
   String? get keyCountLabel => switch (keyCount) {
     final count? => tr('$count키', '${count}K'),
     null when is16K => tr('16키', '16K'),
@@ -124,31 +124,31 @@ class LevelPass {
     _ => null,
   };
 
-  /// 정확−/정확+ 칸까지 보여줄지. X-Perfect 기록이거나 그 칸에 값이 있으면 보여준다 (사이트와 같다).
+  /// Whether to show the Perfect−/Perfect+ columns: for X-Perfect passes or when they have values (as on the website).
   bool get showsXPerfect => isXPerfectMode || (judgements?.hasXPerfectCounts ?? false);
 
-  /// X-Perfect 기록인데 모든 판정이 가운데 정확 (퓨어 X-퍼펙트).
+  /// An X-Perfect pass where every judgement is the center Perfect (pure X-Perfect).
   bool get isPureXPerfect {
     final counts = judgements;
     return isXPerfectMode && counts != null && counts.total > 0 && counts.perfect == counts.total;
   }
 
-  /// 정확도 100% (퓨어 퍼펙트). 퓨어 X-퍼펙트면 그쪽으로 본다.
+  /// 100% accuracy (pure perfect), unless it counts as pure X-Perfect.
   bool get isPurePerfect => accuracy >= 1 && !isPureXPerfect;
 }
 
-/// 기록을 낸 게임 버전 시기. TUF는 판정 방식이 바뀐 때를 기준으로 나눈다.
+/// Game version era of a pass. TUF splits eras where the judgement system changed.
 enum AdofaiEra {
-  /// v2.9.8까지. 타이밍 엔진이 바뀌기 전.
+  /// Up to v2.9.8, before the timing engine change.
   v2,
 
-  /// v3.3.1까지. X-Perfect 판정이 생기기 전.
+  /// Up to v3.3.1, before X-Perfect judgements.
   pre340,
 
-  /// v3.4.0부터.
+  /// v3.4.0 and later.
   latest;
 
-  /// API의 adofaiVersion 값 (1, 2, 3). 모르는 값이면 null.
+  /// The API's adofaiVersion value (1, 2, 3), or null if unknown.
   static AdofaiEra? fromApi(Object? value) => switch (asIntOrNull(value)) {
     1 => v2,
     2 => pre340,
@@ -157,11 +157,12 @@ enum AdofaiEra {
   };
 }
 
-/// 프로필 사진 주소. 사이트처럼 TUF에 올린 사진을 먼저 쓰고, 디스코드 사진(pfp)을 대신 쓸 주소로 둔다.
+/// Profile picture URLs. Like the website, the picture uploaded to TUF
+/// comes first, with the Discord picture (pfp) as a fallback.
 class AvatarUrls {
   const AvatarUrls({this.primary, this.fallback});
 
-  /// 플레이어 정보([json])에서 고른다. 사진은 플레이어나 그 계정(user)에 붙어 있다.
+  /// Picked from player info ([json]); pictures sit on the player or its user account.
   factory AvatarUrls.of(Map<String, dynamic> json) {
     final user = json['user'] is Map<String, dynamic> ? json['user'] as Map<String, dynamic> : null;
     final pfp = asStringOrNull(json['pfp']) ?? asStringOrNull(user?['pfp']);
@@ -170,7 +171,8 @@ class AvatarUrls {
     return AvatarUrls(primary: _staticUnlessAllowed(_medium(uploaded.trim()), user ?? json), fallback: pfp);
   }
 
-  /// TUF에 올린 사진은 크기별로 있다. 원본은 200KB쯤이라 작게 보여줄 때는 중간 크기(20KB쯤)를 받는다.
+  /// TUF stores pictures in several sizes. The original is about 200 KB,
+  /// so small avatars use the medium size (about 20 KB).
   static String _medium(String url) => url.contains('/images/profile/')
       ? url.replaceAll(RegExp(r'/(?:small|medium|large|original)(?=/|\.|\?|#|$)'), '/medium')
       : url;
@@ -178,7 +180,7 @@ class AvatarUrls {
   final String? primary;
   final String? fallback;
 
-  /// 움직이는 사진은 후원(TUF Stellar) 중인 사람만 보인다. 아니면 멈춘 사진(_static)을 쓴다.
+  /// Animated pictures are only shown for TUF Stellar supporters; others get the still version (_static).
   static String _staticUnlessAllowed(String url, Map<String, dynamic> owner) {
     if (owner['avatarIsGif'] != true) return url;
     final expires = DateTime.tryParse(asStringOrNull(owner['tufStellarSubscriptionExpiresAt']) ?? '');
@@ -187,8 +189,8 @@ class AvatarUrls {
   }
 }
 
-/// 기록 하나를 자세히 본 결과. GET /v2/database/passes/{id}
-/// 이 기록이 그 사람의 랭킹 점수에 얼마나 보탰는지까지 알려준다.
+/// Details of a single pass. GET /v2/database/passes/{id}
+/// Includes how much the pass adds to the player's ranked score.
 class PassDetail {
   const PassDetail({required this.pass, this.score, this.rank = 0});
 
@@ -205,11 +207,11 @@ class PassDetail {
   final LevelPass pass;
   final PassScoreImpact? score;
 
-  /// 기록을 낸 사람의 전체 랭킹 순위.
+  /// The player's overall rank.
   final int rank;
 }
 
-/// 이 기록이 랭킹 점수에 보탠 몫.
+/// What a pass adds to the ranked score.
 class PassScoreImpact {
   const PassScoreImpact({
     this.current = 0,
@@ -227,19 +229,19 @@ class PassScoreImpact {
     potentialImpact: asDoubleOrNull(json['potentialImpact']) ?? 0,
   );
 
-  /// 지금 랭킹 점수와, 이 기록이 없었을 때의 점수.
+  /// Current ranked score, and the score without this pass.
   final double current;
   final double previous;
 
-  /// 이 기록이 보탠 점수.
+  /// Score added by this pass.
   final double impact;
 
-  /// 랭킹 점수에 들어가는 기록인지. 아니면 [potentialImpact]만큼 보탤 수 있었다는 뜻이다.
+  /// Whether the pass counts toward the ranked score. If not, it could have added [potentialImpact].
   final bool countsForRanked;
   final double potentialImpact;
 }
 
-/// 기록을 낸 사람. GET /v2/database/players/{id}
+/// The player behind a pass. GET /v2/database/players/{id}
 class PlayerProfile {
   const PlayerProfile({
     required this.id,
@@ -256,7 +258,7 @@ class PlayerProfile {
   });
 
   factory PlayerProfile.fromJson(Map<String, dynamic> json) {
-    // 점수와 순위는 stats 안에 있고, 없으면 바깥 값으로 채운다.
+    // Scores and rank live in stats; fall back to the top-level values.
     final stats = json['stats'] is Map<String, dynamic> ? json['stats'] as Map<String, dynamic> : const {};
     final topDiff = stats['topDiff'] ?? json['topDiff'];
     return PlayerProfile(
@@ -278,24 +280,24 @@ class PlayerProfile {
   final String name;
   final String? country;
 
-  /// 프로필 사진과, 그게 안 열릴 때 쓸 사진.
+  /// Profile picture, and the one to use if it fails to load.
   final String? avatar;
   final String? avatarFallback;
 
-  /// 랭킹에 쓰는 점수와 그 순위.
+  /// Ranked score and its rank.
   final double rankedScore;
   final int rank;
 
-  /// 이 사람이 깬 가장 높은 난이도 (예: "U16").
+  /// Highest difficulty cleared (e.g. "U16").
   final String? topDifficulty;
   final double averageAccuracy;
   final int totalPasses;
   final int worldsFirstCount;
 }
 
-/// 판정 개수. 웹 리더보드와 같은 순서로 보여준다.
+/// Judgement counts, in the same order as the website's leaderboard.
 ///
-/// 3.4.0부터는 X-Perfect 판정을 고를 수 있어서, 정확이 정확−/정확/정확+ 셋으로 나뉜다.
+/// From 3.4.0, X-Perfect judgements split Perfect into Perfect−, Perfect and Perfect+.
 class PassJudgements {
   const PassJudgements({
     this.earlyDouble = 0,
@@ -325,7 +327,7 @@ class PassJudgements {
   final int earlySingle;
   final int earlyPerfect;
 
-  /// X-Perfect 판정의 조금 이르고 늦은 정확. 정확도는 정확과 같게 친다.
+  /// Slightly early and late Perfect in X-Perfect mode; they count as Perfect for accuracy.
   final int perfectMinus;
   final int perfect;
   final int perfectPlus;
@@ -347,7 +349,7 @@ class PassJudgements {
       lateSingle +
       lateDouble;
 
-  /// 이른 판정부터 늦은 판정까지 차례대로. [xPerfect]면 정확−/정확+ 칸도 넣는다.
+  /// From earliest to latest. With [xPerfect], the Perfect−/Perfect+ columns are included.
   List<(Judgement, int)> ordered({required bool xPerfect}) => [
     (Judgement.tooEarly, earlyDouble),
     (Judgement.early, earlySingle),
@@ -361,7 +363,7 @@ class PassJudgements {
   ];
 }
 
-/// 판정 종류. 이름은 사이트의 한국어 표기와 게임의 영어 표기를 따른다.
+/// Judgement kinds, named like the website (Korean) and the game (English).
 enum Judgement {
   tooEarly('너무 빠름', 'Too Early'),
   early('빠름!', 'Early!'),
@@ -380,7 +382,7 @@ enum Judgement {
   String get label => tr(_ko, _en);
 }
 
-/// 기록들에서 뽑아내는 요약 (최초 클리어, 최고 점수 등).
+/// Summary of a level's passes (first clear, best score, ...).
 class LevelPassSummary {
   const LevelPassSummary({required this.passes, this.firstClear, this.bestScore, this.bestSpeed, this.bestAccuracy});
 
@@ -408,7 +410,7 @@ class LevelPassSummary {
   int get totalClears => passes.length;
   int get uniquePlayers => {for (final pass in passes) pass.playerName}.length;
 
-  /// 점수가 높은 순. 같은 사람은 가장 좋은 기록만 남긴다.
+  /// Highest score first, keeping only each player's best pass.
   List<LevelPass> get leaderboard {
     final best = <String, LevelPass>{};
     for (final pass in passes) {

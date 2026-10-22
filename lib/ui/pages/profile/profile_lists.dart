@@ -4,7 +4,7 @@ import '../../../core/models/level.dart';
 import '../../../core/models/profile.dart';
 import '../../../core/models/search_models.dart';
 
-/// 플레이어의 모든 기록. 검색·정렬은 서버가 한다.
+/// All of a player's passes. Search and sort happen on the server.
 class PlayerPassList extends PagedList<PlayerPassEntry> {
   PlayerPassList(super.api, this.playerId);
 
@@ -57,7 +57,7 @@ class PlayerPassList extends PagedList<PlayerPassEntry> {
   }
 }
 
-/// 제작자가 채보·이펙트를 맡은 레벨. 레벨 찾기와 같은 서버 검색을 쓴다.
+/// Levels a creator charted or did VFX for, using the same server search as the levels page.
 class CreatorLevelList extends PagedList<Level> {
   CreatorLevelList(super.api, this.creatorId);
 

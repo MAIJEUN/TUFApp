@@ -12,7 +12,7 @@ import 'browse_page.dart';
 import 'profile/profile_header.dart';
 import 'profile/profile_navigation.dart';
 
-/// tr('리더보드', 'Leaderboard') 화면: 플레이어 순위 (웹의 리더보드).
+/// Leaderboard page: player rankings (the website's leaderboard).
 class LeaderboardPage extends StatelessWidget {
   const LeaderboardPage({super.key});
 
@@ -56,7 +56,7 @@ class _Toolbar extends StatelessWidget {
       ),
       const SizedBox(width: 12),
       DropdownMenu<LeaderboardSort>(
-        // 고른 항목의 글은 처음 만들 때만 채워지므로, 언어가 바뀌면 새로 만든다.
+        // The selected label is only filled in on creation, so recreate the menu when the language changes.
         key: ValueKey(appLanguage),
         initialSelection: leaderboard.sort,
         label: Text(tr('정렬', 'Sort')),
@@ -77,15 +77,15 @@ class _Toolbar extends StatelessWidget {
   );
 }
 
-/// 순위 한 줄: 순위, 사진, 이름과 국가, 정렬 기준 값(강조)과 대표 값 둘, 최고 난이도.
-/// 누르면 그 사람의 플레이어 페이지.
+/// One ranking row: rank, avatar, name and country, the sort value (emphasized),
+/// two key values, top difficulty. Tapping opens the player page.
 class LeaderboardRow extends StatelessWidget {
   const LeaderboardRow({super.key, required this.player, required this.sort});
 
   final LeaderboardPlayer player;
   final LeaderboardSort sort;
 
-  /// 정렬 기준 옆에 함께 보여줄 값. 웹처럼 랭크 점수·평균 절대정확도·총 점수 중 둘.
+  /// Values shown next to the sort key: two of ranked score, average X-acc and total score, as on the website.
   static List<LeaderboardSort> secondaryFor(LeaderboardSort sort) {
     final rest = [
       LeaderboardSort.rankedScore,
@@ -172,7 +172,7 @@ class LeaderboardRow extends StatelessWidget {
   }
 }
 
-/// 이름과 값 한 칸. 정렬 기준 칸은 클리어 화면의 순위 칩처럼 강조한다.
+/// A label and value. The sort key is emphasized like the rank chip on the passes page.
 class _Stat extends StatelessWidget {
   const _Stat({required this.player, required this.sort, this.emphasized = false});
 

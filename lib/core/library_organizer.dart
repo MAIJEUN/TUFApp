@@ -6,30 +6,30 @@ import 'package:path/path.dart' as p;
 import 'l10n.dart';
 import 'level_library.dart';
 
-/// 라이브러리 폴더 안의 항목 하나. 실제 디스크의 폴더를 그대로 보여준다.
+/// An item in the library folder, mirroring the folders on disk.
 sealed class LibraryEntry {
   const LibraryEntry({required this.name, required this.relativePath});
 
-  /// 화면에 보여줄 이름 (폴더 이름).
+  /// Display name (the folder name).
   final String name;
 
-  /// 라이브러리 루트 기준 경로. 구분자는 항상 '/'.
+  /// Path relative to the library root, always '/'-separated.
   final String relativePath;
 }
 
-/// 받은 레벨 하나.
+/// A level downloaded by the app.
 class LevelEntry extends LibraryEntry {
   const LevelEntry({required super.name, required super.relativePath, required this.level});
 
   final InstalledLevel level;
 }
 
-/// 앱으로 받지 않았지만 폴더 안에 .adofai가 있는 레벨. 직접 넣어 둔 레벨도 같이 정리할 수 있게 보여준다.
+/// A folder with a .adofai file that the app didn't download. Shown so levels added by hand can be organized too.
 class ExternalLevelEntry extends LibraryEntry {
   const ExternalLevelEntry({required super.name, required super.relativePath});
 }
 
-/// 레벨을 담는 폴더. 개수는 바로 아래 단계만 센다.
+/// A folder holding levels. Counts cover direct children only.
 class FolderEntry extends LibraryEntry {
   const FolderEntry({
     required super.name,
@@ -42,13 +42,13 @@ class FolderEntry extends LibraryEntry {
   final int folderCount;
   final int levelCount;
 
-  /// 팩째 받은 폴더면 그 팩의 아이콘.
+  /// The pack's icon if the folder came from a pack download.
   final String? iconUrl;
 
   bool get isEmpty => folderCount == 0 && levelCount == 0;
 }
 
-/// 폴더에 붙여 두는 정보. 지금은 팩째 받은 폴더의 팩 아이콘과 팩 id.
+/// Info attached to a folder; currently the icon and id of the pack it came from.
 class FolderInfo {
   const FolderInfo({this.iconUrl, this.packId});
 
@@ -63,21 +63,21 @@ class FolderInfo {
   Map<String, Object?> toJson() => {'iconUrl': iconUrl, 'packId': packId};
 }
 
-/// 폴더 하나의 내용. 폴더가 먼저, 그다음 레벨이 이름순으로 온다.
+/// Contents of one folder: folders first, then levels, by name.
 class FolderContents {
   const FolderContents({required this.path, required this.folders, required this.levels});
 
   final String path;
   final List<FolderEntry> folders;
 
-  /// 받은 레벨([LevelEntry])과 직접 넣어 둔 레벨([ExternalLevelEntry]).
+  /// Downloaded levels ([LevelEntry]) and levels added by hand ([ExternalLevelEntry]).
   final List<LibraryEntry> levels;
 
   bool get isEmpty => folders.isEmpty && levels.isEmpty;
   List<LibraryEntry> get all => [...folders, ...levels];
 }
 
-/// 이름이나 경로가 잘못됐을 때.
+/// Thrown for invalid names or paths.
 class LibraryOperationException implements Exception {
   const LibraryOperationException(this.message);
 
@@ -87,20 +87,21 @@ class LibraryOperationException implements Exception {
   String toString() => message;
 }
 
-/// 라이브러리 폴더를 탐색기처럼 다룬다: 폴더 만들기, 이름 바꾸기, 옮기기, 지우기.
+/// Explorer-like operations on the library folder: create, rename, move and delete folders.
 ///
-/// 폴더는 실제 디스크 폴더다. 레벨을 옮기면 폴더째 옮기고, 목록의 [InstalledLevel.folderName]도 같이 고친다.
+/// Folders are real folders on disk. Moving a level moves its folder
+/// and updates [InstalledLevel.folderName] in the index.
 class LibraryOrganizer {
   const LibraryOrganizer(this.library);
 
-  /// Windows에서 폴더 이름에 쓸 수 없는 문자.
+  /// Characters not allowed in Windows folder names.
   static final _illegalCharacters = RegExp(r'[<>:"/\\|?*\x00-\x1F]');
 
   final LevelLibrary library;
 
   String get rootPath => library.rootPath;
 
-  /// 라이브러리 루트 기준 경로를 실제 경로로 바꾼다. 루트 밖으로 나가면 막는다.
+  /// Turns a library-relative path into a full path, rejecting paths outside the root.
   String fullPath(String relativePath) {
     final root = p.normalize(library.rootPath);
     final full = p.normalize(p.join(root, relativePath));
@@ -110,7 +111,7 @@ class LibraryOrganizer {
     return full;
   }
 
-  /// [relativePath] 폴더의 내용을 읽는다. 루트는 빈 문자열.
+  /// Lists the contents of [relativePath] (empty for the root).
   Future<FolderContents> list(String relativePath) async {
     final directory = Directory(fullPath(relativePath));
     if (!await directory.exists()) {
@@ -121,7 +122,7 @@ class LibraryOrganizer {
     final folders = <FolderEntry>[];
     final levels = <LibraryEntry>[];
 
-    // 폴더마다 안을 들여다봐야 해서, 하나씩 기다리면 항목이 많을 때 눈에 띄게 느리다. 한꺼번에 돌린다.
+    // Each folder has to be inspected, which is noticeably slow one by one in large folders, so run them together.
     final children = await _childDirectories(directory);
     final entries = await Future.wait([for (final child in children) _entryFor(child, relativePath, levelsByPath)]);
 
@@ -139,7 +140,7 @@ class LibraryOrganizer {
     return FolderContents(path: relativePath, folders: folders, levels: levels);
   }
 
-  /// 폴더 하나를 보고 레벨인지 폴더인지 정한다.
+  /// Decides whether a folder is a level or a plain folder.
   Future<LibraryEntry> _entryFor(Directory child, String parentPath, Map<String, InstalledLevel> levelsByPath) async {
     final name = p.basename(child.path);
     final relative = _join(parentPath, name);
@@ -150,7 +151,7 @@ class LibraryOrganizer {
     return _folderEntry(child, name, relative, levelsByPath);
   }
 
-  /// 바로 아래 폴더와 레벨이 몇 개인지 세어 둔다 (한 단계만 본다).
+  /// Counts direct subfolders and levels (one level deep).
   Future<FolderEntry> _folderEntry(
     Directory directory,
     String name,
@@ -173,10 +174,10 @@ class LibraryOrganizer {
     );
   }
 
-  /// 폴더 정보를 담는 파일. 폴더 안에 두므로 이름을 바꾸거나 옮겨도 따라간다.
+  /// File holding folder info. It lives inside the folder, so it follows renames and moves.
   static const folderInfoFileName = '.tufapp-folder.json';
 
-  /// 폴더에 붙은 정보(팩 아이콘 등). 없거나 읽을 수 없으면 null.
+  /// Info attached to a folder (pack icon etc.), or null if missing or unreadable.
   static Future<FolderInfo?> readFolderInfo(String folderPath) async {
     final file = File(p.join(folderPath, folderInfoFileName));
     try {
@@ -190,24 +191,24 @@ class LibraryOrganizer {
     }
   }
 
-  /// 폴더에 정보를 남긴다. 폴더가 없으면 만든다. 실패해도 받기에는 지장이 없으므로 조용히 넘어간다.
+  /// Attaches info to a folder, creating it if needed. Failures are ignored since they don't affect downloads.
   static Future<void> writeFolderInfo(String folderPath, FolderInfo info) async {
     final file = File(p.join(folderPath, folderInfoFileName));
     try {
       await Directory(folderPath).create(recursive: true);
-      // Windows는 숨김 파일을 덮어쓰지 못하므로 지우고 새로 쓴다.
+      // Windows can't overwrite hidden files, so delete and rewrite.
       if (await file.exists()) await file.delete();
       await file.writeAsString(jsonEncode(info.toJson()));
-      // 탐색기에서 레벨 파일 사이에 보이지 않게 숨긴다.
+      // Hide it so it doesn't show up among level files in Explorer.
       if (Platform.isWindows) await Process.run('attrib', ['+h', file.path]);
     } on FileSystemException {
-      // 무시한다.
+      // Ignore.
     } on ProcessException {
-      // 숨기지 못해도 괜찮다.
+      // Not being able to hide it is fine.
     }
   }
 
-  /// 숨김 폴더와 임시 폴더를 뺀 하위 폴더들.
+  /// Subfolders, excluding hidden and temporary ones.
   static Future<List<Directory>> _childDirectories(Directory directory) async {
     final result = <Directory>[];
     try {
@@ -215,12 +216,12 @@ class LibraryOrganizer {
         if (entity is Directory && !p.basename(entity.path).startsWith('.')) result.add(entity);
       }
     } on FileSystemException {
-      // 권한이 없는 폴더는 건너뛴다.
+      // Skip folders without access.
     }
     return result;
   }
 
-  /// 폴더 바로 안에 .adofai 파일이 있으면 레벨 폴더로 본다.
+  /// A folder with a .adofai file directly inside is a level folder.
   static Future<bool> _looksLikeLevel(Directory directory) async {
     try {
       await for (final entity in directory.list(followLinks: false)) {
@@ -232,7 +233,7 @@ class LibraryOrganizer {
     return false;
   }
 
-  /// 레벨을 담지 않은 폴더까지 포함해 모든 폴더 경로를 훑는다 (옮길 곳 고르기 등에 쓴다).
+  /// Walks every folder path, including folders without levels (used to pick a move target, etc.).
   Future<List<FolderEntry>> allFolders([String relativePath = '']) async {
     final result = <FolderEntry>[];
     final contents = await list(relativePath);
@@ -244,7 +245,6 @@ class LibraryOrganizer {
     return result;
   }
 
-  /// [parent] 아래에 새 폴더를 만든다.
   Future<String> createFolder(String parent, String name) async {
     final safe = _validateName(name);
     final relative = _join(parent, safe);
@@ -256,7 +256,7 @@ class LibraryOrganizer {
     return relative;
   }
 
-  /// 폴더나 레벨 폴더의 이름을 바꾼다. 안에 든 레벨의 경로도 따라 바뀐다.
+  /// Renames a folder or level folder; paths of levels inside follow.
   Future<String> rename(LibraryEntry entry, String newName) async {
     final safe = _validateName(newName);
     if (safe == entry.name) return entry.relativePath;
@@ -267,7 +267,7 @@ class LibraryOrganizer {
     return target;
   }
 
-  /// 폴더나 레벨을 [targetFolder] 안으로 옮긴다. 루트로 옮기려면 빈 문자열.
+  /// Moves a folder or level into [targetFolder] (empty for the root).
   Future<String> move(LibraryEntry entry, String targetFolder) async {
     if (_parentOf(entry.relativePath) == _normalize(targetFolder)) return entry.relativePath;
     if (entry is FolderEntry && _isInside(entry.relativePath, targetFolder)) {
@@ -283,10 +283,10 @@ class LibraryOrganizer {
     return target;
   }
 
-  /// 이름에 게임이 불러오지 못하는 글자('+')가 든 폴더를 찾아 이름을 바꾼다. 바꾼 개수를 돌려준다.
+  /// Renames folders whose names contain characters the game can't load ('+'). Returns how many were renamed.
   ///
-  /// 레벨 폴더 자체의 이름은 바꾸지만 그 안(음악, 차트 파일)은 건드리지 않는다.
-  /// 차트가 파일 이름으로 음악을 찾기 때문이다. 바꾸지 못한 폴더(게임이 열고 있는 등)는 건너뛴다.
+  /// Level folders themselves are renamed, but their contents (music, chart files) are not,
+  /// because charts find their music by file name. Folders that can't be renamed (open in the game, etc.) are skipped.
   Future<int> fixUnloadableNames([String relativePath = '']) async {
     var count = 0;
     final contents = await list(relativePath);
@@ -310,7 +310,7 @@ class LibraryOrganizer {
     return count;
   }
 
-  /// [parent] 안에서 [name]이 이미 있으면 "name (2)"처럼 비어 있는 이름을 찾는다.
+  /// If [name] already exists in [parent], finds a free name like "name (2)".
   Future<String> _uniquePath(String parent, String name) async {
     var candidate = _join(parent, name);
     for (var i = 2; await Directory(fullPath(candidate)).exists(); i++) {
@@ -319,7 +319,8 @@ class LibraryOrganizer {
     return candidate;
   }
 
-  /// 폴더나 레벨 폴더를 통째로 지운다. 목록에 있던 레벨은 목록에서도 뺀다. 지워진 레벨 수를 돌려준다.
+  /// Deletes a folder or level folder entirely, removing indexed levels
+  /// from the index. Returns how many levels were removed.
   Future<int> delete(LibraryEntry folder) async {
     final directory = Directory(fullPath(folder.relativePath));
     final inside = _levelsInside(folder.relativePath);
@@ -330,7 +331,7 @@ class LibraryOrganizer {
     return inside.length;
   }
 
-  /// 폴더 이동/이름 변경을 실제로 수행하고 목록의 경로를 고친다.
+  /// Performs a folder move or rename and updates the paths in the index.
   Future<void> _moveDirectory(String from, String to, String existsMessage) async {
     final source = Directory(fullPath(from));
     final destination = Directory(fullPath(to));
@@ -356,7 +357,7 @@ class LibraryOrganizer {
     return normalized == _normalize(folder) || normalized.startsWith(prefix);
   }
 
-  /// 게임이 불러오지 못하는 글자를 바꾼다 (경로에 '+'가 있으면 레벨을 제대로 읽지 못한다).
+  /// Replaces characters the game can't load (a '+' in the path breaks level loading).
   static String replaceUnloadable(String name) => name.replaceAll('+', '_');
 
   static String _validateName(String name) {
@@ -381,9 +382,9 @@ class LibraryOrganizer {
     return base.isEmpty ? name : '$base/$name';
   }
 
-  /// 경로 구분자를 '/'로 맞추고 앞뒤 구분자를 뗀다.
+  /// Normalizes separators to '/' and trims leading and trailing ones.
   static String _normalize(String path) => path.replaceAll(r'\', '/').replaceAll(RegExp(r'^/+|/+$'), '');
 
-  /// 숫자가 섞인 이름도 사람이 기대하는 순서로 (대소문자 무시).
+  /// Case-insensitive name order.
   static int _compareNames(String a, String b) => a.toLowerCase().compareTo(b.toLowerCase());
 }

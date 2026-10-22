@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tufapp/core/models/profile.dart';
 
-/// 실제 응답(2026-10, Jipper)으로 플레이어·제작자 페이지 데이터를 읽는다.
+/// Reads player and creator page data from real responses (2026-10, Jipper).
 void main() {
   Map<String, dynamic> fixture(String name) =>
       jsonDecode(File('test/fixtures/$name.json').readAsStringSync()) as Map<String, dynamic>;
@@ -27,7 +27,7 @@ void main() {
     expect(player.placements, hasLength(8));
     expect(player.placements.first.tournamentName, 'ADOFAI World Championship 2024');
     expect(player.placements.first.seriesName, 'Adofai World Championship');
-    // 저장한 배치가 없으면 사이트의 기본 순서.
+    // Without a saved layout, the website's default order.
     expect(
       [for (final module in player.modules.layoutFor(player: true)) module.type],
       ['bio', 'tournaments', 'scoreBreakdown', 'difficulty', 'rankHistory', 'scores'],

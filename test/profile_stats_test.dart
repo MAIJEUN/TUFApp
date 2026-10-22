@@ -8,7 +8,7 @@ import 'package:tufapp/core/models/profile.dart';
 import 'package:tufapp/core/models/search_models.dart';
 import 'package:tufapp/core/profile_stats.dart';
 
-/// 사이트와 같은 값이 나와야 한다 (2026-10 Jipper 프로필, 사이트에서 확인한 값).
+/// Values must match the website (Jipper's profile, 2026-10, checked on the website).
 void main() {
   Object? fixture(String name) => jsonDecode(File('test/fixtures/$name.json').readAsStringSync());
 
@@ -30,7 +30,7 @@ void main() {
 
   test('제작자 머리글 아이콘: 큐레이션 유형 묶음마다 하나씩', () {
     final slots = creatorIconSlots(creator, curations);
-    // C0 3개, C1 1개, V0 2개, V1 1개 → C1·V1이 먼저, 나머지가 그 뒤.
+    // 3 C0, 1 C1, 2 V0, 1 V1 → C1 and V1 first, then the rest.
     expect([for (final slot in slots) slot.letter], ['C1', 'V1', 'C0', 'V0']);
     expect([for (final slot in slots) slot.badge], [1, 1, 3, 2]);
   });
