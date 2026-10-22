@@ -9,6 +9,7 @@ import 'core/frame_log.dart';
 import 'core/l10n.dart';
 import 'core/level_manager.dart';
 import 'ui/app_shell.dart';
+import 'ui/app_shortcuts.dart';
 import 'ui/theme.dart';
 
 Future<void> main() async {
@@ -30,7 +31,9 @@ Future<void> main() async {
   }
   appLanguage = settings?.language ?? AppLanguage.system;
 
-  final controller = AppController()..languageChoice = settings?.language;
+  final controller = AppController()
+    ..languageChoice = settings?.language
+    ..zoom = settings?.zoom ?? 1;
   runApp(TufApp(controller: controller));
   controller.initialize(settings: settings);
 }
@@ -47,6 +50,8 @@ class TufApp extends StatefulWidget {
 
 class _TufAppState extends State<TufApp> {
   late AppLanguage _shown = appLanguage;
+  final _navigatorKey = GlobalKey<NavigatorState>();
+  late final _observer = AppNavigatorObserver(widget.controller.history);
 
   @override
   void initState() {
@@ -88,6 +93,10 @@ class _TufAppState extends State<TufApp> {
       title: 'TUFApp',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
+      navigatorKey: _navigatorKey,
+      navigatorObservers: [_observer],
+      builder: (context, child) =>
+          AppShortcuts(app: widget.controller, navigatorKey: _navigatorKey, observer: _observer, child: child!),
       home: const AppShell(),
     ),
   );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../app/controllers.dart';
 import '../core/l10n.dart';
+import 'app_shortcuts.dart';
 import 'pages/clears_page.dart';
 import 'pages/creators_page.dart';
 import 'pages/leaderboard_page.dart';
@@ -194,12 +195,12 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
         builder: (context, _) => Stack(
           fit: StackFit.expand,
           children: [
-            _PageLayer(active: app.page == AppPage.levels, child: const LevelsPage()),
-            _PageLayer(active: app.page == AppPage.packs, child: const PacksPage()),
-            _PageLayer(active: app.page == AppPage.clears, child: const ClearsPage()),
-            _PageLayer(active: app.page == AppPage.leaderboard, child: const LeaderboardPage()),
-            _PageLayer(active: app.page == AppPage.creators, child: const CreatorsPage()),
-            _PageLayer(active: app.page == AppPage.library, child: const LibraryPage()),
+            _PageLayer(page: AppPage.levels, active: app.page, child: const LevelsPage()),
+            _PageLayer(page: AppPage.packs, active: app.page, child: const PacksPage()),
+            _PageLayer(page: AppPage.clears, active: app.page, child: const ClearsPage()),
+            _PageLayer(page: AppPage.leaderboard, active: app.page, child: const LeaderboardPage()),
+            _PageLayer(page: AppPage.creators, active: app.page, child: const CreatorsPage()),
+            _PageLayer(page: AppPage.library, active: app.page, child: const LibraryPage()),
           ],
         ),
       ),
@@ -238,28 +239,37 @@ class _LanguageMenu extends StatelessWidget {
 
 /// The visible page fades in; hidden pages keep their state but ignore input.
 class _PageLayer extends StatelessWidget {
-  const _PageLayer({required this.active, required this.child});
+  const _PageLayer({required this.page, required this.active, required this.child});
 
-  final bool active;
+  final AppPage page;
+
+  /// The page currently shown.
+  final AppPage active;
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => IgnorePointer(
-    ignoring: !active,
-    child: ExcludeFocus(
-      excluding: !active,
-      // RepaintBoundary: while fading, the page isn't repainted every
-      // frame; only the opacity of the cached picture changes.
-      // (A slide was dropped because it forces a repaint every frame.)
-      child: RepaintBoundary(
-        child: AnimatedOpacity(
-          opacity: active ? 1 : 0,
-          duration: Motion.fast,
-          curve: Curves.easeOut,
-          // Pause animations (spinners etc.) on hidden pages.
-          child: TickerMode(enabled: active, child: child),
+  Widget build(BuildContext context) {
+    final active = page == this.active;
+    return IgnorePointer(
+      ignoring: !active,
+      child: ExcludeFocus(
+        excluding: !active,
+        // RepaintBoundary: while fading, the page isn't repainted every
+        // frame; only the opacity of the cached picture changes.
+        // (A slide was dropped because it forces a repaint every frame.)
+        child: RepaintBoundary(
+          child: AnimatedOpacity(
+            opacity: active ? 1 : 0,
+            duration: Motion.fast,
+            curve: Curves.easeOut,
+            // Pause animations (spinners etc.) on hidden pages.
+            child: TickerMode(
+              enabled: active,
+              child: PageTab(page: page, child: child),
+            ),
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }

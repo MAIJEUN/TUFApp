@@ -20,6 +20,7 @@ import '../widgets/motion.dart';
 import '../widgets/pass_row.dart';
 import '../widgets/slide_overflow.dart';
 import '../widgets/smooth_scroll.dart';
+import '../app_shortcuts.dart';
 
 /// Level details: card, pass summary, video and leaderboard.
 /// Opens on top when a level card is tapped in a list or pack.
@@ -114,72 +115,75 @@ class _LevelViewerPageState extends State<LevelViewerPage> {
   Widget build(BuildContext context) {
     final summary = _summary;
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          tooltip: tr('뒤로', 'Back'),
-          onPressed: () => Navigator.of(context).maybePop(),
-          icon: const Icon(Icons.arrow_back),
+    return PageCommandScope(
+      commands: () => PageCommands(scroll: _scroll, refresh: _load, searchable: false),
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            tooltip: tr('뒤로', 'Back'),
+            onPressed: () => Navigator.of(context).maybePop(),
+            icon: const Icon(Icons.arrow_back),
+          ),
+          title: Text('#${_level.id}'),
         ),
-        title: Text('#${_level.id}'),
-      ),
-      body: SmoothScrollbar(
-        controller: _scroll,
-        builder: (context, behavior) => CustomScrollView(
+        body: SmoothScrollbar(
           controller: _scroll,
-          scrollBehavior: behavior,
-          slivers: [
-            _section(
-              Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: LevelCard(level: _level, compact: false, openable: false),
-              ),
-            ),
-            _section(
-              Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: _Overview(level: _level, summary: summary),
-              ),
-            ),
-            _section(
-              Padding(
-                padding: const EdgeInsets.only(top: 24, bottom: 12),
-                child: Row(
-                  children: [
-                    Text(tr('리더보드', 'Leaderboard'), style: Theme.of(context).textTheme.titleLarge),
-                    const SizedBox(width: 12),
-                    if (summary != null)
-                      Text(
-                        tr(
-                          '${formatNumber(summary.uniquePlayers)}명'
-                              '${summary.totalClears != summary.uniquePlayers ? ' (총 ${formatNumber(summary.totalClears)}회)' : ''}',
-                          '${formatNumber(summary.uniquePlayers)} ${plural(summary.uniquePlayers, 'player')}'
-                              '${summary.totalClears != summary.uniquePlayers ? ' (${formatNumber(summary.totalClears)} total)' : ''}',
-                        ),
-                        style: Theme.of(context).textTheme.bodyMedium
-                            ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                      ),
-                    const Spacer(),
-                    IconButton(tooltip: tr('새로고침', 'Refresh'), onPressed: _load, icon: const Icon(Icons.refresh)),
-                  ],
+          builder: (context, behavior) => CustomScrollView(
+            controller: _scroll,
+            scrollBehavior: behavior,
+            slivers: [
+              _section(
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: LevelCard(level: _level, compact: false, openable: false),
                 ),
               ),
-            ),
-            if (summary != null)
-              SliverList.builder(
-                itemCount: summary.leaderboard.length,
-                itemBuilder: (context, index) => Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: _maxWidth),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
-                      child: _PassRow(level: _level, rank: index + 1, pass: summary.leaderboard[index]),
-                    ),
+              _section(
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: _Overview(level: _level, summary: summary),
+                ),
+              ),
+              _section(
+                Padding(
+                  padding: const EdgeInsets.only(top: 24, bottom: 12),
+                  child: Row(
+                    children: [
+                      Text(tr('리더보드', 'Leaderboard'), style: Theme.of(context).textTheme.titleLarge),
+                      const SizedBox(width: 12),
+                      if (summary != null)
+                        Text(
+                          tr(
+                            '${formatNumber(summary.uniquePlayers)}명'
+                                '${summary.totalClears != summary.uniquePlayers ? ' (총 ${formatNumber(summary.totalClears)}회)' : ''}',
+                            '${formatNumber(summary.uniquePlayers)} ${plural(summary.uniquePlayers, 'player')}'
+                                '${summary.totalClears != summary.uniquePlayers ? ' (${formatNumber(summary.totalClears)} total)' : ''}',
+                          ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        ),
+                      const Spacer(),
+                      IconButton(tooltip: tr('새로고침', 'Refresh'), onPressed: _load, icon: const Icon(Icons.refresh)),
+                    ],
                   ),
                 ),
               ),
-            _section(_Footer(loading: _loading, error: _error, summary: summary, onRetry: _load)),
-          ],
+              if (summary != null)
+                SliverList.builder(
+                  itemCount: summary.leaderboard.length,
+                  itemBuilder: (context, index) => Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: _maxWidth),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+                        child: _PassRow(level: _level, rank: index + 1, pass: summary.leaderboard[index]),
+                      ),
+                    ),
+                  ),
+                ),
+              _section(_Footer(loading: _loading, error: _error, summary: summary, onRetry: _load)),
+            ],
+          ),
         ),
       ),
     );

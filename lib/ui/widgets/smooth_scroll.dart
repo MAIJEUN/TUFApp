@@ -3,13 +3,26 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart' show Ticker;
 import 'package:flutter/rendering.dart' show ScrollDirection;
+import 'package:flutter/services.dart' show HardwareKeyboard;
 
 /// Scroll controller that glides smoothly on mouse wheel input instead of jumping.
 ///
 /// Scrollable forwards wheel events through [ScrollPosition.pointerScroll], so only that is replaced.
-/// Dragging, the scrollbar and keyboard scrolling keep the default behavior.
+/// Dragging and the scrollbar keep the default behavior. Keyboard shortcuts glide with [glideBy] and [glideTo].
 class SmoothScrollController extends ScrollController {
   SmoothScrollController({super.debugLabel});
+
+  /// Glides by [delta] pixels the same way a wheel tick does.
+  void glideBy(double delta) {
+    if (!hasClients) return;
+    final position = this.position as _SmoothScrollPosition;
+    position.glideTo(position.target + delta);
+  }
+
+  /// Glides to [offset] the same way a wheel tick does.
+  void glideTo(double offset) {
+    if (hasClients) (position as _SmoothScrollPosition).glideTo(offset);
+  }
 
   @override
   ScrollPosition createScrollPosition(ScrollPhysics physics, ScrollContext context, ScrollPosition? oldPosition) =>
@@ -33,24 +46,34 @@ class _SmoothScrollPosition extends ScrollPositionWithSingleContext {
     super.debugLabel,
   });
 
+  /// Where the current glide ends, or the current offset when not gliding.
+  double get target => switch (activity) {
+    final _WheelScrollActivity wheel => wheel.target,
+    _ => pixels,
+  };
+
   @override
   void pointerScroll(double delta) {
+    // Ctrl+wheel zooms the UI instead (see AppShortcuts).
+    if (HardwareKeyboard.instance.isControlPressed) return;
     if (delta == 0.0) {
       super.pointerScroll(delta);
       return;
     }
+    glideTo(target + delta);
+  }
 
-    updateUserScrollDirection(delta > 0 ? ScrollDirection.reverse : ScrollDirection.forward);
+  void glideTo(double offset) {
+    final to = offset.clamp(minScrollExtent, maxScrollExtent);
+    if (to == target) return;
+    updateUserScrollDirection(to > target ? ScrollDirection.reverse : ScrollDirection.forward);
 
     // While gliding, only move the target so the velocity carries on.
     if (activity case final _WheelScrollActivity wheel) {
-      wheel.target = (wheel.target + delta).clamp(minScrollExtent, maxScrollExtent);
+      wheel.target = to;
       return;
     }
-
-    final target = (pixels + delta).clamp(minScrollExtent, maxScrollExtent);
-    if (target == pixels) return;
-    beginActivity(_WheelScrollActivity(this, context.vsync, target));
+    beginActivity(_WheelScrollActivity(this, context.vsync, to));
   }
 }
 

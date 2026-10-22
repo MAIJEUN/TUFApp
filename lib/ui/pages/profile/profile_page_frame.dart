@@ -8,6 +8,7 @@ import '../../widgets/common.dart';
 import '../../widgets/motion.dart';
 import '../../widgets/smooth_scroll.dart';
 import 'profile_list_view.dart';
+import '../../app_shortcuts.dart';
 
 /// Shared frame of player and creator pages, shaped like the level page:
 /// top bar, centered content (header card and modules), and a long list at the bottom (passes or levels).
@@ -174,16 +175,19 @@ class _ProfilePageFrameState<T> extends State<ProfilePageFrame<T>> {
       body = const Center(key: ValueKey('loading'), child: CircularProgressIndicator());
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          tooltip: tr('뒤로', 'Back'),
-          onPressed: () => Navigator.of(context).maybePop(),
-          icon: const Icon(Icons.arrow_back),
+    return PageCommandScope(
+      commands: () => PageCommands(scroll: _scroll, refresh: _load),
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            tooltip: tr('뒤로', 'Back'),
+            onPressed: () => Navigator.of(context).maybePop(),
+            icon: const Icon(Icons.arrow_back),
+          ),
+          title: Text(data == null ? '' : widget.titleOf(data)),
         ),
-        title: Text(data == null ? '' : widget.titleOf(data)),
+        body: FadeSwitcher(child: body),
       ),
-      body: FadeSwitcher(child: body),
     );
   }
 }

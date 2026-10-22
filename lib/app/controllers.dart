@@ -22,9 +22,11 @@ import '../core/tuf_api_client.dart';
 import '../core/video_links.dart';
 import '../core/video_thumbnails.dart';
 import 'browse_controllers.dart';
+import 'navigation_history.dart';
 import 'packs_controller.dart';
 
 export 'browse_controllers.dart';
+export 'navigation_history.dart';
 export 'packs_controller.dart';
 
 enum AppPage { levels, packs, clears, leaderboard, creators, library }
@@ -55,7 +57,12 @@ class AppController extends ChangeNotifier {
     leaderboard = LeaderboardController(this.api);
     creators = CreatorsController(this.api);
     installs.addListener(library.onInstallsChanged);
+    packs.history = history;
+    library.history = history;
   }
+
+  /// Forward history for back/forward navigation (keyboard shortcuts and mouse side buttons).
+  final history = NavigationHistory();
 
   final TufApiClient api;
   late final VideoThumbnails thumbnails = VideoThumbnails(api);
@@ -75,6 +82,7 @@ class AppController extends ChangeNotifier {
   void setPage(AppPage value) {
     if (page == value) return;
     page = value;
+    history.clearForward();
     // Lists other than levels are loaded the first time their page is shown.
     switch (value) {
       case AppPage.packs:
@@ -107,10 +115,48 @@ class AppController extends ChangeNotifier {
     appLanguage = choice ?? AppLanguage.system;
     if (wasReady) status = _readyText;
     notifyListeners();
+    await _saveSettings((settings) => settings.language = choice);
+  }
 
+  /// UI zoom factor (1 = 100%). The whole UI is scaled, like zooming a web page.
+  double zoom = 1;
+
+  /// Zoom steps, the same as browsers use.
+  static const zoomLevels = [0.5, 0.67, 0.75, 0.8, 0.9, 1.0, 1.1, 1.25, 1.5, 1.75, 2.0];
+
+  void zoomIn() => setZoom(zoomLevels.firstWhere((level) => level > zoom + 0.001, orElse: () => zoomLevels.last));
+
+  void zoomOut() => setZoom(zoomLevels.lastWhere((level) => level < zoom - 0.001, orElse: () => zoomLevels.first));
+
+  void resetZoom() => setZoom(1);
+
+  Future<void> setZoom(double value) async {
+    final clamped = value.clamp(zoomLevels.first, zoomLevels.last);
+    if (clamped == zoom) return;
+    zoom = clamped;
+    setStatus(tr('화면 배율 ${(zoom * 100).round()}%', 'Zoom ${(zoom * 100).round()}%'));
+    await _saveSettings((settings) => settings.zoom = zoom == 1 ? null : zoom);
+  }
+
+  /// Steps back within the current tab: closes the open pack, or goes up one library folder.
+  /// Returns false if there is nothing to go back to.
+  bool goBackInPage() {
+    switch (page) {
+      case AppPage.packs when packs.openedPack != null:
+        packs.close();
+        return true;
+      case AppPage.library when library.currentPath.isNotEmpty:
+        library.goUp();
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  Future<void> _saveSettings(void Function(AppSettings settings) change) async {
     final settings = library.settings;
     if (settings == null) return;
-    settings.language = choice;
+    change(settings);
     try {
       await settings.save();
     } on FileSystemException catch (e) {
@@ -127,7 +173,9 @@ class AppController extends ChangeNotifier {
 
     try {
       settings ??= await AppSettings.load();
-      settings.language = languageChoice;
+      settings
+        ..language = languageChoice
+        ..zoom = zoom == 1 ? null : zoom;
       library.settings = settings;
       final tags = _tryList(api.getTags());
       final curations = _tryList(api.getCurationTypes());
@@ -698,6 +746,9 @@ class LibraryController extends ChangeNotifier {
   LevelLibrary? library;
   LibraryOrganizer? organizer;
 
+  /// Records folders left by going up so "forward" can return to them.
+  NavigationHistory? history;
+
   /// What was repaired when the library index was found broken (null if nothing).
   String? recovery;
 
@@ -873,6 +924,15 @@ class LibraryController extends ChangeNotifier {
   }
 
   Future<void> openPath(String relativePath) async {
+    final from = currentPath;
+    if (relativePath != from) {
+      // Going up to a parent can be redone with "forward"; going anywhere else starts a new history.
+      if (relativePath.isEmpty || from.startsWith('$relativePath/')) {
+        history?.recordBack(() => openPath(from));
+      } else {
+        history?.clearForward();
+      }
+    }
     currentPath = relativePath;
     clearSelection();
     await refreshContents();

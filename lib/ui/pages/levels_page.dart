@@ -8,6 +8,7 @@ import '../widgets/common.dart';
 import '../widgets/difficulty_slider.dart';
 import '../widgets/level_card.dart';
 import '../widgets/motion.dart';
+import '../app_shortcuts.dart';
 import '../widgets/smooth_scroll.dart';
 
 /// Content always fills the width inside the centered max width.
@@ -73,7 +74,7 @@ class _LevelsPageState extends State<LevelsPage> {
 
     // The status message changes often during downloads. Not listening to the app here
     // keeps the whole list from rebuilding on every progress update.
-    return ListenableBuilder(
+    final content = ListenableBuilder(
       listenable: levels,
       builder: (context, _) {
         _afterBuild(levels);
@@ -90,6 +91,10 @@ class _LevelsPageState extends State<LevelsPage> {
               : KeyedSubtree(key: const ValueKey('content'), child: _buildContent(levels, catalog)),
         );
       },
+    );
+    return PageCommandScope(
+      commands: () => PageCommands(scroll: _scroll, refresh: app.startupError != null ? app.initialize : levels.search),
+      child: content,
     );
   }
 
@@ -248,6 +253,7 @@ class _Toolbar extends StatelessWidget {
         Expanded(
           child: SearchBar(
             controller: searchController,
+            focusNode: PageCommandScope.searchFocusOf(context),
             hintText: tr('곡 이름, 작곡가, 제작자로 검색', 'Search by song, artist, or creator'),
             leading: const Icon(Icons.search),
             elevation: const WidgetStatePropertyAll(0),

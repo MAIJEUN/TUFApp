@@ -16,6 +16,7 @@ import '../widgets/pass_badges.dart';
 import '../widgets/slide_overflow.dart';
 import '../widgets/smooth_scroll.dart';
 import 'level_viewer_page.dart' show sideGap, videoKey;
+import '../app_shortcuts.dart';
 
 /// Pass details: level, player, score and judgements, video.
 /// Opens when a row of a level's leaderboard is tapped.
@@ -65,9 +66,10 @@ class _PassViewerPageState extends State<PassViewerPage> {
   }
 
   /// Ranked score and rank are fetched separately. On failure the pass itself is still shown.
-  Future<void> _load() async {
+  Future<void> _load({bool refresh = false}) async {
     final api = AppScope.of(context).api;
-    await Future.wait([if (_detail == null) _loadDetail(api), _loadPlayer(api)]);
+    if (refresh) setState(() => _loaded = false);
+    await Future.wait([if (refresh || _detail == null) _loadDetail(api), _loadPlayer(api)]);
     if (mounted) setState(() => _loaded = true);
   }
 
@@ -108,57 +110,60 @@ class _PassViewerPageState extends State<PassViewerPage> {
     final pass = widget.pass;
     final video = pass.videoLink;
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          tooltip: tr('뒤로', 'Back'),
-          onPressed: () => Navigator.of(context).maybePop(),
-          icon: const Icon(Icons.arrow_back),
+    return PageCommandScope(
+      commands: () => PageCommands(scroll: _scroll, refresh: () => _load(refresh: true), searchable: false),
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            tooltip: tr('뒤로', 'Back'),
+            onPressed: () => Navigator.of(context).maybePop(),
+            icon: const Icon(Icons.arrow_back),
+          ),
+          title: Text(tr('${pass.playerName}의 클리어', "${pass.playerName}'s pass")),
         ),
-        title: Text(tr('${pass.playerName}의 클리어', "${pass.playerName}'s pass")),
-      ),
-      body: SmoothScrollbar(
-        controller: _scroll,
-        builder: (context, behavior) => CustomScrollView(
+        body: SmoothScrollbar(
           controller: _scroll,
-          scrollBehavior: behavior,
-          slivers: [
-            _section(
-              Padding(
-                padding: const EdgeInsets.only(top: 16),
-                // Tapping opens the level details.
-                child: LevelCard(level: widget.level, compact: false),
+          builder: (context, behavior) => CustomScrollView(
+            controller: _scroll,
+            scrollBehavior: behavior,
+            slivers: [
+              _section(
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  // Tapping opens the level details.
+                  child: LevelCard(level: widget.level, compact: false),
+                ),
               ),
-            ),
-            _section(
-              Padding(
-                padding: const EdgeInsets.only(top: 16, bottom: 32),
-                // Pass on the left, player at the top right with the video below.
-                // The video fills the right column and the pass column on the left stretches to its height.
-                child: SideBySide(
-                  gap: sideGap,
-                  left: _PassDetails(pass: pass),
-                  right: (context, videoHeight) => Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _PlayerCard(pass: pass, player: _player, detail: _detail, loading: !_loaded),
-                      if (video != null) ...[
-                        const SizedBox(height: sideGap),
-                        // If the left column is taller, the video takes the extra space.
-                        Expanded(
-                          child: SizedBox(
-                            key: videoKey,
-                            height: videoHeight,
-                            child: _PassVideo(videoLink: video),
+              _section(
+                Padding(
+                  padding: const EdgeInsets.only(top: 16, bottom: 32),
+                  // Pass on the left, player at the top right with the video below.
+                  // The video fills the right column and the pass column on the left stretches to its height.
+                  child: SideBySide(
+                    gap: sideGap,
+                    left: _PassDetails(pass: pass),
+                    right: (context, videoHeight) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _PlayerCard(pass: pass, player: _player, detail: _detail, loading: !_loaded),
+                        if (video != null) ...[
+                          const SizedBox(height: sideGap),
+                          // If the left column is taller, the video takes the extra space.
+                          Expanded(
+                            child: SizedBox(
+                              key: videoKey,
+                              height: videoHeight,
+                              child: _PassVideo(videoLink: video),
+                            ),
                           ),
-                        ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

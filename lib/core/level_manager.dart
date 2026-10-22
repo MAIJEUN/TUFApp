@@ -257,12 +257,15 @@ class LevelManager {
 
 /// Settings stored in %AppData%\TUFApp\settings.json, shared with the C# version.
 class AppSettings {
-  AppSettings({required this.libraryPath, this.language});
+  AppSettings({required this.libraryPath, this.language, this.zoom});
 
   String libraryPath;
 
   /// The chosen UI language. null follows the system language.
   AppLanguage? language;
+
+  /// UI zoom factor. null means 100%.
+  double? zoom;
 
   static Future<String> _settingsDirectory() async {
     final appData = Platform.environment['APPDATA'];
@@ -277,18 +280,20 @@ class AppSettings {
     final file = File(p.join(await _settingsDirectory(), 'settings.json'));
     String? path;
     AppLanguage? language;
+    double? zoom;
     try {
       if (await file.exists()) {
         final json = jsonDecode(await file.readAsString());
         if (json is Map<String, dynamic>) {
           if (json['libraryPath'] case final String value when value.trim().isNotEmpty) path = value;
           language = AppLanguage.fromCode(json['language']);
+          if (json['zoom'] case final num value when value > 0) zoom = value.toDouble();
         }
       }
     } on FormatException {
       // Start with defaults if the settings file is broken.
     }
-    return AppSettings(libraryPath: path ?? await defaultLibraryPath(), language: language);
+    return AppSettings(libraryPath: path ?? await defaultLibraryPath(), language: language, zoom: zoom);
   }
 
   Future<void> save() async {
@@ -296,7 +301,8 @@ class AppSettings {
     await dir.create(recursive: true);
     final file = File(p.join(dir.path, 'settings.json'));
     await file.writeAsString(
-      const JsonEncoder.withIndent('  ').convert({'libraryPath': libraryPath, 'language': ?language?.code}),
+      const JsonEncoder.withIndent('  ')
+          .convert({'libraryPath': libraryPath, 'language': ?language?.code, 'zoom': ?zoom}),
     );
   }
 }

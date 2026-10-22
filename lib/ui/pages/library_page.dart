@@ -10,6 +10,7 @@ import '../widgets/hover_tip.dart';
 import '../widgets/motion.dart';
 import '../widgets/slide_overflow.dart';
 import '../widgets/smooth_scroll.dart';
+import '../app_shortcuts.dart';
 
 /// Content always fills the width inside the centered max width.
 Widget _constrain(Widget child) => Center(
@@ -87,105 +88,108 @@ class _LibraryPageState extends State<LibraryPage> {
     final app = AppScope.of(context);
     final library = app.library;
 
-    return ListenableBuilder(
-      // app.levels notifies on every search, so it isn't listened to here.
-      listenable: Listenable.merge([library, app.installs]),
-      builder: (context, _) {
-        final entries = library.entries;
-        final firstShow = _shownPaths.isEmpty;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _shownPaths
-            ..clear()
-            ..addAll(entries.map((entry) => entry.relativePath));
-        });
+    return PageCommandScope(
+      commands: () => PageCommands(scroll: _scroll, refresh: library.refreshContents, searchable: false),
+      child: ListenableBuilder(
+        // app.levels notifies on every search, so it isn't listened to here.
+        listenable: Listenable.merge([library, app.installs]),
+        builder: (context, _) {
+          final entries = library.entries;
+          final firstShow = _shownPaths.isEmpty;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _shownPaths
+              ..clear()
+              ..addAll(entries.map((entry) => entry.relativePath));
+          });
 
-        return Focus(
-          focusNode: _focus,
-          onKeyEvent: (node, event) => _onKey(library, event),
-          child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            // Clicking empty space clears the selection and gives this page keyboard focus.
-            onTap: () {
-              _focus.requestFocus();
-              library.clearSelection();
-            },
-            onSecondaryTapUp: (details) => _showFolderMenu(context, library, details.globalPosition),
-            child: Stack(
-              children: [
-                SmoothScrollbar(
-                  controller: _scroll,
-                  builder: (context, behavior) => CustomScrollView(
+          return Focus(
+            focusNode: _focus,
+            onKeyEvent: (node, event) => _onKey(library, event),
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              // Clicking empty space clears the selection and gives this page keyboard focus.
+              onTap: () {
+                _focus.requestFocus();
+                library.clearSelection();
+              },
+              onSecondaryTapUp: (details) => _showFolderMenu(context, library, details.globalPosition),
+              child: Stack(
+                children: [
+                  SmoothScrollbar(
                     controller: _scroll,
-                    scrollBehavior: behavior,
-                    slivers: [
-                      _section(
-                        Padding(
-                          padding: const EdgeInsets.only(top: 24),
-                          child: _Header(library: library),
-                        ),
-                      ),
-                      _section(
-                        Padding(
-                          padding: const EdgeInsets.only(top: 16),
-                          child: _Toolbar(library: library),
-                        ),
-                      ),
-                      _section(const SizedBox(height: 12)),
-                      _section(
-                        Reveal(
-                          visible: library.contents?.isEmpty ?? false,
-                          child: _EmptyFolder(
-                            atRoot: library.currentPath.isEmpty,
-                            onBrowse: () => app.setPage(AppPage.levels),
-                            onCreateFolder: () => _createFolder(context, library),
+                    builder: (context, behavior) => CustomScrollView(
+                      controller: _scroll,
+                      scrollBehavior: behavior,
+                      slivers: [
+                        _section(
+                          Padding(
+                            padding: const EdgeInsets.only(top: 24),
+                            child: _Header(library: library),
                           ),
                         ),
-                      ),
-                      SliverList.builder(
-                        itemCount: entries.length,
-                        itemBuilder: (context, index) {
-                          final entry = entries[index];
-                          return _constrain(
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: Appear(
-                                key: ValueKey(entry.relativePath),
-                                animate: !_shownPaths.contains(entry.relativePath),
-                                delay: firstShow ? Duration(milliseconds: 30 * index.clamp(0, 10)) : Duration.zero,
-                                child: _EntryRow(
-                                  entry: entry,
-                                  library: library,
-                                  focus: _focus,
-                                  onOpen: () => _open(library, entry),
+                        _section(
+                          Padding(
+                            padding: const EdgeInsets.only(top: 16),
+                            child: _Toolbar(library: library),
+                          ),
+                        ),
+                        _section(const SizedBox(height: 12)),
+                        _section(
+                          Reveal(
+                            visible: library.contents?.isEmpty ?? false,
+                            child: _EmptyFolder(
+                              atRoot: library.currentPath.isEmpty,
+                              onBrowse: () => app.setPage(AppPage.levels),
+                              onCreateFolder: () => _createFolder(context, library),
+                            ),
+                          ),
+                        ),
+                        SliverList.builder(
+                          itemCount: entries.length,
+                          itemBuilder: (context, index) {
+                            final entry = entries[index];
+                            return _constrain(
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: Appear(
+                                  key: ValueKey(entry.relativePath),
+                                  animate: !_shownPaths.contains(entry.relativePath),
+                                  delay: firstShow ? Duration(milliseconds: 30 * index.clamp(0, 10)) : Duration.zero,
+                                  child: _EntryRow(
+                                    entry: entry,
+                                    library: library,
+                                    focus: _focus,
+                                    onOpen: () => _open(library, entry),
+                                  ),
                                 ),
                               ),
-                            ),
-                          );
-                        },
-                      ),
-                      // Leave room so the floating selection bar doesn't cover the last entry.
-                      _section(const SizedBox(height: 88)),
-                    ],
-                  ),
-                ),
-                // Floats over the list so entries don't shift when it appears or disappears.
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 16,
-                  child: ValueListenableBuilder(
-                    valueListenable: library.selectionRevision,
-                    builder: (context, _, _) => _FloatingSelectionBar(
-                      visible: library.selection.isNotEmpty,
-                      child: _constrain(_SelectionBar(library: library)),
+                            );
+                          },
+                        ),
+                        // Leave room so the floating selection bar doesn't cover the last entry.
+                        _section(const SizedBox(height: 88)),
+                      ],
                     ),
                   ),
-                ),
-              ],
+                  // Floats over the list so entries don't shift when it appears or disappears.
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 16,
+                    child: ValueListenableBuilder(
+                      valueListenable: library.selectionRevision,
+                      builder: (context, _, _) => _FloatingSelectionBar(
+                        visible: library.selection.isNotEmpty,
+                        child: _constrain(_SelectionBar(library: library)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

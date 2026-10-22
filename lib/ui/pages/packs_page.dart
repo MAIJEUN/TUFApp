@@ -11,6 +11,7 @@ import '../widgets/level_card.dart';
 import '../widgets/motion.dart';
 import '../widgets/raster_snapshot.dart';
 import '../widgets/slide_overflow.dart';
+import '../app_shortcuts.dart';
 import '../widgets/smooth_scroll.dart';
 
 /// Same centered width as the other pages.
@@ -127,46 +128,49 @@ class _PackListState extends State<_PackList> {
       if (mounted && _search.text != packs.query) _search.text = packs.query;
     });
 
-    return SmoothScrollbar(
-      controller: _scroll,
-      builder: (context, behavior) => CustomScrollView(
+    return PageCommandScope(
+      commands: () => PageCommands(scroll: _scroll, refresh: packs.search),
+      child: SmoothScrollbar(
         controller: _scroll,
-        scrollBehavior: behavior,
-        slivers: [
-          _section(const Padding(padding: EdgeInsets.only(top: 24), child: _ListHeader())),
-          _section(
-            Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: _ListToolbar(packs: packs, searchController: _search),
-            ),
-          ),
-          _section(
-            Padding(
-              padding: const EdgeInsets.only(top: 16, bottom: 12),
-              child: _ListResultsHeader(packs: packs),
-            ),
-          ),
-          _centeredSliver(
-            SliverAnimatedOpacity(
-              opacity: packs.isSearching && packs.packs.isNotEmpty ? 0.45 : 1,
-              duration: Motion.medium,
-              sliver: SliverGrid.builder(
-                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 400,
-                  mainAxisExtent: _PackCard.height,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                ),
-                itemCount: packs.packs.length,
-                itemBuilder: (context, index) {
-                  final pack = packs.packs[index];
-                  return _PackCard(key: ValueKey(pack.id), pack: pack, onOpen: () => packs.open(pack));
-                },
+        builder: (context, behavior) => CustomScrollView(
+          controller: _scroll,
+          scrollBehavior: behavior,
+          slivers: [
+            _section(const Padding(padding: EdgeInsets.only(top: 24), child: _ListHeader())),
+            _section(
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: _ListToolbar(packs: packs, searchController: _search),
               ),
             ),
-          ),
-          _section(_ListFooter(packs: packs)),
-        ],
+            _section(
+              Padding(
+                padding: const EdgeInsets.only(top: 16, bottom: 12),
+                child: _ListResultsHeader(packs: packs),
+              ),
+            ),
+            _centeredSliver(
+              SliverAnimatedOpacity(
+                opacity: packs.isSearching && packs.packs.isNotEmpty ? 0.45 : 1,
+                duration: Motion.medium,
+                sliver: SliverGrid.builder(
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 400,
+                    mainAxisExtent: _PackCard.height,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                  ),
+                  itemCount: packs.packs.length,
+                  itemBuilder: (context, index) {
+                    final pack = packs.packs[index];
+                    return _PackCard(key: ValueKey(pack.id), pack: pack, onOpen: () => packs.open(pack));
+                  },
+                ),
+              ),
+            ),
+            _section(_ListFooter(packs: packs)),
+          ],
+        ),
       ),
     );
   }
@@ -207,6 +211,7 @@ class _ListToolbar extends StatelessWidget {
       Expanded(
         child: SearchBar(
           controller: searchController,
+          focusNode: PageCommandScope.searchFocusOf(context),
           hintText: tr('팩 이름으로 검색', 'Search by pack name'),
           leading: const Icon(Icons.search),
           elevation: const WidgetStatePropertyAll(0),
@@ -926,72 +931,75 @@ class _PackDetailViewState extends State<_PackDetailView> {
     final pack = packs.openedPack!;
     final detail = packs.detail;
 
-    return ListenableBuilder(
-      // The count on the Download button changes when downloaded levels change.
-      listenable: app.installs,
-      builder: (context, _) {
-        final rows = detail == null ? const <_Row>[] : _flatten(detail.items, packs.expanded);
+    return PageCommandScope(
+      commands: () => PageCommands(scroll: _scroll, refresh: packs.reloadDetail, searchable: false),
+      child: ListenableBuilder(
+        // The count on the Download button changes when downloaded levels change.
+        listenable: app.installs,
+        builder: (context, _) {
+          final rows = detail == null ? const <_Row>[] : _flatten(detail.items, packs.expanded);
 
-        return ColoredBox(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          child: SmoothScrollbar(
-            controller: _scroll,
-            builder: (context, behavior) => CustomScrollView(
+          return ColoredBox(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            child: SmoothScrollbar(
               controller: _scroll,
-              scrollBehavior: behavior,
-              slivers: [
-                _section(
-                  Padding(
-                    padding: const EdgeInsets.only(top: 20),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: OutlinedButton.icon(
-                        onPressed: packs.close,
-                        icon: const Icon(Icons.arrow_back),
-                        label: Text(tr('팩 목록', 'All packs')),
-                      ),
-                    ),
-                  ),
-                ),
-                _section(
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: _DetailHeader(packs: packs, pack: pack, detail: detail),
-                  ),
-                ),
-                if (detail != null)
+              builder: (context, behavior) => CustomScrollView(
+                controller: _scroll,
+                scrollBehavior: behavior,
+                slivers: [
                   _section(
                     Padding(
-                      padding: const EdgeInsets.only(top: 24, bottom: 12),
-                      child: _ItemsHeader(packs: packs, detail: detail),
-                    ),
-                  ),
-                SliverList.builder(
-                  itemCount: rows.length,
-                  itemBuilder: (context, index) {
-                    final row = rows[index];
-                    return Reveal(
-                      key: ValueKey(_keyOf(row)),
-                      visible: row.visible,
-                      duration: Motion.medium,
-                      child: _constrain(
-                        Padding(
-                          padding: EdgeInsets.only(left: row.depth * _indent, bottom: 8),
-                          child: switch (row) {
-                            _FolderRow(:final folder) => _FolderHeader(packs: packs, pack: pack, folder: folder),
-                            _LevelRow(:final entry) => LevelCard(level: entry.level, compact: app.levels.compact),
-                          },
+                      padding: const EdgeInsets.only(top: 20),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: OutlinedButton.icon(
+                          onPressed: packs.close,
+                          icon: const Icon(Icons.arrow_back),
+                          label: Text(tr('팩 목록', 'All packs')),
                         ),
                       ),
-                    );
-                  },
-                ),
-                _section(_DetailFooter(packs: packs)),
-              ],
+                    ),
+                  ),
+                  _section(
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: _DetailHeader(packs: packs, pack: pack, detail: detail),
+                    ),
+                  ),
+                  if (detail != null)
+                    _section(
+                      Padding(
+                        padding: const EdgeInsets.only(top: 24, bottom: 12),
+                        child: _ItemsHeader(packs: packs, detail: detail),
+                      ),
+                    ),
+                  SliverList.builder(
+                    itemCount: rows.length,
+                    itemBuilder: (context, index) {
+                      final row = rows[index];
+                      return Reveal(
+                        key: ValueKey(_keyOf(row)),
+                        visible: row.visible,
+                        duration: Motion.medium,
+                        child: _constrain(
+                          Padding(
+                            padding: EdgeInsets.only(left: row.depth * _indent, bottom: 8),
+                            child: switch (row) {
+                              _FolderRow(:final folder) => _FolderHeader(packs: packs, pack: pack, folder: folder),
+                              _LevelRow(:final entry) => LevelCard(level: entry.level, compact: app.levels.compact),
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  _section(_DetailFooter(packs: packs)),
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 

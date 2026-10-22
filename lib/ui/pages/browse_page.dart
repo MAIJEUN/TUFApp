@@ -4,6 +4,7 @@ import '../../app/paged_list.dart';
 import '../../core/l10n.dart';
 import '../widgets/common.dart';
 import '../widgets/motion.dart';
+import '../app_shortcuts.dart';
 import '../widgets/smooth_scroll.dart';
 
 /// Fills the width inside the centered max width (same as the levels page).
@@ -106,89 +107,92 @@ class _BrowsePageState<T> extends State<BrowsePage<T>> {
     final theme = Theme.of(context);
     final list = widget.list;
 
-    return ListenableBuilder(
-      listenable: list,
-      builder: (context, _) {
-        _afterBuild(list);
-        final searching = list.loading && list.items.isNotEmpty;
-        final countText = list.loading && list.items.isEmpty ? '' : widget.countText(list.total);
+    return PageCommandScope(
+      commands: () => PageCommands(scroll: _scroll, refresh: list.reload),
+      child: ListenableBuilder(
+        listenable: list,
+        builder: (context, _) {
+          _afterBuild(list);
+          final searching = list.loading && list.items.isNotEmpty;
+          final countText = list.loading && list.items.isEmpty ? '' : widget.countText(list.total);
 
-        return SmoothScrollbar(
-          controller: _scroll,
-          builder: (context, behavior) => CustomScrollView(
+          return SmoothScrollbar(
             controller: _scroll,
-            scrollBehavior: behavior,
-            slivers: [
-              _section(
-                Padding(
-                  padding: const EdgeInsets.only(top: 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(widget.title, style: theme.textTheme.headlineMedium),
-                      const SizedBox(height: 4),
-                      Text(
-                        widget.subtitle,
-                        style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                      ),
-                    ],
+            builder: (context, behavior) => CustomScrollView(
+              controller: _scroll,
+              scrollBehavior: behavior,
+              slivers: [
+                _section(
+                  Padding(
+                    padding: const EdgeInsets.only(top: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(widget.title, style: theme.textTheme.headlineMedium),
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.subtitle,
+                          style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              _section(Padding(padding: const EdgeInsets.only(top: 16), child: widget.toolbar)),
-              if (widget.filter case final filter?) _section(filter),
-              _section(
-                Padding(
-                  padding: const EdgeInsets.only(top: 16, bottom: 8),
-                  child: Row(
-                    children: [
-                      FadeSwitcher(
-                        alignment: Alignment.centerLeft,
-                        child: Text(countText, key: ValueKey(countText), style: theme.textTheme.titleSmall),
-                      ),
-                      AnimatedOpacity(
-                        opacity: list.loading ? 1 : 0,
-                        duration: Motion.medium,
-                        child: TickerMode(
-                          enabled: list.loading,
-                          child: const Padding(
-                            padding: EdgeInsets.only(left: 12),
-                            child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                _section(Padding(padding: const EdgeInsets.only(top: 16), child: widget.toolbar)),
+                if (widget.filter case final filter?) _section(filter),
+                _section(
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16, bottom: 8),
+                    child: Row(
+                      children: [
+                        FadeSwitcher(
+                          alignment: Alignment.centerLeft,
+                          child: Text(countText, key: ValueKey(countText), style: theme.textTheme.titleSmall),
+                        ),
+                        AnimatedOpacity(
+                          opacity: list.loading ? 1 : 0,
+                          duration: Motion.medium,
+                          child: TickerMode(
+                            enabled: list.loading,
+                            child: const Padding(
+                              padding: EdgeInsets.only(left: 12),
+                              child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              // Dim the previous results while a new search runs.
-              SliverAnimatedOpacity(
-                opacity: searching ? 0.45 : 1,
-                duration: Motion.medium,
-                sliver: SliverList.builder(
-                  itemCount: list.items.length,
-                  itemBuilder: (context, index) {
-                    final item = list.items[index];
-                    final isNew = index >= _shownCount;
-                    return browseConstrain(
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Appear(
-                          key: ValueKey((list.generation, widget.itemKey(item))),
-                          animate: isNew,
-                          delay: Duration(milliseconds: 35 * (index - _shownCount).clamp(0, 10)),
-                          child: widget.itemBuilder(context, item, index),
+                // Dim the previous results while a new search runs.
+                SliverAnimatedOpacity(
+                  opacity: searching ? 0.45 : 1,
+                  duration: Motion.medium,
+                  sliver: SliverList.builder(
+                    itemCount: list.items.length,
+                    itemBuilder: (context, index) {
+                      final item = list.items[index];
+                      final isNew = index >= _shownCount;
+                      return browseConstrain(
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Appear(
+                            key: ValueKey((list.generation, widget.itemKey(item))),
+                            animate: isNew,
+                            delay: Duration(milliseconds: 35 * (index - _shownCount).clamp(0, 10)),
+                            child: widget.itemBuilder(context, item, index),
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
-              ),
-              _section(_Footer(list: list, emptyTitle: widget.emptyTitle, endText: widget.endText)),
-            ],
-          ),
-        );
-      },
+                _section(_Footer(list: list, emptyTitle: widget.emptyTitle, endText: widget.endText)),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -281,6 +285,7 @@ class _BrowseSearchBarState extends State<BrowseSearchBar> {
   @override
   Widget build(BuildContext context) => SearchBar(
     controller: _controller,
+    focusNode: PageCommandScope.searchFocusOf(context),
     hintText: widget.hint,
     leading: const Icon(Icons.search),
     elevation: const WidgetStatePropertyAll(0),

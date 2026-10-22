@@ -8,6 +8,7 @@ import '../../widgets/common.dart';
 import '../../widgets/motion.dart';
 import 'profile_lists.dart';
 import 'profile_section.dart';
+import '../../app_shortcuts.dart';
 
 /// Title and toolbar above a long list, shaped like the levels page toolbar (search, sort, order).
 class _ListToolbar extends StatefulWidget {
@@ -56,6 +57,7 @@ class _ListToolbarState extends State<_ListToolbar> {
           Expanded(
             child: SearchBar(
               controller: _search,
+              focusNode: PageCommandScope.searchFocusOf(context),
               hintText: widget.hint,
               leading: const Icon(Icons.search),
               elevation: const WidgetStatePropertyAll(0),

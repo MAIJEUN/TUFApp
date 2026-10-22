@@ -105,6 +105,9 @@ class PacksController extends ChangeNotifier {
   final InstallCenter installs;
   final void Function(String message) onStatus;
 
+  /// Records closed packs so "forward" can reopen them.
+  NavigationHistory? history;
+
   static const _pageSize = 30;
   static const _searchDelay = Duration(milliseconds: 400);
 
@@ -228,6 +231,7 @@ class PacksController extends ChangeNotifier {
   int _detailRequestId = 0;
 
   Future<void> open(LevelPack pack) async {
+    history?.clearForward();
     final id = ++_detailRequestId;
     openedPack = pack;
     detailError = null;
@@ -321,6 +325,7 @@ class PacksController extends ChangeNotifier {
   }
 
   void close() {
+    if (openedPack case final pack?) history?.recordBack(() => open(pack));
     _detailRequestId++;
     openedPack = null;
     detail = null;
