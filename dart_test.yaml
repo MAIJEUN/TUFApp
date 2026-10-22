@@ -1,0 +1,3 @@
+tags:
+  # 실제 TUF 서버에 접속하는 테스트. 오프라인이면 `flutter test --exclude-tags network`로 뺀다.
+  network:
