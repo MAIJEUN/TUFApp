@@ -83,11 +83,7 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
                     Tab(
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.search, size: 18),
-                          const SizedBox(width: 8),
-                          Text(tr('레벨 찾기', 'Levels')),
-                        ],
+                        children: [const Icon(Icons.search, size: 18), const SizedBox(width: 8), Text(l10n.levels)],
                       ),
                     ),
                     Tab(
@@ -96,7 +92,7 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
                         children: [
                           const Icon(Icons.inventory_2_outlined, size: 18),
                           const SizedBox(width: 8),
-                          Text(tr('레벨 팩', 'Packs')),
+                          Text(l10n.packs),
                         ],
                       ),
                     ),
@@ -106,7 +102,7 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
                         children: [
                           const Icon(Icons.flag_outlined, size: 18),
                           const SizedBox(width: 8),
-                          Text(tr('클리어', 'Passes')),
+                          Text(l10n.passes),
                         ],
                       ),
                     ),
@@ -116,7 +112,7 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
                         children: [
                           const Icon(Icons.leaderboard_outlined, size: 18),
                           const SizedBox(width: 8),
-                          Text(tr('리더보드', 'Leaderboard')),
+                          Text(l10n.leaderboard),
                         ],
                       ),
                     ),
@@ -126,7 +122,7 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
                         children: [
                           const Icon(Icons.handyman_outlined, size: 18),
                           const SizedBox(width: 8),
-                          Text(tr('제작자', 'Creators')),
+                          Text(l10n.creators),
                         ],
                       ),
                     ),
@@ -141,7 +137,7 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
                             children: [
                               const Icon(Icons.download_done, size: 18),
                               const SizedBox(width: 8),
-                              Text(tr('레벨 관리', 'Library')),
+                              Text(l10n.library),
                               if (app.library.installedCount > 0) ...[
                                 const SizedBox(width: 8),
                                 Badge(
@@ -195,7 +191,7 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
                             key: const ValueKey('downloading'),
                             padding: const EdgeInsets.only(left: 16),
                             child: Tooltip(
-                              message: tr('받는 중', 'Downloading'),
+                              message: l10n.downloading,
                               child: Badge(
                                 label: Text('${app.installs.activeCount}'),
                                 child: const Icon(Icons.downloading),
@@ -258,12 +254,12 @@ class _LanguageMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     final choice = app.languageChoice;
     return PopupMenuButton<AppLanguage?>(
-      tooltip: tr('언어', 'Language'),
+      tooltip: l10n.language,
       icon: const Icon(Icons.translate),
       // onSelected ignores a null value, and null (system language) must be selectable, so each item uses onTap.
       itemBuilder: (context) => [
         for (final (value, label) in [
-          (null, tr('시스템 언어 (${AppLanguage.system.nativeName})', 'System (${AppLanguage.system.nativeName})')),
+          (null, l10n.systemLanguage(AppLanguage.system.nativeName)),
           for (final language in AppLanguage.values) (language, language.nativeName),
         ])
           CheckedPopupMenuItem(

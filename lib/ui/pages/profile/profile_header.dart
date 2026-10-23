@@ -82,8 +82,7 @@ class ProfileHeader extends StatelessWidget {
     final panel = iconPanel;
     final subtitle = [
       if (handle case final h?) '@$h',
-      if (followerCount case final count?)
-        tr('팔로워 ${formatNumber(count)}명', "${formatNumber(count)} ${plural(count, 'follower')}"),
+      if (followerCount case final count?) l10n.followerCount(count),
       if (profileId case final id?) 'ID $id',
     ].join('  ·  ');
 
@@ -122,9 +121,7 @@ class ProfileHeader extends StatelessWidget {
                             children: [
                               Flexible(
                                 child: HoverTip(
-                                  message: aliases.isEmpty
-                                      ? ''
-                                      : tr('다른 이름: ${aliases.join(', ')}', 'Also known as: ${aliases.join(', ')}'),
+                                  message: aliases.isEmpty ? '' : l10n.alsoKnownAs(aliases.join(', ')),
                                   child: SlideOverflow(child: slidingText(name, style: theme.textTheme.headlineSmall)),
                                 ),
                               ),
@@ -146,7 +143,7 @@ class ProfileHeader extends StatelessWidget {
                                 for (final slot in iconSlots) ...[IconSlotView(slot: slot), const SizedBox(width: 8)],
                                 if (panel != null)
                                   IconButton(
-                                    tooltip: iconPanelTitle ?? tr('모두 보기', 'Show all'),
+                                    tooltip: iconPanelTitle ?? l10n.showAll,
                                     visualDensity: VisualDensity.compact,
                                     onPressed: () => showDialog<void>(
                                       context: context,
@@ -210,7 +207,7 @@ class ProfileHeader extends StatelessWidget {
                           onPressed: () =>
                               ProfileStatsDialog.show(context, title: name, groups: statGroups, onOpenPass: onOpenPass),
                           icon: const Icon(Icons.query_stats),
-                          label: Text(tr('전체 통계', 'All stats')),
+                          label: Text(l10n.allStats),
                         ),
                     ],
                   ),
@@ -253,20 +250,17 @@ class _RankChip extends StatelessWidget {
     final theme = Theme.of(context);
     final best = highest;
     final tip = best == null
-        ? tr('랭크 점수 순위', 'Ranked score rank')
+        ? l10n.rankedScoreRank
         : rank > 0 && rank <= best.rank
-        ? tr('지금 최고 순위입니다!', 'At highest rank right now!')
-        : tr(
-            '최고 순위 #${best.rank} (${formatDate(best.date)})',
-            'Highest rank: #${best.rank} (${formatDate(best.date)})',
-          );
+        ? l10n.atHighestRankRight
+        : l10n.highestRank(best.rank, formatDate(best.date));
     return HoverTip(
       message: tip,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(color: theme.colorScheme.secondaryContainer, borderRadius: BorderRadius.circular(8)),
         child: Text(
-          rank > 0 ? '#${formatNumber(rank)}' : tr('순위 없음', 'Unranked'),
+          rank > 0 ? '#${formatNumber(rank)}' : l10n.unranked,
           style: theme.textTheme.titleLarge?.copyWith(
             color: medalColor(rank) ?? theme.colorScheme.onSecondaryContainer,
             fontWeight: FontWeight.w700,
@@ -385,7 +379,7 @@ class _PanelDialog extends StatelessWidget {
   Widget build(BuildContext context) => AlertDialog(
     title: Text(title),
     content: child,
-    actions: [FilledButton(onPressed: () => Navigator.of(context).pop(), child: Text(tr('닫기', 'Close')))],
+    actions: [FilledButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.close))],
   );
 }
 
@@ -421,9 +415,9 @@ class ProfileStatsDialog extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Expanded(child: Text(tr('$title의 통계', "$title's stats"), style: theme.textTheme.headlineSmall)),
+                  Expanded(child: Text(l10n.titleStats(title), style: theme.textTheme.headlineSmall)),
                   IconButton(
-                    tooltip: tr('닫기', 'Close'),
+                    tooltip: l10n.close,
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close),
                   ),
@@ -467,7 +461,7 @@ class ProfileStatsDialog extends StatelessWidget {
               const SizedBox(height: 12),
               Align(
                 alignment: Alignment.centerRight,
-                child: FilledButton(onPressed: () => Navigator.of(context).pop(), child: Text(tr('닫기', 'Close'))),
+                child: FilledButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.close)),
               ),
             ],
           ),
@@ -536,7 +530,7 @@ class _StatLine extends StatelessWidget {
           if (row.tooltip case final tip?) HoverTip(message: tip, child: value) else value,
           if (passId != null && open != null)
             IconButton(
-              tooltip: tr('클리어 보기', 'View pass'),
+              tooltip: l10n.viewPass,
               // Keep the button small so lines with one are as tall as the others.
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints.tightFor(width: 28, height: 22),
@@ -575,10 +569,7 @@ class DifficultyGridPanel extends StatelessWidget {
       children: [
         for (final d in list)
           HoverTip(
-            message: tr(
-              '${d.name} · ${clears[d.id] ?? 0}회 클리어',
-              "${d.name} · ${clears[d.id] ?? 0} ${plural(clears[d.id] ?? 0, 'clear')}",
-            ),
+            message: l10n.difficultyClearCount(d.name, clears[d.id] ?? 0),
             child: Opacity(
               opacity: (clears[d.id] ?? 0) > 0 ? 1 : 0.22,
               child: Padding(padding: const EdgeInsets.all(3), child: NetworkIcon(d.icon, size: 32)),
@@ -613,7 +604,7 @@ class CurationPanel extends StatelessWidget {
     final groups = <String, List<FacetItem>>{};
     for (final type in types) {
       if ((counts[type.id] ?? 0) <= 0) continue;
-      groups.putIfAbsent(type.group ?? tr('기타', 'Other'), () => []).add(type);
+      groups.putIfAbsent(type.group ?? l10n.other, () => []).add(type);
     }
     return SizedBox(
       width: 360,
@@ -653,9 +644,7 @@ class VerificationBadge extends StatelessWidget {
     final theme = Theme.of(context);
     final text = conditions;
     return HoverTip(
-      message: text == null || text.isEmpty
-          ? tr('레벨 등록 허가 상태', 'Level upload permission')
-          : tr('등록 조건: $text', 'Upload conditions: $text'),
+      message: text == null || text.isEmpty ? l10n.levelUploadPermission : l10n.uploadConditions(text),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),

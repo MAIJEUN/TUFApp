@@ -89,7 +89,7 @@ class _ProfilePageFrameState<T> extends State<ProfilePageFrame<T>> {
       });
       list?.reload();
     } on TufApiException catch (e) {
-      if (mounted) setState(() => _error = e.statusCode == 404 ? tr('찾을 수 없어요', 'Not found') : e.message);
+      if (mounted) setState(() => _error = e.statusCode == 404 ? l10n.notFound : e.message);
     } on Object catch (e) {
       // Unexpected errors (like a changed response format) must not leave the page loading forever.
       if (mounted) setState(() => _error = '$e');
@@ -139,7 +139,7 @@ class _ProfilePageFrameState<T> extends State<ProfilePageFrame<T>> {
                 Padding(padding: const EdgeInsets.only(bottom: 8), child: item(context, data, list, index)),
               ),
             ),
-          _section(ProfileListFooter(list: list, emptyTitle: widget.emptyTitle ?? tr('아무것도 없어요', 'Nothing here'))),
+          _section(ProfileListFooter(list: list, emptyTitle: widget.emptyTitle ?? l10n.nothingHere)),
         ],
         const SliverPadding(padding: EdgeInsets.only(bottom: 32)),
       ],
@@ -166,9 +166,9 @@ class _ProfilePageFrameState<T> extends State<ProfilePageFrame<T>> {
         key: const ValueKey('error'),
         child: EmptyState(
           icon: const Icon(Icons.person_off_outlined),
-          title: tr('페이지를 열지 못했어요', "Couldn't open the page"),
+          title: l10n.couldntOpenThePage,
           message: error,
-          action: FilledButton(onPressed: _load, child: Text(tr('다시 시도', 'Retry'))),
+          action: FilledButton(onPressed: _load, child: Text(l10n.retry)),
         ),
       );
     } else {
@@ -180,7 +180,7 @@ class _ProfilePageFrameState<T> extends State<ProfilePageFrame<T>> {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            tooltip: tr('뒤로', 'Back'),
+            tooltip: l10n.back,
             onPressed: () => Navigator.of(context).maybePop(),
             icon: const Icon(Icons.arrow_back),
           ),

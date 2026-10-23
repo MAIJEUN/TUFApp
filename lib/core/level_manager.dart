@@ -33,8 +33,7 @@ class LevelNotDownloadableException implements Exception {
   String? get alternativeLink => [level.dlLink, level.workshopLink, level.legacyDllink].whereType<String>().firstOrNull;
 
   @override
-  String toString() =>
-      tr('레벨 ${level.id}은(는) TUF CDN 다운로드 링크가 없습니다.', 'Level ${level.id} has no TUF CDN download link.');
+  String toString() => l10n.levelHasNoTUF(level.id);
 }
 
 class LevelUpdateInfo {

@@ -117,19 +117,14 @@ Future<void> _openExternal(BuildContext context, String url) async {
     context: context,
     builder: (context) => StatefulBuilder(
       builder: (context, setState) => AlertDialog(
-        title: Text(tr('TUF를 떠나시겠습니까?', 'Leaving TUF?')),
+        title: Text(l10n.leavingTUF),
         content: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 480),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                tr(
-                  '외부 사이트로 이동합니다. 신뢰할 수 있는 주소인지 확인하세요.',
-                  'You are about to visit an external site. Only continue if you trust this destination.',
-                ),
-              ),
+              Text(l10n.youAreAboutTo),
               const SizedBox(height: 12),
               Text(host, style: Theme.of(context).textTheme.titleMedium),
               SelectableText(
@@ -141,7 +136,7 @@ Future<void> _openExternal(BuildContext context, String url) async {
               CheckboxListTile(
                 value: trust,
                 onChanged: (value) => setState(() => trust = value ?? false),
-                title: Text(tr('이 세션 동안 $host 신뢰', 'Trust $host for this session')),
+                title: Text(l10n.trustForThisSession(host)),
                 controlAffinity: ListTileControlAffinity.leading,
                 contentPadding: EdgeInsets.zero,
               ),
@@ -149,8 +144,8 @@ Future<void> _openExternal(BuildContext context, String url) async {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('취소', 'Cancel'))),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(tr('계속', 'Continue'))),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.proceed)),
         ],
       ),
     ),
@@ -479,7 +474,7 @@ class _EmbedBlockState extends State<_EmbedBlock> {
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 child: Text(
-                                  title != null && title.isNotEmpty ? title : tr('영상 열기', 'Open video'),
+                                  title != null && title.isNotEmpty ? title : l10n.openVideo,
                                   textScaler: TextScaler.noScaling,
                                   style: const TextStyle(
                                     fontSize: 13,
@@ -547,7 +542,7 @@ class _FeaturedBlockState extends State<_FeaturedBlock> {
         final items = snapshot.data;
         if (items == null) {
           return Text(
-            widget.block.passes ? tr('클리어 불러오는 중…', 'Loading passes…') : tr('레벨 불러오는 중…', 'Loading levels…'),
+            widget.block.passes ? l10n.loadingPasses : l10n.loadingLevels,
             textScaler: TextScaler.noScaling,
             style: const TextStyle(fontSize: 14, color: _BioColors.body),
           );
@@ -605,7 +600,7 @@ class _FeaturedLevel extends StatelessWidget {
                 _line(
                   [
                     if (length != null) formatDuration(length),
-                    if (level.tilecount case final tiles? when tiles > 0) '${formatNumber(tiles)} ${tr('타일', 'tiles')}',
+                    if (level.tilecount case final tiles? when tiles > 0) '${formatNumber(tiles)} ${l10n.tilesUnit}',
                   ].join('  ·  '),
                   theme.textTheme.labelSmall,
                   muted,
@@ -618,7 +613,7 @@ class _FeaturedLevel extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _line(tr('제작자', 'Creator'), theme.textTheme.labelSmall, muted),
+                _line(l10n.creator, theme.textTheme.labelSmall, muted),
                 _line(level.creatorDisplay ?? '-', theme.textTheme.bodySmall, null),
               ],
             ),

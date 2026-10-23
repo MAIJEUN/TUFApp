@@ -247,7 +247,7 @@ class _CuratedDifficultyIcon extends StatelessWidget {
               width: size * _ratingScale,
               height: size * _ratingScale,
               child: HoverTip(
-                message: tr('예상 난이도: ${rated.name}', 'Expected difficulty: ${rated.name}'),
+                message: l10n.expectedDifficulty(rated.name),
                 child: _Shadowed(child: NetworkIcon(rated.icon, size: size * _ratingScale)),
               ),
             ),
@@ -257,7 +257,7 @@ class _CuratedDifficultyIcon extends StatelessWidget {
               radius: radius,
               iconSize: iconSize,
               child: HoverTip(
-                message: tr('큐레이션: ${curation.name}', 'Curation: ${curation.name}'),
+                message: l10n.curation(curation.name),
                 child: _Shadowed(child: NetworkIcon(curation.icon, size: iconSize)),
               ),
             ),
@@ -302,10 +302,7 @@ class _BaseScoreBadge extends StatelessWidget {
 
     // Same look as the website: 10px, weight 600, opacity 0.9, 10px black shadow.
     return HoverTip(
-      message: tr(
-        '기반 점수 변동: ${formatNumber(score)} PP (난이도 기본 점수 대신 적용됩니다)',
-        "Base score override: ${formatNumber(score)} PP (used instead of the difficulty's base score)",
-      ),
+      message: l10n.baseScoreOverridePP(score),
       child: Text(
         '$score PP',
         maxLines: 1,
@@ -446,13 +443,13 @@ class _Meta extends StatelessWidget {
             _MetaValue(
               icon: Icons.schedule,
               text: length == null ? null : formatDuration(length),
-              tooltip: tr('길이', 'Length'),
+              tooltip: l10n.length,
             ),
             const SizedBox(width: _gap),
             _MetaValue(
               icon: Icons.linear_scale,
               text: level.tilecount == null ? null : formatNumber(level.tilecount!),
-              tooltip: tr('타일 수', 'Tiles'),
+              tooltip: l10n.tileCount,
             ),
             const SizedBox(width: _gap),
             _MetaValue(
@@ -734,16 +731,13 @@ class _CreatorInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final creator = level.creatorDisplay ?? tr('제작자 정보 없음', 'No creator info');
+    final creator = level.creatorDisplay ?? l10n.noCreatorInfo;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         if (!compact)
-          Text(
-            tr('제작자', 'Creator'),
-            style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-          ),
+          Text(l10n.creator, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
         SizedBox(
           height: 20,
           child: HoverTip(
@@ -773,10 +767,7 @@ class _Stats extends StatelessWidget {
         Opacity(
           opacity: level.clears > 0 ? 1 : 0,
           child: HoverTip(
-            message: tr(
-              '클리어 ${formatNumber(level.uniqueClears)}명 (총 ${formatNumber(level.clears)}회)',
-              "Cleared by ${formatNumber(level.uniqueClears)} ${plural(level.uniqueClears, 'player')} (${formatNumber(level.clears)} total)",
-            ),
+            message: l10n.clearedByPlayerTotal(level.uniqueClears, level.clears),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -789,7 +780,7 @@ class _Stats extends StatelessWidget {
         ),
         if (level.likes > 0)
           HoverTip(
-            message: tr('좋아요', 'Likes'),
+            message: l10n.likes,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -824,7 +815,7 @@ class _Links extends StatelessWidget {
           child: video == null
               ? null
               : HoverTip(
-                  message: tr('영상 보기', 'Watch video'),
+                  message: l10n.watchVideo,
                   child: IconButton(
                     onPressed: () => app.openLink(video),
                     icon: const Icon(Icons.smart_display_outlined),
@@ -836,7 +827,7 @@ class _Links extends StatelessWidget {
           child: workshop == null
               ? null
               : HoverTip(
-                  message: tr('스팀 창작마당', 'Steam Workshop'),
+                  message: l10n.steamWorkshop,
                   child: IconButton(
                     onPressed: () => app.openLink(workshop),
                     icon: const Icon(Icons.sports_esports_outlined),
@@ -874,7 +865,7 @@ class _DownloadInfo extends StatelessWidget {
           children: [
             if (count > 0)
               HoverTip(
-                message: tr('받은 횟수', 'Downloads'),
+                message: l10n.downloads,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -887,7 +878,7 @@ class _DownloadInfo extends StatelessWidget {
             if (count > 0 && size != null) Text('  ·  ', style: style),
             if (size != null)
               HoverTip(
-                message: tr('레벨 파일 크기', 'Level file size'),
+                message: l10n.levelFileSize,
                 child: Text(formatBytes(size), style: style),
               ),
           ],
@@ -927,28 +918,28 @@ class _InstallButton extends StatelessWidget {
   Widget _buttonFor(InstallCenter installs, LevelInstallState state) {
     return switch (state) {
       LevelInstallState.notInstalled => HoverTip(
-        message: tr('라이브러리에 받기', 'Download to library'),
+        message: l10n.downloadToLibrary,
         child: FilledButton.icon(
           onPressed: () => installs.install(level),
           icon: const Icon(Icons.download),
-          label: Text(tr('받기', 'Download')),
+          label: Text(l10n.download),
         ),
       ),
       LevelInstallState.updateAvailable => HoverTip(
-        message: tr('새 버전으로 업데이트', 'Update to the new version'),
+        message: l10n.updateToTheNew,
         child: FilledButton.tonalIcon(
           onPressed: () => installs.install(level),
           icon: const Icon(Icons.update),
-          label: Text(tr('업데이트', 'Update')),
+          label: Text(l10n.update),
         ),
       ),
       LevelInstallState.installed => HoverTip(
-        message: tr('이미 받은 레벨입니다', 'Already downloaded'),
-        child: OutlinedButton.icon(onPressed: null, icon: const Icon(Icons.check), label: Text(tr('받음', 'Downloaded'))),
+        message: l10n.alreadyDownloaded,
+        child: OutlinedButton.icon(onPressed: null, icon: const Icon(Icons.check), label: Text(l10n.downloaded)),
       ),
       LevelInstallState.notDownloadable => HoverTip(
-        message: tr('TUF에서 직접 받을 수 있는 파일이 없습니다', 'No file to download directly from TUF'),
-        child: TextButton(onPressed: null, child: Text(tr('링크 없음', 'No link'))),
+        message: l10n.noFileToDownload,
+        child: TextButton(onPressed: null, child: Text(l10n.noLink)),
       ),
     };
   }

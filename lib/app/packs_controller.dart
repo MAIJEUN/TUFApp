@@ -516,17 +516,11 @@ class PacksController extends ChangeNotifier {
     }
     job._finish();
 
-    final failed = job.failed > 0 ? tr(', 실패 ${job.failed}개', ', ${job.failed} failed') : '';
+    final failed = job.failed > 0 ? l10n.failedSuffix(job.failed) : '';
     onStatus(
       job.cancelled
-          ? tr(
-              "'${job.label}' 받기를 멈췄습니다 (${job.done}/${job.total}개 받음$failed)",
-              "Stopped downloading '${job.label}' (${job.done}/${job.total} done$failed)",
-            )
-          : tr(
-              "'${job.label}' 받기 완료: ${job.done}개$failed",
-              "Downloaded '${job.label}': ${job.done} ${plural(job.done, 'level')}$failed",
-            ),
+          ? l10n.stoppedDownloadingPack(job.label, job.done, job.total, failed)
+          : l10n.downloadedPack(job.label, job.done, failed),
     );
     download = null;
     notifyListeners();

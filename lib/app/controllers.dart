@@ -76,7 +76,7 @@ class AppController extends ChangeNotifier {
   late final CreatorsController creators;
 
   AppPage page = AppPage.levels;
-  String status = tr('불러오는 중...', 'Loading...');
+  String status = l10n.loading;
   String? startupError;
 
   void setPage(AppPage value) {
@@ -134,7 +134,7 @@ class AppController extends ChangeNotifier {
     final clamped = value.clamp(zoomLevels.first, zoomLevels.last);
     if (clamped == zoom) return;
     zoom = clamped;
-    setStatus(tr('화면 배율 ${(zoom * 100).round()}%', 'Zoom ${(zoom * 100).round()}%'));
+    setStatus(l10n.zoomPercent((zoom * 100).round()));
     await _saveSettings((settings) => settings.zoom = zoom == 1 ? null : zoom);
   }
 
@@ -160,16 +160,16 @@ class AppController extends ChangeNotifier {
     try {
       await settings.save();
     } on FileSystemException catch (e) {
-      setStatus(tr('설정을 저장하지 못했습니다: ${e.message}', 'Could not save settings: ${e.message}'));
+      setStatus(l10n.couldNotSaveSettings(e.message));
     }
   }
 
-  static String get _readyText => tr('준비됐습니다.', 'Ready.');
+  static String get _readyText => l10n.ready;
 
   /// [settings] are the settings main() already read to pick the language early (read here if null).
   Future<void> initialize({AppSettings? settings}) async {
     startupError = null;
-    setStatus(tr('불러오는 중...', 'Loading...'));
+    setStatus(l10n.loading);
 
     try {
       settings ??= await AppSettings.load();
@@ -208,7 +208,7 @@ class AppController extends ChangeNotifier {
 
   void _failStartup(String message) {
     startupError = message;
-    setStatus(tr('시작하지 못했습니다: $message', 'Could not start: $message'));
+    setStatus(l10n.couldNotStart(message));
   }
 
   Difficulty? difficultyNamed(String? name) => levels.catalog?.named(name);
@@ -221,10 +221,10 @@ class AppController extends ChangeNotifier {
     if (uri == null || (uri.scheme != 'http' && uri.scheme != 'https')) return;
     try {
       if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-        setStatus(tr('링크를 열 수 없습니다: $url', 'Could not open the link: $url'));
+        setStatus(l10n.couldNotOpenLink(url ?? ''));
       }
     } on PlatformException {
-      setStatus(tr('링크를 열 수 없습니다: $url', 'Could not open the link: $url'));
+      setStatus(l10n.couldNotOpenLink(url ?? ''));
     }
   }
 
@@ -256,30 +256,30 @@ class InstallJob extends ChangeNotifier {
   double? fraction;
 
   /// Short status for the narrow button, e.g. "42%" or "Extracting".
-  String shortText = tr('준비 중', 'Preparing');
+  String shortText = l10n.preparing;
 
   void report(InstallProgress progress) {
     switch (progress.stage) {
       case InstallStage.fetchingInfo:
         fraction = null;
-        shortText = tr('준비 중', 'Preparing');
+        shortText = l10n.preparing;
       case InstallStage.downloading:
         final download = progress.download;
         fraction = download?.fraction;
         shortText = fraction != null ? '${(fraction! * 100).round()}%' : formatBytes(download?.bytesReceived ?? 0);
       case InstallStage.extracting:
         fraction = null;
-        shortText = tr('압축 해제', 'Extracting');
+        shortText = l10n.extracting;
       case InstallStage.completed:
         fraction = 1;
-        shortText = tr('완료', 'Done');
+        shortText = l10n.done;
     }
     notifyListeners();
   }
 
   void cancel() {
     cancelToken.cancel();
-    shortText = tr('취소 중', 'Cancelling');
+    shortText = l10n.cancelling;
     notifyListeners();
   }
 }
@@ -324,19 +324,19 @@ class InstallCenter extends ChangeNotifier {
 
     try {
       await current.install(level, onProgress: job.report, cancelToken: job.cancelToken, parentFolder: parentFolder);
-      onStatus(tr('받기 완료: ${level.song}', 'Downloaded: ${level.song}'));
+      onStatus(l10n.downloadedSong(level.song));
       return true;
     } on OperationCancelledException {
-      onStatus(tr('받기를 취소했습니다: ${level.song}', 'Download cancelled: ${level.song}'));
+      onStatus(l10n.downloadCancelled(level.song));
     } on LevelNotDownloadableException catch (e) {
       final link = e.alternativeLink;
-      onStatus(link == null ? e.toString() : tr('$e 대신 이 링크를 확인하세요: $link', '$e Try this link instead: $link'));
+      onStatus(link == null ? e.toString() : l10n.tryThisLinkInstead(e, link));
     } on TufApiException catch (e) {
-      onStatus(tr('받지 못했습니다 (${level.song}): ${e.message}', 'Download failed (${level.song}): ${e.message}'));
+      onStatus(l10n.downloadFailed(level.song, e.message));
     } on FileSystemException catch (e) {
-      onStatus(tr('받지 못했습니다 (${level.song}): ${e.message}', 'Download failed (${level.song}): ${e.message}'));
+      onStatus(l10n.downloadFailed(level.song, e.message));
     } on FormatException catch (e) {
-      onStatus(tr('받지 못했습니다 (${level.song}): ${e.message}', 'Download failed (${level.song}): ${e.message}'));
+      onStatus(l10n.downloadFailed(level.song, e.message));
     } finally {
       _jobs.remove(level.id);
       notifyListeners();
@@ -348,26 +348,35 @@ class InstallCenter extends ChangeNotifier {
 // ───────────────────────── Levels ─────────────────────────
 
 class SortOption {
-  const SortOption(this.key, this._ko, this._en);
+  const SortOption(this.key);
 
   final LevelSortKey key;
-  final String _ko;
-  final String _en;
 
-  String get label => tr(_ko, _en);
+  String get label => switch (key) {
+    LevelSortKey.recent => l10n.levelSortRecent,
+    LevelSortKey.diff => l10n.levelSortDiff,
+    LevelSortKey.clears => l10n.levelSortClears,
+    LevelSortKey.totalClears => l10n.levelSortTotalClears,
+    LevelSortKey.likes => l10n.levelSortLikes,
+    LevelSortKey.baseScore => l10n.levelSortBaseScore,
+    LevelSortKey.bpm => l10n.levelSortBpm,
+    LevelSortKey.tiles => l10n.levelSortTiles,
+    LevelSortKey.time => l10n.levelSortTime,
+    LevelSortKey.random => l10n.levelSortRandom,
+  };
 }
 
 const sortOptions = [
-  SortOption(LevelSortKey.recent, '최신순 (ID)', 'Newest (ID)'),
-  SortOption(LevelSortKey.diff, '난이도', 'Difficulty'),
-  SortOption(LevelSortKey.clears, '클리어 수', 'Clears'),
-  SortOption(LevelSortKey.totalClears, '전체 클리어', 'Total clears'),
-  SortOption(LevelSortKey.likes, '좋아요 수', 'Likes'),
-  SortOption(LevelSortKey.baseScore, '기반 점수', 'Base score'),
-  SortOption(LevelSortKey.bpm, 'BPM', 'BPM'),
-  SortOption(LevelSortKey.tiles, '타일 수', 'Tiles'),
-  SortOption(LevelSortKey.time, '길이', 'Length'),
-  SortOption(LevelSortKey.random, '무작위', 'Random'),
+  SortOption(LevelSortKey.recent),
+  SortOption(LevelSortKey.diff),
+  SortOption(LevelSortKey.clears),
+  SortOption(LevelSortKey.totalClears),
+  SortOption(LevelSortKey.likes),
+  SortOption(LevelSortKey.baseScore),
+  SortOption(LevelSortKey.bpm),
+  SortOption(LevelSortKey.tiles),
+  SortOption(LevelSortKey.time),
+  SortOption(LevelSortKey.random),
 ];
 
 class SpecialDifficultyGroup {
@@ -376,7 +385,7 @@ class SpecialDifficultyGroup {
   /// true for the hidden group, false for the extra group.
   final bool hidden;
 
-  String get title => hidden ? tr('히든', 'Hidden') : tr('엑스트라', 'Extra');
+  String get title => hidden ? l10n.hidden : l10n.extra;
   final List<Difficulty> items;
 }
 
@@ -654,7 +663,7 @@ class LevelsController extends ChangeNotifier {
       total = page.total;
       hasSearched = true;
     } on TufApiException catch (e) {
-      if (generation == searchGeneration) onStatus(tr('검색하지 못했습니다: ${e.message}', 'Search failed: ${e.message}'));
+      if (generation == searchGeneration) onStatus(l10n.searchFailed(e.message));
     } finally {
       if (generation == searchGeneration) {
         isSearching = false;
@@ -728,9 +737,9 @@ class LevelsController extends ChangeNotifier {
 enum LibrarySort { name, size, recent }
 
 Map<LibrarySort, String> get librarySortLabels => {
-  LibrarySort.name: tr('이름순', 'Name'),
-  LibrarySort.size: tr('크기순', 'Size'),
-  LibrarySort.recent: tr('최근 받은 순', 'Recently downloaded'),
+  LibrarySort.name: l10n.sortByName,
+  LibrarySort.size: l10n.sortBySize,
+  LibrarySort.recent: l10n.sortByRecent,
 };
 
 // ───────────────────────── Library ─────────────────────────
@@ -857,7 +866,7 @@ class LibraryController extends ChangeNotifier {
   /// Path segments up to the current folder: [('Root', ''), ('Camellia', 'Camellia'), ...]
   List<(String name, String path)> get breadcrumb {
     final parts = currentPath.split('/').where((part) => part.isNotEmpty).toList();
-    final crumbs = <(String, String)>[(tr('루트', 'Root'), '')];
+    final crumbs = <(String, String)>[(l10n.root, '')];
     var path = '';
     for (final part in parts) {
       path = path.isEmpty ? part : '$path/$part';
@@ -891,12 +900,7 @@ class LibraryController extends ChangeNotifier {
     // Renames folders the game cannot load (names with '+'), including ones added by hand.
     final renamed = await organizer!.fixUnloadableNames();
     if (renamed > 0) {
-      onStatus(
-        tr(
-          "폴더 이름의 '+'를 '_'로 바꿨습니다 ($renamed개). 게임이 '+'가 든 경로를 불러오지 못해서예요.",
-          "Replaced '+' with '_' in $renamed folder ${plural(renamed, 'name')}. The game can't load paths that contain '+'.",
-        ),
-      );
+      onStatus(l10n.replacedPlusInFolders(renamed));
     }
 
     await refreshContents();
@@ -918,7 +922,7 @@ class LibraryController extends ChangeNotifier {
     } on LibraryOperationException catch (e) {
       onStatus(e.message);
     } on FileSystemException catch (e) {
-      onStatus(tr('폴더를 읽지 못했습니다: ${e.message}', 'Could not read the folder: ${e.message}'));
+      onStatus(l10n.couldNotReadFolder(e.message));
     }
     notifyListeners();
   }
@@ -940,7 +944,7 @@ class LibraryController extends ChangeNotifier {
 
   Future<void> createFolder(String name) => _organize((organizer) async {
     final created = await organizer.createFolder(currentPath, name);
-    return tr('폴더를 만들었습니다: $created', 'Created folder: $created');
+    return l10n.createdFolder(created);
   });
 
   /// Whether touching this entry would collide with a running download:
@@ -952,25 +956,19 @@ class LibraryController extends ChangeNotifier {
     ExternalLevelEntry() => false,
   };
 
-  static String get _busyMessage => tr(
-    '받는 중인 레벨이 있어서 지금은 할 수 없습니다. 받기가 끝난 뒤 다시 해 주세요.',
-    "Can't do this while a level is downloading. Try again once the download finishes.",
-  );
+  static String get _busyMessage => l10n.cantDoThisWhile;
 
   /// Drops entries that collide with downloads; also returns a note about how many were skipped.
   ({List<LibraryEntry> items, String skipped}) _withoutBusy(List<LibraryEntry> items) {
     final free = items.where((entry) => !_isBusy(entry)).toList();
     final skipped = items.length - free.length;
-    return (
-      items: free,
-      skipped: skipped == 0 ? '' : tr(' (받는 중이라 $skipped개는 건너뛰었습니다)', ' (skipped $skipped still downloading)'),
-    );
+    return (items: free, skipped: skipped == 0 ? '' : l10n.skippedStillDownloading(skipped));
   }
 
   Future<void> renameEntry(LibraryEntry entry, String newName) => _organize((organizer) async {
     if (_isBusy(entry)) return _busyMessage;
     await organizer.rename(entry, newName);
-    return tr('이름을 바꿨습니다: $newName', 'Renamed to: $newName');
+    return l10n.renamedTo(newName);
   });
 
   /// Moves entries into one folder. One failure does not stop the rest.
@@ -987,14 +985,11 @@ class LibraryController extends ChangeNotifier {
       }
     }
 
-    final where = targetFolder.isEmpty ? tr('루트', 'Root') : targetFolder;
+    final where = targetFolder.isEmpty ? l10n.root : targetFolder;
     if (failures.isEmpty) {
-      return tr('$moved개를 $where(으)로 옮겼습니다.$skipped', 'Moved $moved ${plural(moved, 'item')} to $where.$skipped');
+      return l10n.movedItems(moved, where, skipped);
     }
-    return tr(
-      '$moved개를 옮기고 ${failures.length}개는 옮기지 못했습니다 (${failures.first})$skipped',
-      'Moved $moved, but ${failures.length} could not be moved (${failures.first})$skipped',
-    );
+    return l10n.movedButCouldNot(moved, failures.length, failures.first, skipped);
   });
 
   /// Deletes entries. Downloaded levels are also removed from the index.
@@ -1011,14 +1006,14 @@ class LibraryController extends ChangeNotifier {
       count++;
     }
     installs.refresh();
-    return tr('$count개를 지웠습니다.$skipped', 'Deleted $count ${plural(count, 'item')}.$skipped');
+    return l10n.deletedItems(count, skipped);
   });
 
   Future<void> moveEntry(LibraryEntry entry, String targetFolder) => _organize((organizer) async {
     if (_isBusy(entry)) return _busyMessage;
     await organizer.move(entry, targetFolder);
-    final where = targetFolder.isEmpty ? tr('루트', 'Root') : targetFolder;
-    return tr('옮겼습니다: ${entry.name} → $where', 'Moved: ${entry.name} → $where');
+    final where = targetFolder.isEmpty ? l10n.root : targetFolder;
+    return l10n.movedEntry(entry.name, where);
   });
 
   /// Deletes a folder or an unindexed level folder entirely.
@@ -1026,12 +1021,7 @@ class LibraryController extends ChangeNotifier {
     if (_isBusy(entry)) return _busyMessage;
     final removed = await organizer.delete(entry);
     installs.refresh();
-    return removed == 0
-        ? tr('지웠습니다: ${entry.name}', 'Deleted: ${entry.name}')
-        : tr(
-            '레벨 $removed개와 함께 지웠습니다: ${entry.name}',
-            'Deleted with $removed ${plural(removed, 'level')}: ${entry.name}',
-          );
+    return removed == 0 ? l10n.deletedEntry(entry.name) : l10n.deletedWithLevels(removed, entry.name);
   });
 
   /// Lists one folder at a time for the move dialog, so large libraries stay fast.
@@ -1054,7 +1044,7 @@ class LibraryController extends ChangeNotifier {
     } on LibraryOperationException catch (e) {
       onStatus(e.message);
     } on FileSystemException catch (e) {
-      onStatus(tr('폴더를 다루지 못했습니다: ${e.message}', 'Folder operation failed: ${e.message}'));
+      onStatus(l10n.folderOperationFailed(e.message));
     }
     await refreshContents();
   }
@@ -1075,7 +1065,7 @@ class LibraryController extends ChangeNotifier {
     if (manager == null || isCheckingUpdates) return;
 
     isCheckingUpdates = true;
-    onStatus(tr('업데이트를 확인하는 중...', 'Checking for updates...'));
+    onStatus(l10n.checkingForUpdates);
     notifyListeners();
 
     try {
@@ -1085,21 +1075,11 @@ class LibraryController extends ChangeNotifier {
         ..clear()
         ..addEntries(updates.map((u) => MapEntry(u.installed.levelId, u.remote)));
 
-      final missingText = missing.isEmpty
-          ? ''
-          : tr(
-              ' 폴더가 사라진 레벨 ${missing.length}개는 목록에서 뺐습니다.',
-              ' Removed ${missing.length} ${plural(missing.length, 'level')} whose folder is gone.',
-            );
-      final updateText = updates.isEmpty
-          ? tr('모두 최신 버전입니다.', 'Everything is up to date.')
-          : tr(
-              '업데이트할 레벨이 ${updates.length}개 있습니다.',
-              '${updates.length} ${plural(updates.length, 'level has', 'levels have')} an update.',
-            );
+      final missingText = missing.isEmpty ? '' : l10n.removedMissingLevels(missing.length);
+      final updateText = updates.isEmpty ? l10n.everythingIsUpTo : l10n.updatesAvailable(updates.length);
       onStatus(updateText + missingText);
     } on FileSystemException catch (e) {
-      onStatus(tr('업데이트를 확인하지 못했습니다: ${e.message}', 'Could not check for updates: ${e.message}'));
+      onStatus(l10n.couldNotCheckForUpdates(e.message));
     } finally {
       isCheckingUpdates = false;
       notifyListeners();
@@ -1120,9 +1100,9 @@ class LibraryController extends ChangeNotifier {
       await manager.uninstall(level.levelId);
       _pendingUpdates.remove(level.levelId);
       await refreshContents();
-      onStatus(tr('삭제했습니다: ${level.song}', 'Deleted: ${level.song}'));
+      onStatus(l10n.deletedLevel(level.song));
     } on FileSystemException catch (e) {
-      onStatus(tr('삭제하지 못했습니다: ${e.message}', 'Could not delete: ${e.message}'));
+      onStatus(l10n.couldNotDelete(e.message));
     } finally {
       notifyListeners();
       // Also refresh the download buttons on the levels page.
@@ -1132,11 +1112,11 @@ class LibraryController extends ChangeNotifier {
 
   Future<void> changeFolder() async {
     if (installs.activeCount > 0) {
-      onStatus(tr('받는 중인 레벨이 있어서 폴더를 바꿀 수 없습니다.', "Can't change the folder while a level is downloading."));
+      onStatus(l10n.cantChangeTheFolder);
       return;
     }
 
-    final path = await getDirectoryPath(confirmButtonText: tr('이 폴더 사용', 'Use this folder'));
+    final path = await getDirectoryPath(confirmButtonText: l10n.useThisFolder);
     if (path == null) return;
 
     try {
@@ -1145,11 +1125,11 @@ class LibraryController extends ChangeNotifier {
       current.libraryPath = library!.rootPath;
       settings = current;
       await current.save();
-      onStatus(tr('라이브러리 폴더를 바꿨습니다: ${library!.rootPath}', 'Library folder changed: ${library!.rootPath}'));
+      onStatus(l10n.libraryFolderChanged(library!.rootPath));
       installs.refresh();
       if (recovery case final message?) onStatus(message);
     } on FileSystemException catch (e) {
-      onStatus(tr('폴더를 열 수 없습니다: ${e.message}', 'Could not open the folder: ${e.message}'));
+      onStatus(l10n.couldNotOpenFolder(e.message));
     }
   }
 

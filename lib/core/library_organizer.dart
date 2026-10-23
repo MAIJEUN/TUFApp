@@ -106,7 +106,7 @@ class LibraryOrganizer {
     final root = p.normalize(library.rootPath);
     final full = p.normalize(p.join(root, relativePath));
     if (full != root && !p.isWithin(root, full)) {
-      throw LibraryOperationException(tr('라이브러리 폴더 밖은 다룰 수 없습니다.', "Can't work outside the library folder."));
+      throw LibraryOperationException(l10n.cantWorkOutsideThe);
     }
     return full;
   }
@@ -250,7 +250,7 @@ class LibraryOrganizer {
     final relative = _join(parent, safe);
     final directory = Directory(fullPath(relative));
     if (await directory.exists()) {
-      throw LibraryOperationException(tr('"$safe" 폴더가 이미 있습니다.', 'A folder named "$safe" already exists.'));
+      throw LibraryOperationException(l10n.aFolderNamedAlready(safe));
     }
     await directory.create(recursive: true);
     return relative;
@@ -263,7 +263,7 @@ class LibraryOrganizer {
 
     final parent = _parentOf(entry.relativePath);
     final target = _join(parent, safe);
-    await _moveDirectory(entry.relativePath, target, tr('"$safe"이(가) 이미 있습니다.', '"$safe" already exists.'));
+    await _moveDirectory(entry.relativePath, target, l10n.alreadyExists(safe));
     return target;
   }
 
@@ -271,15 +271,11 @@ class LibraryOrganizer {
   Future<String> move(LibraryEntry entry, String targetFolder) async {
     if (_parentOf(entry.relativePath) == _normalize(targetFolder)) return entry.relativePath;
     if (entry is FolderEntry && _isInside(entry.relativePath, targetFolder)) {
-      throw LibraryOperationException(tr('폴더를 자기 자신 안으로 옮길 수 없습니다.', "Can't move a folder into itself."));
+      throw LibraryOperationException(l10n.cantMoveAFolder);
     }
 
     final target = _join(targetFolder, entry.name);
-    await _moveDirectory(
-      entry.relativePath,
-      target,
-      tr('"${entry.name}"이(가) 옮길 곳에 이미 있습니다.', '"${entry.name}" already exists there.'),
-    );
+    await _moveDirectory(entry.relativePath, target, l10n.alreadyExistsThere(entry.name));
     return target;
   }
 
@@ -335,7 +331,7 @@ class LibraryOrganizer {
   Future<void> _moveDirectory(String from, String to, String existsMessage) async {
     final source = Directory(fullPath(from));
     final destination = Directory(fullPath(to));
-    if (!await source.exists()) throw LibraryOperationException(tr('폴더를 찾을 수 없습니다.', 'Folder not found.'));
+    if (!await source.exists()) throw LibraryOperationException(l10n.folderNotFound);
     if (await destination.exists()) throw LibraryOperationException(existsMessage);
 
     await Directory(p.dirname(destination.path)).create(recursive: true);
@@ -362,11 +358,9 @@ class LibraryOrganizer {
 
   static String _validateName(String name) {
     final trimmed = replaceUnloadable(name).trim().replaceAll(RegExp(r'[. ]+$'), '');
-    if (trimmed.isEmpty) throw LibraryOperationException(tr('이름을 입력해 주세요.', 'Please enter a name.'));
+    if (trimmed.isEmpty) throw LibraryOperationException(l10n.pleaseEnterAName);
     if (_illegalCharacters.hasMatch(trimmed)) {
-      throw LibraryOperationException(
-        tr(r'이름에 < > : " / \ | ? * 는 쓸 수 없습니다.', r'Names cannot contain < > : " / \ | ? *'),
-      );
+      throw LibraryOperationException(l10n.namesCannotContain);
     }
     return trimmed;
   }

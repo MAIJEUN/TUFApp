@@ -38,7 +38,7 @@ class PlayerProfileDetail {
     final highestRank = asInt(highest?['rank']);
     return PlayerProfileDetail(
       id: asInt(json['id']),
-      name: asStringOrNull(json['name']) ?? tr('알 수 없음', 'Unknown'),
+      name: asStringOrNull(json['name']) ?? l10n.unknown,
       country: asStringOrNull(json['country']),
       avatar: AvatarUrls.of(json),
       handle: asStringOrNull(user?['username']),
@@ -104,39 +104,35 @@ class PlayerProfileDetail {
 
 /// Player score kinds. Names match the API fields.
 enum PlayerScoreKey {
-  rankedScore(
-    '랭크 점수',
-    'Ranked Score',
-    '상위 20개 클리어 점수 합산 (순위 낮을수록 감소, 재클리어 제외)',
-    'Decaying sum of 20 best clears (excluding reclears)',
-  ),
-  totalScoreV2('총 점수', 'Total Score', '모든 클리어 점수 합산 (재클리어 제외)', 'Sum of all clears without reclears'),
-  generalScore('일반 점수', 'General Score', '모든 클리어 점수 합산 (재클리어 포함)', 'Sum of all clears including reclears'),
-  ppScore(
-    '완벽한 플레이 점수',
-    'PP Score',
-    '랭크 점수와 같지만, 모든 클리어가 완벽한 플레이',
-    'Ranked Score, but all clears must also be pure perfects',
-  ),
-  wfScore('세계 최초 점수', 'WF Score', '세계 최초 클리어한 레벨 기본 점수 합산', "Sum of all level base scores from world's first passes"),
-  wfPPScore(
-    '세계 최초 완플 점수',
-    'WF PP Score',
-    '세계 최초 완벽한 플레이 클리어한 레벨 기본 점수 합산',
-    "Sum of all level base scores from world's first pure perfect passes",
-  ),
-  score12K('12키 점수', '12K Score', '랭크 점수와 같지만, 12키 클리어 한정', 'Ranked Score, but all clears must be 12K'),
-  averageXacc('평균 절대정확도', 'Average X-acc', '상위 20개 클리어의 평균 정확도', 'Average accuracy of top 20 passes');
+  rankedScore,
+  totalScoreV2,
+  generalScore,
+  ppScore,
+  wfScore,
+  wfPPScore,
+  score12K,
+  averageXacc;
 
-  const PlayerScoreKey(this._ko, this._en, this._descriptionKo, this._descriptionEn);
-
-  final String _ko;
-  final String _en;
-  final String _descriptionKo;
-  final String _descriptionEn;
-
-  String get label => tr(_ko, _en);
-  String get description => tr(_descriptionKo, _descriptionEn);
+  String get label => switch (this) {
+    rankedScore => l10n.playerScoreRankedScore,
+    totalScoreV2 => l10n.playerScoreTotalScoreV2,
+    generalScore => l10n.playerScoreGeneralScore,
+    ppScore => l10n.playerScorePpScore,
+    wfScore => l10n.playerScoreWfScore,
+    wfPPScore => l10n.playerScoreWfPPScore,
+    score12K => l10n.playerScoreScore12K,
+    averageXacc => l10n.playerScoreAverageXacc,
+  };
+  String get description => switch (this) {
+    rankedScore => l10n.playerScoreRankedScoreDescription,
+    totalScoreV2 => l10n.playerScoreTotalScoreV2Description,
+    generalScore => l10n.playerScoreGeneralScoreDescription,
+    ppScore => l10n.playerScorePpScoreDescription,
+    wfScore => l10n.playerScoreWfScoreDescription,
+    wfPPScore => l10n.playerScoreWfPPScoreDescription,
+    score12K => l10n.playerScoreScore12KDescription,
+    averageXacc => l10n.playerScoreAverageXaccDescription,
+  };
 }
 
 /// Creator page. GET /v3/creators/{id}/profile
@@ -173,7 +169,7 @@ class CreatorProfileDetail {
     final stats = _map(json['stats']) ?? doc;
     return CreatorProfileDetail(
       id: asInt(doc['id']),
-      name: asStringOrNull(doc['name']) ?? tr('알 수 없음', 'Unknown'),
+      name: asStringOrNull(doc['name']) ?? l10n.unknown,
       country: asStringOrNull(user?['country']) ?? asStringOrNull(doc['country']),
       avatar: AvatarUrls.of({...doc, 'user': ?user}),
       handle: asStringOrNull(user?['username']),
@@ -240,16 +236,17 @@ class CreatorProfileDetail {
 
 /// Whether the creator allows their levels to be uploaded to TUF.
 enum CreatorVerification {
-  allowed('허가', 'Allowed'),
-  conditional('조건 있음', 'Conditional'),
-  pending('대기 중', 'Pending'),
-  declined('거절', 'Declined');
+  allowed,
+  conditional,
+  pending,
+  declined;
 
-  const CreatorVerification(this._ko, this._en);
-
-  final String _ko;
-  final String _en;
-  String get label => tr(_ko, _en);
+  String get label => switch (this) {
+    allowed => l10n.creatorVerificationAllowed,
+    conditional => l10n.creatorVerificationConditional,
+    pending => l10n.creatorVerificationPending,
+    declined => l10n.creatorVerificationDeclined,
+  };
 
   static CreatorVerification fromApi(Object? value) =>
       values.where((status) => status.name == value).firstOrNull ?? pending;
@@ -757,7 +754,7 @@ sealed class FavoriteItem {
       'pack' => FavoritePack(LevelPack.fromJson(entity)),
       'player' => FavoritePlayer(
         id: asInt(entity['id']),
-        name: asStringOrNull(entity['name']) ?? tr('알 수 없음', 'Unknown'),
+        name: asStringOrNull(entity['name']) ?? l10n.unknown,
         country: asStringOrNull(entity['country']),
         avatar: AvatarUrls.of(entity),
         rankedScore: asDoubleOrNull(_map(entity['stats'])?['rankedScore']) ?? asDoubleOrNull(entity['rankedScore']),
@@ -765,7 +762,7 @@ sealed class FavoriteItem {
       ),
       'creator' => FavoriteCreator(
         id: asInt(entity['id']),
-        name: asStringOrNull(entity['name']) ?? tr('알 수 없음', 'Unknown'),
+        name: asStringOrNull(entity['name']) ?? l10n.unknown,
         avatar: AvatarUrls.of(entity),
         chartsTotal: asIntOrNull(entity['chartsTotal']),
       ),
@@ -843,18 +840,21 @@ class PlayerPassEntry {
 
 /// Pass list sort. Names match the API values.
 enum PlayerPassSort {
-  score('점수', 'Score'),
-  impact('랭크', 'Impact'),
-  speed('속도', 'Speed'),
-  date('날짜', 'Date'),
-  xacc('절대정확도', 'X-Accuracy'),
-  difficulty('난이도', 'Difficulty');
+  score,
+  impact,
+  speed,
+  date,
+  xacc,
+  difficulty;
 
-  const PlayerPassSort(this._ko, this._en);
-
-  final String _ko;
-  final String _en;
-  String get label => tr(_ko, _en);
+  String get label => switch (this) {
+    score => l10n.playerPassSortScore,
+    impact => l10n.playerPassSortImpact,
+    speed => l10n.playerPassSortSpeed,
+    date => l10n.playerPassSortDate,
+    xacc => l10n.playerPassSortXacc,
+    difficulty => l10n.playerPassSortDifficulty,
+  };
 }
 
 /// One point of rank history. GET /v3/players/{id}/rank-history

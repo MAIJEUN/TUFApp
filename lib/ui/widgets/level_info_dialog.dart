@@ -50,7 +50,7 @@ class LevelInfoDialog extends StatelessWidget {
                     child: SlideOverflow(child: slidingText(level.song, style: theme.textTheme.headlineSmall)),
                   ),
                   IconButton(
-                    tooltip: tr('닫기', 'Close'),
+                    tooltip: l10n.close,
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close),
                   ),
@@ -60,26 +60,23 @@ class LevelInfoDialog extends StatelessWidget {
                 child: slidingText(level.artist, style: theme.textTheme.bodyLarge?.copyWith(color: muted)),
               ),
               if (level.createdAt case final date?)
-                Text(
-                  tr('등록: ${formatDate(date)}', 'Added: ${formatDate(date)}'),
-                  style: theme.textTheme.bodySmall?.copyWith(color: muted),
-                ),
+                Text(l10n.addedOn(formatDate(date)), style: theme.textTheme.bodySmall?.copyWith(color: muted)),
               const SizedBox(height: 16),
               Flexible(
                 child: _Scrollable(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (level.team case final team?) _InfoRow(label: tr('팀', 'Team'), value: team),
-                      _InfoRow(label: tr('난이도', 'Difficulty'), value: level.difficulty?.name ?? '#${level.diffId}'),
+                      if (level.team case final team?) _InfoRow(label: l10n.team, value: team),
+                      _InfoRow(label: l10n.difficulty, value: level.difficulty?.name ?? '#${level.diffId}'),
                       // Levels without their own base score send 0, so fall back to the difficulty's base score.
                       _InfoRow(
-                        label: tr('기반 점수', 'Base score'),
+                        label: l10n.baseScore,
                         value: '${formatNumber(level.baseScoreOverride ?? level.difficulty?.baseScore ?? 0)} PP',
                       ),
                       if (level.aliases.isNotEmpty)
                         _InfoRow(
-                          label: tr('별칭', 'Aliases'),
+                          label: l10n.aliases,
                           value: level.aliases.map((alias) => '${alias.field}: ${alias.alias}').join(', '),
                         ),
                       if (charters.isNotEmpty || vfxers.isNotEmpty) ...[
@@ -89,12 +86,12 @@ class LevelInfoDialog extends StatelessWidget {
                           children: [
                             if (charters.isNotEmpty)
                               Expanded(
-                                child: _People(title: tr('채보', 'Charters'), credits: charters),
+                                child: _People(title: l10n.charters, credits: charters),
                               ),
                             if (charters.isNotEmpty && vfxers.isNotEmpty) const SizedBox(width: 16),
                             if (vfxers.isNotEmpty)
                               Expanded(
-                                child: _People(title: tr('이펙트', 'VFX'), credits: vfxers),
+                                child: _People(title: l10n.vfx, credits: vfxers),
                               ),
                           ],
                         ),
@@ -111,18 +108,18 @@ class LevelInfoDialog extends StatelessWidget {
                     TextButton.icon(
                       onPressed: () => app.openLink(video),
                       icon: const Icon(Icons.smart_display_outlined),
-                      label: Text(tr('영상 보기', 'Watch video')),
+                      label: Text(l10n.watchVideo),
                     ),
                   if (level.workshopLink case final workshop?) ...[
                     const SizedBox(width: 8),
                     TextButton.icon(
                       onPressed: () => app.openLink(workshop),
                       icon: const Icon(Icons.sports_esports_outlined),
-                      label: Text(tr('스팀 창작마당', 'Steam Workshop')),
+                      label: Text(l10n.steamWorkshop),
                     ),
                   ],
                   const SizedBox(width: 8),
-                  FilledButton(onPressed: () => Navigator.of(context).pop(), child: Text(tr('닫기', 'Close'))),
+                  FilledButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.close)),
                 ],
               ),
             ],
@@ -209,12 +206,7 @@ class _People extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 6),
             child: HoverTip(
-              message: credit.creatorAliases.isEmpty
-                  ? ''
-                  : tr(
-                      '다른 이름: ${credit.creatorAliases.join(', ')}',
-                      'Also known as: ${credit.creatorAliases.join(', ')}',
-                    ),
+              message: credit.creatorAliases.isEmpty ? '' : l10n.alsoKnownAs(credit.creatorAliases.join(', ')),
               // Tapping opens the creator page.
               child: Material(
                 color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
@@ -235,8 +227,8 @@ class _People extends StatelessWidget {
                     child: SlideOverflow(
                       child: slidingText(
                         credit.creatorAliases.isEmpty
-                            ? credit.creatorName ?? tr('알 수 없음', 'Unknown')
-                            : '${credit.creatorName ?? tr('알 수 없음', 'Unknown')} (${credit.creatorAliases.join(', ')})',
+                            ? credit.creatorName ?? l10n.unknown
+                            : '${credit.creatorName ?? l10n.unknown} (${credit.creatorAliases.join(', ')})',
                         style: theme.textTheme.bodyMedium,
                       ),
                     ),

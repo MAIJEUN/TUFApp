@@ -39,7 +39,7 @@ class TufApiClient {
 
   Future<PagedResult<Level>> searchLevels(LevelSearchQuery query) async {
     final json = await _getJson('v2/database/levels', query.toQueryParameters());
-    if (json is! Map<String, dynamic>) throw TufApiException(tr('검색 응답 형식이 올바르지 않습니다.', 'Unexpected search response.'));
+    if (json is! Map<String, dynamic>) throw TufApiException(l10n.unexpectedSearchResponse);
     return PagedResult.fromJson(json, Level.fromJson);
   }
 
@@ -47,27 +47,26 @@ class TufApiClient {
     final json = await _getJson('v2/database/levels/$id');
     final level = json is Map<String, dynamic> ? json['level'] : null;
     if (level is! Map<String, dynamic>) {
-      throw TufApiException(tr('레벨 $id의 응답에 level 필드가 없습니다.', 'The response for level $id has no level field.'));
+      throw TufApiException(l10n.noLevelField(id));
     }
     return Level.fromJson(level);
   }
 
   Future<List<Difficulty>> getDifficulties() async {
     final json = await _getJson('v2/database/difficulties');
-    if (json is! List) throw TufApiException(tr('난이도 목록 응답 형식이 올바르지 않습니다.', 'Unexpected difficulty list response.'));
+    if (json is! List) throw TufApiException(l10n.unexpectedDifficultyListResponse);
     return json.whereType<Map<String, dynamic>>().map(Difficulty.fromJson).toList();
   }
 
   /// Level tags, with their groups.
-  Future<List<FacetItem>> getTags() => _getFacetItems('v2/database/difficulties/tags', tr('태그', 'tag'));
+  Future<List<FacetItem>> getTags() => _getFacetItems('v2/database/difficulties/tags', l10n.listTag);
 
   /// Curation types (C3, V2, Epic, ...).
-  Future<List<FacetItem>> getCurationTypes() =>
-      _getFacetItems('v2/admin/curations/types', tr('큐레이션 유형', 'curation type'));
+  Future<List<FacetItem>> getCurationTypes() => _getFacetItems('v2/admin/curations/types', l10n.listCurationType);
 
   Future<List<FacetItem>> _getFacetItems(String path, String label) async {
     final json = await _getJson(path);
-    if (json is! List) throw TufApiException(tr('$label 목록 응답 형식이 올바르지 않습니다.', 'Unexpected $label list response.'));
+    if (json is! List) throw TufApiException(l10n.unexpectedListResponse(label));
     return json.whereType<Map<String, dynamic>>().map(FacetItem.fromJson).toList();
   }
 
@@ -75,7 +74,7 @@ class TufApiClient {
   Future<List<LevelPass>> getLevelPasses(int levelId) async {
     final json = await _getJson('v2/database/passes/level/$levelId');
     if (json is! List) {
-      throw TufApiException(tr('레벨 $levelId의 기록 응답 형식이 올바르지 않습니다.', 'Unexpected pass response for level $levelId.'));
+      throw TufApiException(l10n.unexpectedPassResponseFor(levelId));
     }
     return json.whereType<Map<String, dynamic>>().map(LevelPass.fromJson).toList();
   }
@@ -84,7 +83,7 @@ class TufApiClient {
   Future<PassDetail> getPass(int id) async {
     final json = await _getJson('v2/database/passes/$id');
     if (json is! Map<String, dynamic>) {
-      throw TufApiException(tr('기록 $id의 응답 형식이 올바르지 않습니다.', 'Unexpected response for pass $id.'));
+      throw TufApiException(l10n.unexpectedResponseForPass(id));
     }
     return PassDetail.fromJson(json);
   }
@@ -93,7 +92,7 @@ class TufApiClient {
   Future<PlayerProfile> getPlayer(int id) async {
     final json = await _getJson('v2/database/players/$id');
     if (json is! Map<String, dynamic>) {
-      throw TufApiException(tr('플레이어 $id의 응답 형식이 올바르지 않습니다.', 'Unexpected response for player $id.'));
+      throw TufApiException(l10n.unexpectedResponseForPlayer(id));
     }
     return PlayerProfile.fromJson(json);
   }
@@ -102,7 +101,7 @@ class TufApiClient {
   Future<({List<PlayerPassEntry> passes, int total, int? seed})> searchPasses(ClearSearchQuery query) async {
     final json = await _getJson('v2/database/passes', query.toQueryParameters());
     if (json is! Map<String, dynamic>) {
-      throw TufApiException(tr('클리어 목록 응답 형식이 올바르지 않습니다.', 'Unexpected pass list response.'));
+      throw TufApiException(l10n.unexpectedPassListResponse);
     }
     return (
       passes: asObjectList(json['results']).map(PlayerPassEntry.fromJson).toList(),
@@ -114,7 +113,7 @@ class TufApiClient {
   /// Levels by id, in the given order (missing ones are left out). Same request as the website's featured blocks.
   Future<List<Level>> getLevelsByIds(List<int> ids) async {
     final json = await _getJson('v2/database/levels', _idQuery(ids));
-    if (json is! Map<String, dynamic>) throw TufApiException(tr('검색 응답 형식이 올바르지 않습니다.', 'Unexpected search response.'));
+    if (json is! Map<String, dynamic>) throw TufApiException(l10n.unexpectedSearchResponse);
     return _inOrder(asObjectList(json['results']).map(Level.fromJson), ids, (level) => level.id);
   }
 
@@ -122,7 +121,7 @@ class TufApiClient {
   Future<List<PlayerPassEntry>> getPassesByIds(List<int> ids) async {
     final json = await _getJson('v2/database/passes', _idQuery(ids));
     if (json is! Map<String, dynamic>) {
-      throw TufApiException(tr('클리어 목록 응답 형식이 올바르지 않습니다.', 'Unexpected pass list response.'));
+      throw TufApiException(l10n.unexpectedPassListResponse);
     }
     return _inOrder(asObjectList(json['results']).map(PlayerPassEntry.fromJson), ids, (entry) => entry.pass.id);
   }
@@ -165,7 +164,7 @@ class TufApiClient {
       'flagMode': 'hide',
     });
     if (json is! Map<String, dynamic>) {
-      throw TufApiException(tr('리더보드 응답 형식이 올바르지 않습니다.', 'Unexpected leaderboard response.'));
+      throw TufApiException(l10n.unexpectedLeaderboardResponse);
     }
     return (
       players: asObjectList(json['results']).map(LeaderboardPlayer.fromJson).toList(),
@@ -193,7 +192,7 @@ class TufApiClient {
       'facetQuery': ?facetQuery,
     });
     if (json is! Map<String, dynamic>) {
-      throw TufApiException(tr('제작자 목록 응답 형식이 올바르지 않습니다.', 'Unexpected creator list response.'));
+      throw TufApiException(l10n.unexpectedCreatorListResponse);
     }
     return (
       creators: asObjectList(json['results']).map(CreatorListEntry.fromJson).toList(),
@@ -205,7 +204,7 @@ class TufApiClient {
   Future<PlayerProfileDetail> getPlayerProfile(int id) async {
     final json = await _getJson('v3/players/$id/profile');
     if (json is! Map<String, dynamic> || json['id'] == null) {
-      throw TufApiException(tr('플레이어 $id을(를) 찾을 수 없습니다.', 'Player $id not found.'), 404);
+      throw TufApiException(l10n.playerNotFound(id), 404);
     }
     return PlayerProfileDetail.fromJson(json);
   }
@@ -229,7 +228,7 @@ class TufApiClient {
       if (bestPerLevel) 'bestPerLevel': 'true',
     });
     if (json is! Map<String, dynamic>) {
-      throw TufApiException(tr('플레이어 $id의 기록 응답 형식이 올바르지 않습니다.', 'Unexpected pass response for player $id.'));
+      throw TufApiException(l10n.unexpectedPassResponseForPlayer(id));
     }
     return (passes: asObjectList(json['passes']).map(PlayerPassEntry.fromJson).toList(), total: asInt(json['total']));
   }
@@ -242,9 +241,7 @@ class TufApiClient {
       if (to != null) 'to': day(to),
     });
     if (json is! Map<String, dynamic>) {
-      throw TufApiException(
-        tr('플레이어 $id의 순위 기록 응답 형식이 올바르지 않습니다.', 'Unexpected rank history response for player $id.'),
-      );
+      throw TufApiException(l10n.unexpectedRankHistoryResponse(id));
     }
     return asObjectList(json['series']).map(RankHistoryPoint.fromJson).toList();
   }
@@ -252,7 +249,7 @@ class TufApiClient {
   Future<CreatorProfileDetail> getCreatorProfile(int id) async {
     final json = await _getJson('v3/creators/$id/profile');
     if (json is! Map<String, dynamic>) {
-      throw TufApiException(tr('제작자 $id을(를) 찾을 수 없습니다.', 'Creator $id not found.'), 404);
+      throw TufApiException(l10n.creatorNotFound(id), 404);
     }
     return CreatorProfileDetail.fromJson(json);
   }
@@ -273,7 +270,7 @@ class TufApiClient {
       if (query.trim().isNotEmpty) 'query': query.trim(),
     });
     if (json is! Map<String, dynamic>) {
-      throw TufApiException(tr('팩 목록 응답 형식이 올바르지 않습니다.', 'Unexpected pack list response.'));
+      throw TufApiException(l10n.unexpectedPackListResponse);
     }
     return (packs: asObjectList(json['packs']).map(LevelPack.fromJson).toList(), total: asInt(json['total']));
   }
@@ -282,7 +279,7 @@ class TufApiClient {
   Future<LevelPackDetail> getPack(String id, {Level Function(Level level)? resolveLevel}) async {
     final json = await _getJson('v2/database/levels/packs/${Uri.encodeComponent(id)}', {'tree': 'true'});
     if (json is! Map<String, dynamic>) {
-      throw TufApiException(tr('팩 $id의 응답 형식이 올바르지 않습니다.', 'Unexpected response for pack $id.'));
+      throw TufApiException(l10n.unexpectedResponseForPack(id));
     }
     return LevelPackDetail.fromJson(json, resolveLevel: resolveLevel);
   }
@@ -309,11 +306,11 @@ class TufApiClient {
     try {
       response = await _client.send(request).timeout(requestTimeout);
     } on TimeoutException {
-      throw TufApiException(tr('서버가 응답하지 않습니다: $url', 'The server is not responding: $url'));
+      throw TufApiException(l10n.serverNotResponding(url));
     } on http.ClientException catch (e) {
-      throw TufApiException(tr('다운로드 요청 실패: $url (${e.message})', 'Download request failed: $url (${e.message})'));
+      throw TufApiException(l10n.downloadRequestFailed(url, e.message));
     } on IOException catch (e) {
-      throw TufApiException(tr('다운로드 요청 실패: $url ($e)', 'Download request failed: $url ($e)'));
+      throw TufApiException(l10n.downloadRequestFailed(url, e));
     }
 
     if (response.statusCode >= 400) {
@@ -332,11 +329,11 @@ class TufApiClient {
     try {
       response = await _client.get(uri, headers: _headers).timeout(requestTimeout);
     } on TimeoutException {
-      throw TufApiException(tr('서버가 응답하지 않습니다: $path', 'The server is not responding: $path'));
+      throw TufApiException(l10n.serverNotResponding(path));
     } on http.ClientException catch (e) {
-      throw TufApiException(tr('요청 실패: $path (${e.message})', 'Request failed: $path (${e.message})'));
+      throw TufApiException(l10n.requestFailed(path, e.message));
     } on IOException catch (e) {
-      throw TufApiException(tr('요청 실패: $path ($e)', 'Request failed: $path ($e)'));
+      throw TufApiException(l10n.requestFailed(path, e));
     }
 
     if (response.statusCode >= 400) {
@@ -346,7 +343,7 @@ class TufApiClient {
     try {
       return jsonDecode(utf8.decode(response.bodyBytes));
     } on FormatException {
-      throw TufApiException(tr('응답을 읽을 수 없습니다: $path', 'Could not read the response: $path'));
+      throw TufApiException(l10n.couldNotReadTheResponse(path));
     }
   }
 

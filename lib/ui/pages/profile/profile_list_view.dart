@@ -72,7 +72,7 @@ class _ListToolbarState extends State<_ListToolbar> {
                     child: _search.text.isNotEmpty
                         ? IconButton(
                             key: const ValueKey('clear'),
-                            tooltip: tr('검색어 지우기', 'Clear search'),
+                            tooltip: l10n.clearSearch,
                             icon: const Icon(Icons.close),
                             onPressed: () {
                               _search.clear();
@@ -89,7 +89,7 @@ class _ListToolbarState extends State<_ListToolbar> {
           widget.sort,
           const SizedBox(width: 8),
           IconButton.filledTonal(
-            tooltip: widget.ascending ? tr('오름차순', 'Ascending') : tr('내림차순', 'Descending'),
+            tooltip: widget.ascending ? l10n.ascending : l10n.descending,
             onPressed: widget.onToggleOrder,
             icon: AnimatedRotation(
               turns: widget.ascending ? 0.5 : 0,
@@ -114,18 +114,16 @@ class PlayerPassListHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => _ListToolbar(
-    title: tr('점수', 'Scores'),
-    subtitle: list.loading && list.items.isEmpty
-        ? null
-        : tr('${formatNumber(list.total)}개 클리어', "${formatNumber(list.total)} ${plural(list.total, 'pass', 'passes')}"),
-    hint: tr('곡 이름, 작곡가로 검색', 'Search by song or artist'),
+    title: l10n.scores,
+    subtitle: list.loading && list.items.isEmpty ? null : l10n.playerPassCount(list.total),
+    hint: l10n.searchBySongOrArtist,
     query: list.query,
     onQuery: list.setQuery,
     sort: DropdownMenu<PlayerPassSort>(
       // The selected label is only filled in on creation, so recreate the menu when the language changes.
       key: ValueKey(appLanguage),
       initialSelection: list.sort,
-      label: Text(tr('정렬', 'Sort')),
+      label: Text(l10n.sort),
       width: 160,
       onSelected: (value) {
         if (value != null) list.setSort(value);
@@ -136,13 +134,7 @@ class PlayerPassListHeader extends StatelessWidget {
     ),
     ascending: !list.descending,
     onToggleOrder: list.toggleOrder,
-    extra: [
-      FilterChip(
-        label: Text(tr('재클리어 숨기기', 'Hide reclears')),
-        selected: list.hideReclears,
-        onSelected: list.setHideReclears,
-      ),
-    ],
+    extra: [FilterChip(label: Text(l10n.hideReclears), selected: list.hideReclears, onSelected: list.setHideReclears)],
   );
 }
 
@@ -154,18 +146,16 @@ class CreatorLevelListHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => _ListToolbar(
-    title: tr('레벨', 'Levels'),
-    subtitle: list.loading && list.items.isEmpty
-        ? null
-        : tr('${formatNumber(list.total)}개', "${formatNumber(list.total)} ${plural(list.total, 'level')}"),
-    hint: tr('이 제작자의 레벨 검색', "Search this creator's levels"),
+    title: l10n.levelsSection,
+    subtitle: list.loading && list.items.isEmpty ? null : l10n.creatorLevelCount(list.total),
+    hint: l10n.searchThisCreatorsLevels,
     query: list.query,
     onQuery: list.setQuery,
     sort: DropdownMenu<SortOption>(
       // The selected label is only filled in on creation, so recreate the menu when the language changes.
       key: ValueKey(appLanguage),
       initialSelection: list.sort,
-      label: Text(tr('정렬', 'Sort')),
+      label: Text(l10n.sort),
       width: 180,
       onSelected: (option) {
         if (option != null) list.setSort(option);
@@ -193,9 +183,9 @@ class ProfileListFooter extends StatelessWidget {
         padding: const EdgeInsets.only(top: 24),
         child: EmptyState(
           icon: const Icon(Icons.cloud_off),
-          title: tr('목록을 불러오지 못했어요', "Couldn't load the list"),
+          title: l10n.couldntLoadTheList,
           message: message,
-          action: FilledButton(onPressed: list.reload, child: Text(tr('다시 시도', 'Retry'))),
+          action: FilledButton(onPressed: list.reload, child: Text(l10n.retry)),
         ),
       );
     } else if (list.loadMoreError case final message?) {

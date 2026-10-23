@@ -1,0 +1,1517 @@
+{
+  "@@locale": "en",
+  "languageName": "English",
+  "@languageName": {
+    "description": "Name of this language, written in the language itself (shown in the language menu)."
+  },
+  "monthNames": "Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec",
+  "@monthNames": {
+    "description": "Short month names, January to December, separated by |."
+  },
+  "longDate": "{monthName} {day}, {year}",
+  "@longDate": {
+    "description": "A full date, e.g. May 5, 2026.",
+    "placeholders": {
+      "year": {
+        "type": "Object"
+      },
+      "month": {
+        "type": "Object"
+      },
+      "monthName": {
+        "type": "Object"
+      },
+      "day": {
+        "type": "Object"
+      }
+    }
+  },
+  "monthDay": "{monthName} {day}",
+  "@monthDay": {
+    "description": "A date without the year, e.g. May 5.",
+    "placeholders": {
+      "month": {
+        "type": "Object"
+      },
+      "monthName": {
+        "type": "Object"
+      },
+      "day": {
+        "type": "Object"
+      }
+    }
+  },
+  "shortMonth": "{monthName} '{year}",
+  "@shortMonth": {
+    "description": "A month with a two-digit year, e.g. May '26.",
+    "placeholders": {
+      "year": {
+        "type": "Object"
+      },
+      "month": {
+        "type": "Object"
+      },
+      "monthName": {
+        "type": "Object"
+      }
+    }
+  },
+  "zoomPercent": "Zoom {percent}%",
+  "@zoomPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "Object"
+      }
+    }
+  },
+  "couldNotSaveSettings": "Could not save settings: {error}",
+  "@couldNotSaveSettings": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "ready": "Ready.",
+  "loading": "Loading...",
+  "couldNotStart": "Could not start: {message}",
+  "@couldNotStart": {
+    "placeholders": {
+      "message": {
+        "type": "Object"
+      }
+    }
+  },
+  "couldNotOpenLink": "Could not open the link: {url}",
+  "@couldNotOpenLink": {
+    "placeholders": {
+      "url": {
+        "type": "Object"
+      }
+    }
+  },
+  "preparing": "Preparing",
+  "extracting": "Extracting",
+  "done": "Done",
+  "cancelling": "Cancelling",
+  "downloadedSong": "Downloaded: {song}",
+  "@downloadedSong": {
+    "placeholders": {
+      "song": {
+        "type": "Object"
+      }
+    }
+  },
+  "downloadCancelled": "Download cancelled: {song}",
+  "@downloadCancelled": {
+    "placeholders": {
+      "song": {
+        "type": "Object"
+      }
+    }
+  },
+  "tryThisLinkInstead": "{error} Try this link instead: {link}",
+  "@tryThisLinkInstead": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      },
+      "link": {
+        "type": "Object"
+      }
+    }
+  },
+  "downloadFailed": "Download failed ({song}): {error}",
+  "@downloadFailed": {
+    "placeholders": {
+      "song": {
+        "type": "Object"
+      },
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "searchFailed": "Search failed: {error}",
+  "@searchFailed": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "sortByName": "Name",
+  "sortBySize": "Size",
+  "sortByRecent": "Recently downloaded",
+  "root": "Root",
+  "replacedPlusInFolders": "Replaced '+' with '_' in {count} folder {count, plural, =1{name} other{names}}. The game can't load paths that contain '+'.",
+  "@replacedPlusInFolders": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "couldNotReadFolder": "Could not read the folder: {error}",
+  "@couldNotReadFolder": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "createdFolder": "Created folder: {name}",
+  "@createdFolder": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "cantDoThisWhile": "Can't do this while a level is downloading. Try again once the download finishes.",
+  "skippedStillDownloading": " (skipped {skipped} still downloading)",
+  "@skippedStillDownloading": {
+    "placeholders": {
+      "skipped": {
+        "type": "Object"
+      }
+    }
+  },
+  "renamedTo": "Renamed to: {name}",
+  "@renamedTo": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "movedItems": "Moved {count} {count, plural, =1{item} other{items}} to {where}.{skipped}",
+  "@movedItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "where": {
+        "type": "Object"
+      },
+      "skipped": {
+        "type": "Object"
+      }
+    }
+  },
+  "movedButCouldNot": "Moved {count}, but {failed} could not be moved ({error}){skipped}",
+  "@movedButCouldNot": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      },
+      "failed": {
+        "type": "Object"
+      },
+      "error": {
+        "type": "Object"
+      },
+      "skipped": {
+        "type": "Object"
+      }
+    }
+  },
+  "deletedItems": "Deleted {count} {count, plural, =1{item} other{items}}.{skipped}",
+  "@deletedItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "Object"
+      }
+    }
+  },
+  "movedEntry": "Moved: {name} → {where}",
+  "@movedEntry": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      },
+      "where": {
+        "type": "Object"
+      }
+    }
+  },
+  "deletedEntry": "Deleted: {name}",
+  "@deletedEntry": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "deletedWithLevels": "Deleted with {count} {count, plural, =1{level} other{levels}}: {name}",
+  "@deletedWithLevels": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "folderOperationFailed": "Folder operation failed: {error}",
+  "@folderOperationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "checkingForUpdates": "Checking for updates...",
+  "removedMissingLevels": " Removed {count} {count, plural, =1{level} other{levels}} whose folder is gone.",
+  "@removedMissingLevels": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "everythingIsUpTo": "Everything is up to date.",
+  "updatesAvailable": "{count} {count, plural, =1{level has} other{levels have}} an update.",
+  "@updatesAvailable": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "couldNotCheckForUpdates": "Could not check for updates: {error}",
+  "@couldNotCheckForUpdates": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "deletedLevel": "Deleted: {song}",
+  "@deletedLevel": {
+    "placeholders": {
+      "song": {
+        "type": "Object"
+      }
+    }
+  },
+  "couldNotDelete": "Could not delete: {error}",
+  "@couldNotDelete": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "cantChangeTheFolder": "Can't change the folder while a level is downloading.",
+  "useThisFolder": "Use this folder",
+  "libraryFolderChanged": "Library folder changed: {path}",
+  "@libraryFolderChanged": {
+    "placeholders": {
+      "path": {
+        "type": "Object"
+      }
+    }
+  },
+  "couldNotOpenFolder": "Could not open the folder: {error}",
+  "@couldNotOpenFolder": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "failedSuffix": ", {failed} failed",
+  "@failedSuffix": {
+    "placeholders": {
+      "failed": {
+        "type": "Object"
+      }
+    }
+  },
+  "stoppedDownloadingPack": "Stopped downloading '{name}' ({done}/{total} done{failed})",
+  "@stoppedDownloadingPack": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      },
+      "done": {
+        "type": "Object"
+      },
+      "total": {
+        "type": "Object"
+      },
+      "failed": {
+        "type": "Object"
+      }
+    }
+  },
+  "downloadedPack": "Downloaded '{name}': {done} {done, plural, =1{level} other{levels}}{failed}",
+  "@downloadedPack": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      },
+      "done": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "Object"
+      }
+    }
+  },
+  "theDownloadStalledFor": "The download stalled for {seconds} seconds and was stopped.",
+  "@theDownloadStalledFor": {
+    "placeholders": {
+      "seconds": {
+        "type": "Object"
+      }
+    }
+  },
+  "theDownloadWasInterrupted": "The download was interrupted: {error}",
+  "@theDownloadWasInterrupted": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "theDownloadWasInterruptedBytes": "The download was interrupted. ({received}/{count} bytes)",
+  "@theDownloadWasInterruptedBytes": {
+    "placeholders": {
+      "received": {
+        "type": "Object"
+      },
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "couldntReadTheDownloaded": "Couldn't read the downloaded level list, so it starts fresh. The original file was kept as {fileName}.",
+  "@couldntReadTheDownloaded": {
+    "placeholders": {
+      "fileName": {
+        "type": "Object"
+      }
+    }
+  },
+  "removedUnreadableEntries": "Removed {skipped} unreadable {skipped, plural, =1{entry} other{entries}} from the downloaded level list.",
+  "@removedUnreadableEntries": {
+    "placeholders": {
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "invalidLevelFolderName": "Invalid level folder name",
+  "zipInvalidPath": "The zip contains an invalid path: {name}",
+  "@zipInvalidPath": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "levelHasNoTUF": "Level {id} has no TUF CDN download link.",
+  "@levelHasNoTUF": {
+    "placeholders": {
+      "id": {
+        "type": "Object"
+      }
+    }
+  },
+  "cantWorkOutsideThe": "Can't work outside the library folder.",
+  "aFolderNamedAlready": "A folder named \"{name}\" already exists.",
+  "@aFolderNamedAlready": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "alreadyExists": "\"{name}\" already exists.",
+  "@alreadyExists": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "cantMoveAFolder": "Can't move a folder into itself.",
+  "alreadyExistsThere": "\"{name}\" already exists there.",
+  "@alreadyExistsThere": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "folderNotFound": "Folder not found.",
+  "pleaseEnterAName": "Please enter a name.",
+  "namesCannotContain": "Names cannot contain < > : \" / \\ | ? *",
+  "scores": "Scores",
+  "passCounts": "Pass counts",
+  "totalPasses": "Total passes",
+  "uniqueLevelsCleared": "Unique levels cleared",
+  "worldsFirstClears": "World's first clears",
+  "worldsFirstPPClears": "World's first PP clears",
+  "clears12k": "12K clears",
+  "clears16k": "16K clears",
+  "totalPurePerfects": "Total pure perfects",
+  "reclears": "Reclears",
+  "judgements": "Judgements",
+  "totalTilesHit": "Total tiles hit",
+  "generalAccuracy": "General accuracy",
+  "earlyVsLateBias": "Early vs late bias",
+  "levelsCleared": "Levels cleared",
+  "totalTilecountCleared": "Total tilecount cleared",
+  "estimatedPlaytime": "Estimated playtime",
+  "avgBPMClearedLevels": "Avg BPM (cleared levels)",
+  "rawSumOfAll": "Raw sum of all pass scores",
+  "records": "Records",
+  "firstPass": "First pass",
+  "latestPass": "Latest pass",
+  "bestAccuracy": "Best accuracy",
+  "worstAccuracy": "Worst accuracy",
+  "topSpeed": "Top speed",
+  "highestTilecount": "Highest tilecount",
+  "longestLevel": "Longest level",
+  "highestBPMCleared": "Highest BPM cleared",
+  "activity": "Activity",
+  "accountAgeDays": "Account age (days)",
+  "passesLast30Days": "Passes (last 30 days)",
+  "levelsLiked": "Levels liked",
+  "packsOwned": "Packs owned",
+  "packsFavorited": "Packs favorited",
+  "clearsByDifficultyType": "Clears by difficulty type",
+  "uniqueLevelsClearedTotal": "{unique} unique levels cleared ({total} total passes)",
+  "@uniqueLevelsClearedTotal": {
+    "placeholders": {
+      "unique": {
+        "type": "Object"
+      },
+      "total": {
+        "type": "Object"
+      }
+    }
+  },
+  "uniqueLevelsClearedCount": "{unique} unique levels cleared",
+  "@uniqueLevelsClearedCount": {
+    "placeholders": {
+      "unique": {
+        "type": "Object"
+      }
+    }
+  },
+  "identity": "Identity",
+  "aliases": "Aliases",
+  "teamsJoined": "Teams joined",
+  "credits": "Credits",
+  "levelsAsCharter": "Levels as charter",
+  "levelsAsVFX": "Levels as VFX",
+  "chartContent": "Chart content",
+  "tilesPlaced": "Tiles placed",
+  "totalChartDuration": "Total chart duration",
+  "avgTilecount": "Avg tilecount",
+  "avgLevelLength": "Avg level length",
+  "avgBPM": "Avg BPM",
+  "totalClearsOnCharts": "Total clears on charts",
+  "totalLikesOnCharts": "Total likes on charts",
+  "totalDownloadsOnCharts": "Total downloads on charts",
+  "audience": "Audience",
+  "uniquePlayersWhoCleared": "Unique players who cleared",
+  "wfsOnCharts": "WF's on charts",
+  "wfPpsOnCharts": "WF PP's on charts",
+  "totalTilesHitOnCharts": "Total tiles hit",
+  "timeline": "Timeline",
+  "firstChart": "First chart",
+  "latestChart": "Latest chart",
+  "levelsByDifficultyType": "Levels by difficulty type",
+  "special": "Special",
+  "topClear": "Top {letter} clear: {letter}{number} ({count}×)",
+  "@topClear": {
+    "placeholders": {
+      "letter": {
+        "type": "Object"
+      },
+      "number": {
+        "type": "Object"
+      },
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "letterNoClears": "{letter}: no clears",
+  "@letterNoClears": {
+    "placeholders": {
+      "letter": {
+        "type": "Object"
+      }
+    }
+  },
+  "qFromWorldsFirst": "{letter}Q{tier} from world's first {letter} clears ({count}×)",
+  "@qFromWorldsFirst": {
+    "placeholders": {
+      "letter": {
+        "type": "Object"
+      },
+      "tier": {
+        "type": "Object"
+      },
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "qNoWorldsFirst": "{letter}Q: no world's first clears in this range",
+  "@qNoWorldsFirst": {
+    "placeholders": {
+      "letter": {
+        "type": "Object"
+      }
+    }
+  },
+  "typeLevelCount": "{type} · {count} {count, plural, =1{level} other{levels}}",
+  "@typeLevelCount": {
+    "placeholders": {
+      "type": {
+        "type": "Object"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unexpectedSearchResponse": "Unexpected search response.",
+  "noLevelField": "The response for level {id} has no level field.",
+  "@noLevelField": {
+    "placeholders": {
+      "id": {
+        "type": "Object"
+      }
+    }
+  },
+  "unexpectedDifficultyListResponse": "Unexpected difficulty list response.",
+  "listTag": "tag",
+  "listCurationType": "curation type",
+  "unexpectedListResponse": "Unexpected {label} list response.",
+  "@unexpectedListResponse": {
+    "placeholders": {
+      "label": {
+        "type": "Object"
+      }
+    }
+  },
+  "unexpectedPassResponseFor": "Unexpected pass response for level {levelId}.",
+  "@unexpectedPassResponseFor": {
+    "placeholders": {
+      "levelId": {
+        "type": "Object"
+      }
+    }
+  },
+  "unexpectedResponseForPass": "Unexpected response for pass {id}.",
+  "@unexpectedResponseForPass": {
+    "placeholders": {
+      "id": {
+        "type": "Object"
+      }
+    }
+  },
+  "unexpectedResponseForPlayer": "Unexpected response for player {id}.",
+  "@unexpectedResponseForPlayer": {
+    "placeholders": {
+      "id": {
+        "type": "Object"
+      }
+    }
+  },
+  "unexpectedPassListResponse": "Unexpected pass list response.",
+  "unexpectedLeaderboardResponse": "Unexpected leaderboard response.",
+  "unexpectedCreatorListResponse": "Unexpected creator list response.",
+  "playerNotFound": "Player {id} not found.",
+  "@playerNotFound": {
+    "placeholders": {
+      "id": {
+        "type": "Object"
+      }
+    }
+  },
+  "unexpectedPassResponseForPlayer": "Unexpected pass response for player {id}.",
+  "@unexpectedPassResponseForPlayer": {
+    "placeholders": {
+      "id": {
+        "type": "Object"
+      }
+    }
+  },
+  "unexpectedRankHistoryResponse": "Unexpected rank history response for player {id}.",
+  "@unexpectedRankHistoryResponse": {
+    "placeholders": {
+      "id": {
+        "type": "Object"
+      }
+    }
+  },
+  "creatorNotFound": "Creator {id} not found.",
+  "@creatorNotFound": {
+    "placeholders": {
+      "id": {
+        "type": "Object"
+      }
+    }
+  },
+  "unexpectedPackListResponse": "Unexpected pack list response.",
+  "unexpectedResponseForPack": "Unexpected response for pack {id}.",
+  "@unexpectedResponseForPack": {
+    "placeholders": {
+      "id": {
+        "type": "Object"
+      }
+    }
+  },
+  "serverNotResponding": "The server is not responding: {url}",
+  "@serverNotResponding": {
+    "placeholders": {
+      "url": {
+        "type": "Object"
+      }
+    }
+  },
+  "downloadRequestFailed": "Download request failed: {url} ({error})",
+  "@downloadRequestFailed": {
+    "placeholders": {
+      "url": {
+        "type": "Object"
+      },
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "requestFailed": "Request failed: {path} ({error})",
+  "@requestFailed": {
+    "placeholders": {
+      "path": {
+        "type": "Object"
+      },
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "couldNotReadTheResponse": "Could not read the response: {path}",
+  "@couldNotReadTheResponse": {
+    "placeholders": {
+      "path": {
+        "type": "Object"
+      }
+    }
+  },
+  "unknown": "Unknown",
+  "keyCount": "{count}K",
+  "@keyCount": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "keys16": "16K",
+  "keys12": "12K",
+  "theServersDifficultyList": "The server's difficulty list has no PGU difficulties.",
+  "levels": "Levels",
+  "packs": "Packs",
+  "passes": "Passes",
+  "leaderboard": "Leaderboard",
+  "creators": "Creators",
+  "library": "Library",
+  "downloading": "Downloading",
+  "language": "Language",
+  "systemLanguage": "System ({language})",
+  "@systemLanguage": {
+    "placeholders": {
+      "language": {
+        "type": "Object"
+      }
+    }
+  },
+  "couldntLoadTheList": "Couldn't load the list",
+  "retry": "Retry",
+  "tryDifferentFilters": "Try different filters.",
+  "clearSearch": "Clear search",
+  "descending": "Descending",
+  "ascending": "Ascending",
+  "browsePassesFromEvery": "Browse passes from every player.",
+  "passCount": "{count} {count, plural, =1{pass} other{passes}}",
+  "@passCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "noPassesFound": "No passes found",
+  "allPassesLoaded": "All passes loaded",
+  "searchBySongOr": "Search by song or player (#id to find a pass)",
+  "sort": "Sort",
+  "filter": "Filter",
+  "difficulty": "Difficulty",
+  "dragTheSliderTo": "Drag the slider to set the range.",
+  "includeSpecialDifficulties": "Include special difficulties",
+  "keyCountFilter": "Key count",
+  "worldsFirst": "World's first",
+  "gameVersion": "Game version",
+  "resetAll": "Reset all",
+  "hiddenLevel": "Hidden level",
+  "viewPlayerProfile": "View player profile",
+  "findThePeopleWho": "Find the people who make levels by level count, clears, and curations.",
+  "creatorCount": "{count} {count, plural, =1{creator} other{creators}}",
+  "@creatorCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "noCreatorsFound": "No creators found",
+  "allCreatorsLoaded": "All creators loaded",
+  "searchByCreatorName": "Search by creator name (or @account)",
+  "other": "Other",
+  "verificationStatus": "Verification status",
+  "allStatuses": "All statuses",
+  "curationTypes": "Curation types",
+  "onlyShowsCreatorsWith": "Only shows creators with levels of the chosen types.",
+  "matchAny": "Any",
+  "matchAll": "All",
+  "noLinkedAccount": "No linked account",
+  "seePlayerRankingsBy": "See player rankings by score, passes, top difficulty, and more.",
+  "playerCount": "{count} {count, plural, =1{player} other{players}}",
+  "@playerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "noPlayersFound": "No players found",
+  "allPlayersLoaded": "All players loaded",
+  "searchByPlayerName": "Search by player name",
+  "refresh": "Refresh",
+  "topDifficulty": "Top difficulty {difficulty}",
+  "@topDifficulty": {
+    "placeholders": {
+      "difficulty": {
+        "type": "Object"
+      }
+    }
+  },
+  "loadingDifficulties": "Loading difficulties...",
+  "couldntConnectToThe": "Couldn't connect to the server",
+  "findLevelsOnTUF": "Find levels on TUF and download them right away.",
+  "searchBySongArtist": "Search by song, artist, or creator",
+  "includeQDifficulties": "Include Q difficulties",
+  "noCurationTypes": "No curation types",
+  "findByTheGrades": "Find by the grades curators gave.",
+  "tags": "Tags",
+  "noTags": "No tags",
+  "findByTheTags": "Find by the tags on a level.",
+  "clearedLevels": "Cleared levels",
+  "downloadable": "Downloadable",
+  "filterAll": "All",
+  "filterHide": "Hide",
+  "filterOnly": "Only",
+  "clearSelection": "Clear",
+  "includeAll": "All",
+  "specialDifficulties": "Special difficulties",
+  "selectedDifficultiesAreShown": "Selected difficulties are shown in the results too.",
+  "selectAll": "Select all",
+  "deselectAll": "Deselect all",
+  "levelCount": "{count} {count, plural, =1{level} other{levels}}",
+  "@levelCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "detailedView": "Detailed view",
+  "compactView": "Compact view",
+  "noLevelsMatch": "No levels match",
+  "tryADifferentSearch": "Try a different search or filter.",
+  "allLevelsLoaded": "All levels loaded",
+  "back": "Back",
+  "uniquePlayerCount": "{count} {count, plural, =1{player} other{players}}",
+  "@uniquePlayerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "totalClearsSuffix": " ({count} total)",
+  "@totalClearsSuffix": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "couldntLoadPasses": "Couldn't load passes",
+  "noPassesYet": "No passes yet",
+  "firstClear": "First clear",
+  "highestScore": "Highest score",
+  "highestSpeed": "Highest speed",
+  "highestAccuracy": "Highest accuracy",
+  "totalClears": "Total clears",
+  "fullInfo": "Full info",
+  "feeling": "Feeling {feeling}",
+  "@feeling": {
+    "placeholders": {
+      "feeling": {
+        "type": "Object"
+      }
+    }
+  },
+  "itemCount": "{count} {count, plural, =1{item} other{items}}",
+  "@itemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "empty": "Empty",
+  "folderCount": "{count} {count, plural, =1{folder} other{folders}}",
+  "@folderCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "addedManuallyNotIn": "Added manually (not in the app's list)",
+  "updateAvailable": "Update available",
+  "sizeAndDownloadDate": "{size}  ·  downloaded {date}",
+  "@sizeAndDownloadDate": {
+    "placeholders": {
+      "size": {
+        "type": "Object"
+      },
+      "date": {
+        "type": "Object"
+      }
+    }
+  },
+  "update": "Update",
+  "more": "More",
+  "organizeYourDownloadedLevels": "Organize your downloaded levels into folders and check for updates.",
+  "levelCountAndSize": "{count} {count, plural, =1{level} other{levels}}  ·  {size}",
+  "@levelCountAndSize": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "size": {
+        "type": "Object"
+      }
+    }
+  },
+  "checking": "Checking...",
+  "checkForUpdates": "Check for updates",
+  "updateAll": "Update all ({count})",
+  "@updateAll": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "upBackspace": "Up (Backspace)",
+  "newFolder": "New folder",
+  "openInExplorer": "Open in Explorer",
+  "changeLibraryFolder": "Change library folder",
+  "refreshLibrary": "Refresh",
+  "selected": "{count} selected",
+  "@selected": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "move": "Move",
+  "delete": "Delete",
+  "deselect": "Deselect",
+  "open": "Open",
+  "rename": "Rename",
+  "moveToFolder": "Move to folder",
+  "selectAllItems": "Select all",
+  "folderName": "Folder name",
+  "create": "Create",
+  "newName": "New name",
+  "renameConfirm": "Rename",
+  "deleteNamed": "Delete \"{name}\"?",
+  "@deleteNamed": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "deleteItems": "Delete {count} {count, plural, =1{item} other{items}}?",
+  "@deleteItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "thisDeletesItFrom": "This deletes it from disk, including {count} {count, plural, =1{level} other{levels}} inside.",
+  "@thisDeletesItFrom": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "thisDeletesItFromDisk": "This deletes it from disk.",
+  "cancel": "Cancel",
+  "moveNamed": "Move \"{name}\"",
+  "@moveNamed": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "moveItems": "Move {count} {count, plural, =1{item} other{items}}",
+  "@moveItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noSubfolders": "No subfolders.",
+  "moveToRoot": "Move to root",
+  "moveHere": "Move here",
+  "noDownloadedLevelsYet": "No downloaded levels yet",
+  "thisFolderIsEmpty": "This folder is empty",
+  "findLevelsYouLike": "Find levels you like in Levels and download them.",
+  "dragLevelsHereOr": "Drag levels here, or create more folders inside.",
+  "browseLevels": "Browse levels",
+  "levelPacks": "Level Packs",
+  "browseLevelPacksMade": "Browse level packs made by the community and download them in one go, folders and all.",
+  "searchByPackName": "Search by pack name",
+  "packCount": "{count} {count, plural, =1{pack} other{packs}}",
+  "@packCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "couldntLoadPacks": "Couldn't load packs",
+  "noPacksFound": "No packs found",
+  "trySearchingForA": "Try searching for a different name.",
+  "allPacksLoaded": "All packs loaded",
+  "moreCount": "+{more} more",
+  "@moreCount": {
+    "placeholders": {
+      "more": {
+        "type": "Object"
+      }
+    }
+  },
+  "pinnedPack": "Pinned pack",
+  "likeCount": "{count} {count, plural, =1{like} other{likes}}",
+  "@likeCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "allPacks": "All packs",
+  "downloadPack": "Download pack",
+  "downloadPackCount": "Download pack ({count})",
+  "@downloadPackCount": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "items": "Items",
+  "collapseAll": "Collapse all",
+  "expandAll": "Expand all",
+  "itemAndLevelCount": "{items} {items, plural, =1{item} other{items}} · {levelCount} {levelCount, plural, =1{level} other{levels}}",
+  "@itemAndLevelCount": {
+    "placeholders": {
+      "items": {
+        "type": "int"
+      },
+      "levelCount": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadFolderCount": "Download folder ({count})",
+  "@downloadFolderCount": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "emptyFolder": "Empty folder",
+  "allDownloaded": "All downloaded",
+  "downloadNamed": "Download '{label}'",
+  "@downloadNamed": {
+    "placeholders": {
+      "label": {
+        "type": "Object"
+      }
+    }
+  },
+  "downloadPackExplanation": "Downloads the {count} {count, plural, =1{level} other{levels}} you don't have yet, one by one.\nThey're saved in the '{folder}' folder of the library, in the same folder layout as the pack.\nLevels you already have are skipped and stay where they are.",
+  "@downloadPackExplanation": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "folder": {
+        "type": "Object"
+      }
+    }
+  },
+  "download": "Download",
+  "failedCountSuffix": " · {failedCount} failed",
+  "@failedCountSuffix": {
+    "placeholders": {
+      "failedCount": {
+        "type": "Object"
+      }
+    }
+  },
+  "waiting": "Waiting",
+  "stopping": "Stopping",
+  "stop": "Stop",
+  "couldntLoadThePack": "Couldn't load the pack contents",
+  "thisPackIsEmpty": "This pack is empty",
+  "playersPass": "{player}'s pass",
+  "@playersPass": {
+    "placeholders": {
+      "player": {
+        "type": "Object"
+      }
+    }
+  },
+  "loadingScore": "Loading score...",
+  "couldntLoadTheScore": "Couldn't load the score",
+  "topDifficultyCleared": "Top difficulty cleared",
+  "worldsFirstClearCount": "{count} world's first {count, plural, =1{clear} other{clears}}",
+  "@worldsFirstClearCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "rankedScoreWithoutThis": "Ranked score without this pass",
+  "clearedOn": "Cleared {date}",
+  "@clearedOn": {
+    "placeholders": {
+      "date": {
+        "type": "Object"
+      }
+    }
+  },
+  "overallRank": "Overall rank",
+  "score": "Score",
+  "accuracy": "Accuracy",
+  "speed": "Speed",
+  "feelingRating": "Feeling rating",
+  "expectedRating": "Expected rating",
+  "watchVideoInBrowser": "Watch video in browser",
+  "leavingTUF": "Leaving TUF?",
+  "youAreAboutTo": "You are about to visit an external site. Only continue if you trust this destination.",
+  "trustForThisSession": "Trust {host} for this session",
+  "@trustForThisSession": {
+    "placeholders": {
+      "host": {
+        "type": "Object"
+      }
+    }
+  },
+  "proceed": "Continue",
+  "openVideo": "Open video",
+  "loadingPasses": "Loading passes…",
+  "loadingLevels": "Loading levels…",
+  "tilesUnit": "tiles",
+  "creator": "Creator",
+  "noLevels": "No levels",
+  "totalLevels": "Total levels",
+  "curatedLevels": "Curated levels",
+  "totalLevelClears": "Total level clears",
+  "bio": "Bio",
+  "levelsByDifficulty": "Levels by difficulty",
+  "noPasses": "No passes",
+  "difficultiesCleared": "Difficulties cleared",
+  "rankedScore": "Ranked Score",
+  "averageXAcc": "Average X-acc",
+  "totalScore": "Total Score",
+  "viewUsersPacks": "View user's packs",
+  "viewCreatorProfile": "View creator profile",
+  "playerBio": "Bio",
+  "clearsByDifficulty": "Clears by difficulty",
+  "clearCount": "{count} {count, plural, =1{clear} other{clears}}",
+  "@clearCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "today": "Today",
+  "oneDayAgo": "1 day ago",
+  "daysAgo": "{days} days ago",
+  "@daysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "Object"
+      }
+    }
+  },
+  "rank": "Rank",
+  "followerCount": "{count} {count, plural, =1{follower} other{followers}}",
+  "@followerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "alsoKnownAs": "Also known as: {aliases}",
+  "@alsoKnownAs": {
+    "placeholders": {
+      "aliases": {
+        "type": "Object"
+      }
+    }
+  },
+  "showAll": "Show all",
+  "allStats": "All stats",
+  "rankedScoreRank": "Ranked score rank",
+  "atHighestRankRight": "At highest rank right now!",
+  "highestRank": "Highest rank: #{rank} ({date})",
+  "@highestRank": {
+    "placeholders": {
+      "rank": {
+        "type": "Object"
+      },
+      "date": {
+        "type": "Object"
+      }
+    }
+  },
+  "unranked": "Unranked",
+  "close": "Close",
+  "titleStats": "{title}'s stats",
+  "@titleStats": {
+    "placeholders": {
+      "title": {
+        "type": "Object"
+      }
+    }
+  },
+  "viewPass": "View pass",
+  "difficultyClearCount": "{difficulty} · {count} {count, plural, =1{clear} other{clears}}",
+  "@difficultyClearCount": {
+    "placeholders": {
+      "difficulty": {
+        "type": "Object"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "levelUploadPermission": "Level upload permission",
+  "uploadConditions": "Upload conditions: {text}",
+  "@uploadConditions": {
+    "placeholders": {
+      "text": {
+        "type": "Object"
+      }
+    }
+  },
+  "playerPassCount": "{count} {count, plural, =1{pass} other{passes}}",
+  "@playerPassCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "searchBySongOrArtist": "Search by song or artist",
+  "hideReclears": "Hide reclears",
+  "levelsSection": "Levels",
+  "creatorLevelCount": "{count} {count, plural, =1{level} other{levels}}",
+  "@creatorLevelCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "searchThisCreatorsLevels": "Search this creator's levels",
+  "tournaments": "Tournaments",
+  "openPack": "Open pack",
+  "placementCount": "{count} {count, plural, =1{placement} other{placements}}",
+  "@placementCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "otherTournaments": "Other tournaments",
+  "scoreBreakdown": "Score breakdown",
+  "includeDuplicates": "Include duplicates",
+  "couldntLoadRankHistory": "Couldn't load rank history",
+  "noRankHistoryStored": "No rank history stored yet",
+  "rankOverTime": "Rank over time",
+  "rankedScoreLine": "Ranked score",
+  "generalScore": "General score",
+  "passesAboveCountToward": "Passes above count toward Ranked Score",
+  "scoreOrMore": "{score}+",
+  "@scoreOrMore": {
+    "placeholders": {
+      "score": {
+        "type": "Object"
+      }
+    }
+  },
+  "favorites": "Favorites",
+  "pack": "Pack",
+  "rankedScoreValue": "Ranked Score {score}",
+  "@rankedScoreValue": {
+    "placeholders": {
+      "score": {
+        "type": "Object"
+      }
+    }
+  },
+  "chartLevelCount": "{count} {count, plural, =1{level} other{levels}}",
+  "@chartLevelCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "couldntOpenTheLevel": "Couldn't open the level",
+  "couldntOpenThePass": "Couldn't open the pass",
+  "theLevelOfThis": "The level of this pass is unknown.",
+  "couldntOpenThePack": "Couldn't open the pack.",
+  "notFound": "Not found",
+  "nothingHere": "Nothing here",
+  "couldntOpenThePage": "Couldn't open the page",
+  "collapse": "Collapse",
+  "expand": "Expand",
+  "couldntLoadMore": "Couldn't load more",
+  "expectedDifficulty": "Expected difficulty: {difficulty}",
+  "@expectedDifficulty": {
+    "placeholders": {
+      "difficulty": {
+        "type": "Object"
+      }
+    }
+  },
+  "curation": "Curation: {curation}",
+  "@curation": {
+    "placeholders": {
+      "curation": {
+        "type": "Object"
+      }
+    }
+  },
+  "baseScoreOverridePP": "Base score override: {score} PP (used instead of the difficulty's base score)",
+  "@baseScoreOverridePP": {
+    "placeholders": {
+      "score": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "length": "Length",
+  "tileCount": "Tiles",
+  "noCreatorInfo": "No creator info",
+  "clearedByPlayerTotal": "Cleared by {players} {players, plural, =1{player} other{players}} ({clears} total)",
+  "@clearedByPlayerTotal": {
+    "placeholders": {
+      "players": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "clears": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "likes": "Likes",
+  "watchVideo": "Watch video",
+  "steamWorkshop": "Steam Workshop",
+  "downloads": "Downloads",
+  "levelFileSize": "Level file size",
+  "downloadToLibrary": "Download to library",
+  "updateToTheNew": "Update to the new version",
+  "alreadyDownloaded": "Already downloaded",
+  "downloaded": "Downloaded",
+  "noFileToDownload": "No file to download directly from TUF",
+  "noLink": "No link",
+  "addedOn": "Added: {date}",
+  "@addedOn": {
+    "placeholders": {
+      "date": {
+        "type": "Object"
+      }
+    }
+  },
+  "team": "Team",
+  "baseScore": "Base score",
+  "charters": "Charters",
+  "vfx": "VFX",
+  "worldsFirstClearBadge": "World's First Clear!",
+  "worldsFirstPurePerfect": "World's First Pure Perfect!",
+  "autoSubmitted": "Auto-submitted",
+  "submittedStraightFromThe": "Submitted straight from the game",
+  "noHold": "No Hold",
+  "altHoldOption": "Alt. hold option",
+  "beforeTheEngineChange": "Before the engine change (up to v2.9.8).\nTiming engine issues made it less stable and precise.",
+  "beforeXPerfectUp": "Before X-Perfect (up to v3.3.1).",
+  "whatThisPassAdds": "What this pass adds to the ranked score",
+  "doesntCountTowardThe": "Doesn't count toward the ranked score (what it could have added)",
+  "speedMultiplier": "Speed",
+  "clearSortRecent": "Date",
+  "clearSortScore": "Score",
+  "clearSortAccuracy": "Accuracy",
+  "clearSortDifficulty": "Difficulty",
+  "clearSortSpeed": "Speed",
+  "clearSortKeyCount": "Key count",
+  "clearSortRandom": "Random",
+  "keyCountFilterAll": "All",
+  "keyCountFilterK12": "12K",
+  "keyCountFilterK16": "16K",
+  "worldsFirstFilterNone": "All",
+  "worldsFirstFilterWf": "WF",
+  "worldsFirstFilterWfpp": "WF PP",
+  "worldsFirstFilterEither": "Either",
+  "worldsFirstFilterBoth": "Both",
+  "gameVersionFilterAll": "All",
+  "gameVersionFilterLatest": "Latest",
+  "gameVersionFilterPre340": "<3.4.0",
+  "gameVersionFilterV2": "v2",
+  "leaderboardSortRankedScore": "Ranked Score",
+  "leaderboardSortTotalScoreV2": "Total Score",
+  "leaderboardSortGeneralScore": "General Score",
+  "leaderboardSortPpScore": "PP Score",
+  "leaderboardSortWfScore": "WF Score",
+  "leaderboardSortWfPPScore": "WF PP Score",
+  "leaderboardSortScore12K": "12K Score",
+  "leaderboardSortAverageXacc": "Average X-acc",
+  "leaderboardSortTotalPasses": "Total Passes",
+  "leaderboardSortUniversalPassCount": "Universal Passes",
+  "leaderboardSortWorldsFirstCount": "WF Passes",
+  "leaderboardSortWorldsFirstPPCount": "WF PP Passes",
+  "leaderboardSortTopDiff": "Top Difficulty",
+  "leaderboardSortTop12kDiff": "Top 12K Difficulty",
+  "creatorSortChartsTotal": "Total Levels",
+  "creatorSortChartsCharted": "Levels Charted",
+  "creatorSortChartsVfxed": "Levels VFX'd",
+  "creatorSortChartsTeamed": "Levels as a team member",
+  "creatorSortTotalChartClears": "Total Level Clears",
+  "creatorSortTotalChartLikes": "Total Level Likes",
+  "creatorSortName": "Name",
+  "packSortRecent": "Recent",
+  "packSortName": "Name",
+  "packSortLevels": "Level Count",
+  "packSortFavorites": "Favorites",
+  "judgementTooEarly": "Too Early",
+  "judgementEarly": "Early!",
+  "judgementEarlyPerfect": "EPerfect",
+  "judgementPerfectMinus": "Perfect−",
+  "judgementPerfect": "Perfect",
+  "judgementPerfectPlus": "Perfect+",
+  "judgementLatePerfect": "LPerfect",
+  "judgementLate": "Late!",
+  "judgementTooLate": "Too Late",
+  "playerScoreRankedScore": "Ranked Score",
+  "playerScoreRankedScoreDescription": "Decaying sum of 20 best clears (excluding reclears)",
+  "playerScoreTotalScoreV2": "Total Score",
+  "playerScoreTotalScoreV2Description": "Sum of all clears without reclears",
+  "playerScoreGeneralScore": "General Score",
+  "playerScoreGeneralScoreDescription": "Sum of all clears including reclears",
+  "playerScorePpScore": "PP Score",
+  "playerScorePpScoreDescription": "Ranked Score, but all clears must also be pure perfects",
+  "playerScoreWfScore": "WF Score",
+  "playerScoreWfScoreDescription": "Sum of all level base scores from world's first passes",
+  "playerScoreWfPPScore": "WF PP Score",
+  "playerScoreWfPPScoreDescription": "Sum of all level base scores from world's first pure perfect passes",
+  "playerScoreScore12K": "12K Score",
+  "playerScoreScore12KDescription": "Ranked Score, but all clears must be 12K",
+  "playerScoreAverageXacc": "Average X-acc",
+  "playerScoreAverageXaccDescription": "Average accuracy of top 20 passes",
+  "creatorVerificationAllowed": "Allowed",
+  "creatorVerificationConditional": "Conditional",
+  "creatorVerificationPending": "Pending",
+  "creatorVerificationDeclined": "Declined",
+  "playerPassSortScore": "Score",
+  "playerPassSortImpact": "Impact",
+  "playerPassSortSpeed": "Speed",
+  "playerPassSortDate": "Date",
+  "playerPassSortXacc": "X-Accuracy",
+  "playerPassSortDifficulty": "Difficulty",
+  "rankRangeDays30": "30 days",
+  "rankRangeDays90": "90 days",
+  "rankRangeDays365": "1 year",
+  "rankRangeAll": "All time",
+  "levelSortRecent": "Newest (ID)",
+  "levelSortDiff": "Difficulty",
+  "levelSortClears": "Clears",
+  "levelSortTotalClears": "Total clears",
+  "levelSortLikes": "Likes",
+  "levelSortBaseScore": "Base score",
+  "levelSortBpm": "BPM",
+  "levelSortTiles": "Tiles",
+  "levelSortTime": "Length",
+  "levelSortRandom": "Random",
+  "hidden": "Hidden",
+  "extra": "Extra",
+  "cancelled": "Cancelled"
+}

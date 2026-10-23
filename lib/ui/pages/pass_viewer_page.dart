@@ -115,11 +115,11 @@ class _PassViewerPageState extends State<PassViewerPage> {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            tooltip: tr('뒤로', 'Back'),
+            tooltip: l10n.back,
             onPressed: () => Navigator.of(context).maybePop(),
             icon: const Icon(Icons.arrow_back),
           ),
-          title: Text(tr('${pass.playerName}의 클리어', "${pass.playerName}'s pass")),
+          title: Text(l10n.playersPass(pass.playerName)),
         ),
         body: SmoothScrollbar(
           controller: _scroll,
@@ -221,9 +221,7 @@ class _PlayerCard extends StatelessWidget {
                       alignment: Alignment.centerLeft,
                       child: player == null && score == null
                           ? Text(
-                              loading
-                                  ? tr('점수 불러오는 중...', 'Loading score...')
-                                  : tr('점수를 불러오지 못했어요', "Couldn't load the score"),
+                              loading ? l10n.loadingScore : l10n.couldntLoadTheScore,
                               key: ValueKey(loading),
                               style: theme.textTheme.bodyMedium?.copyWith(color: muted),
                             )
@@ -246,22 +244,16 @@ class _PlayerCard extends StatelessWidget {
                                 if (player?.topDifficulty case final top?) ...[
                                   const SizedBox(width: 12),
                                   HoverTip(
-                                    message: tr('가장 높이 깬 난이도', 'Top difficulty cleared'),
+                                    message: l10n.topDifficultyCleared,
                                     child: Text(top, style: theme.textTheme.bodyMedium?.copyWith(color: muted)),
                                   ),
                                 ],
                                 if (player != null) ...[
                                   const SizedBox(width: 12),
                                   HoverTip(
-                                    message: tr(
-                                      '세계 최초 클리어 ${formatNumber(player.worldsFirstCount)}개',
-                                      "${formatNumber(player.worldsFirstCount)} world's first ${plural(player.worldsFirstCount, 'clear')}",
-                                    ),
+                                    message: l10n.worldsFirstClearCount(player.worldsFirstCount),
                                     child: Text(
-                                      tr(
-                                        '클리어 ${formatNumber(player.totalPasses)}개',
-                                        "${formatNumber(player.totalPasses)} ${plural(player.totalPasses, 'pass', 'passes')}",
-                                      ),
+                                      l10n.passCount(player.totalPasses),
                                       style: theme.textTheme.bodyMedium?.copyWith(color: muted),
                                     ),
                                   ),
@@ -272,7 +264,7 @@ class _PlayerCard extends StatelessWidget {
                     // Ranked score without this pass.
                     if (score != null && score.previous > 0)
                       HoverTip(
-                        message: tr('이 기록이 없었을 때의 랭킹 점수', 'Ranked score without this pass'),
+                        message: l10n.rankedScoreWithoutThis,
                         child: Text(
                           formatScore(score.previous),
                           style: theme.textTheme.bodySmall?.copyWith(color: muted),
@@ -280,10 +272,7 @@ class _PlayerCard extends StatelessWidget {
                       ),
                     if (pass.clearedAt case final date?) ...[
                       const SizedBox(height: 4),
-                      Text(
-                        tr('${formatDate(date)} 클리어', 'Cleared ${formatDate(date)}'),
-                        style: theme.textTheme.bodySmall?.copyWith(color: muted),
-                      ),
+                      Text(l10n.clearedOn(formatDate(date)), style: theme.textTheme.bodySmall?.copyWith(color: muted)),
                     ],
                   ],
                 ),
@@ -296,7 +285,7 @@ class _PlayerCard extends StatelessWidget {
                     ? const SizedBox(key: ValueKey('none'))
                     : HoverTip(
                         key: const ValueKey('rank'),
-                        message: tr('전체 랭킹 순위', 'Overall rank'),
+                        message: l10n.overallRank,
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
@@ -337,9 +326,9 @@ class _PassDetails extends StatelessWidget {
           // Same height as the right column, so the spare space is split above and below.
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _StatRow(label: tr('점수', 'Score'), value: formatScore(pass.score)),
+            _StatRow(label: l10n.score, value: formatScore(pass.score)),
             _StatRow(
-              label: tr('정확도', 'Accuracy'),
+              label: l10n.accuracy,
               value: formatAccuracy(pass.accuracy),
               glow: pass.isPureXPerfect
                   ? (JudgementColors.platinum, JudgementColors.platinumGlow)
@@ -348,15 +337,15 @@ class _PassDetails extends StatelessWidget {
                   : null,
             ),
             _StatRow(
-              label: tr('속도', 'Speed'),
+              label: l10n.speed,
               value: '${formatSpeed(pass.speed)}x',
               last: pass.feelingRating == null && pass.expectedRating == null,
             ),
             // Rows without a rating are left out, and the last row has no bottom padding.
             if (pass.feelingRating case final feeling?)
-              _StatRow(label: tr('체감 난이도', 'Feeling rating'), value: feeling, last: pass.expectedRating == null),
+              _StatRow(label: l10n.feelingRating, value: feeling, last: pass.expectedRating == null),
             if (pass.expectedRating case final expected?)
-              _StatRow(label: tr('예상 난이도', 'Expected rating'), value: expected, last: true),
+              _StatRow(label: l10n.expectedRating, value: expected, last: true),
             if (flags.isNotEmpty) ...[
               const SizedBox(height: 16),
               Divider(height: 1, color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
@@ -447,7 +436,7 @@ class _JudgementBox extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(tr('판정', 'Judgements'), style: theme.textTheme.titleSmall),
+          Text(l10n.judgements, style: theme.textTheme.titleSmall),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -542,7 +531,7 @@ class _PassVideoState extends State<_PassVideo> {
                   child: TextButton.icon(
                     onPressed: () => app.openLink(widget.videoLink),
                     icon: const Icon(Icons.open_in_new),
-                    label: Text(tr('브라우저에서 영상 보기', 'Watch video in browser')),
+                    label: Text(l10n.watchVideoInBrowser),
                   ),
                 ),
               ),

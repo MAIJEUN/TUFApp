@@ -42,7 +42,7 @@ class _ProfileSectionState extends State<ProfileSection> {
           ...widget.trailing,
           if (widget.collapsible)
             IconButton(
-              tooltip: _expanded ? tr('접기', 'Collapse') : tr('펼치기', 'Expand'),
+              tooltip: _expanded ? l10n.collapse : l10n.expand,
               onPressed: () => setState(() => _expanded = !_expanded),
               icon: AnimatedRotation(
                 turns: _expanded ? 0 : 0.5,

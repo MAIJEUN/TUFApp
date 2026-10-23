@@ -8,64 +8,79 @@ import 'profile.dart';
 
 /// Pass list sort. [apiValue] matches the website (with an _ASC / _DESC suffix).
 enum ClearSort {
-  recent('최신순', 'Date', 'RECENT'),
-  score('점수', 'Score', 'SCORE'),
-  accuracy('정확도', 'Accuracy', 'XACC'),
-  difficulty('난이도', 'Difficulty', 'DIFF'),
-  speed('속도', 'Speed', 'SPEED'),
-  keyCount('키 수', 'Key count', 'KEYCOUNT'),
-  random('무작위', 'Random', 'RANDOM');
+  recent('RECENT'),
+  score('SCORE'),
+  accuracy('XACC'),
+  difficulty('DIFF'),
+  speed('SPEED'),
+  keyCount('KEYCOUNT'),
+  random('RANDOM');
 
-  const ClearSort(this._ko, this._en, this.apiValue);
+  const ClearSort(this.apiValue);
 
-  final String _ko;
-  final String _en;
-  String get label => tr(_ko, _en);
+  String get label => switch (this) {
+    recent => l10n.clearSortRecent,
+    score => l10n.clearSortScore,
+    accuracy => l10n.clearSortAccuracy,
+    difficulty => l10n.clearSortDifficulty,
+    speed => l10n.clearSortSpeed,
+    keyCount => l10n.clearSortKeyCount,
+    random => l10n.clearSortRandom,
+  };
   final String apiValue;
 }
 
 /// Key count filter.
 enum KeyCountFilter {
-  all('전체', 'All', 'all'),
-  k12('12키', '12K', '12k'),
-  k16('16키', '16K', '16k');
+  all('all'),
+  k12('12k'),
+  k16('16k');
 
-  const KeyCountFilter(this._ko, this._en, this.apiValue);
+  const KeyCountFilter(this.apiValue);
 
-  final String _ko;
-  final String _en;
-  String get label => tr(_ko, _en);
+  String get label => switch (this) {
+    all => l10n.keyCountFilterAll,
+    k12 => l10n.keyCountFilterK12,
+    k16 => l10n.keyCountFilterK16,
+  };
   final String apiValue;
 }
 
 /// World's first filter.
 enum WorldsFirstFilter {
-  none('전체', 'All', 'none'),
-  wf('WF', 'WF', 'wf'),
-  wfpp('WF PP', 'WF PP', 'wfpp'),
-  either('둘 중 하나', 'Either', 'either'),
-  both('둘 다', 'Both', 'both');
+  none('none'),
+  wf('wf'),
+  wfpp('wfpp'),
+  either('either'),
+  both('both');
 
-  const WorldsFirstFilter(this._ko, this._en, this.apiValue);
+  const WorldsFirstFilter(this.apiValue);
 
-  final String _ko;
-  final String _en;
-  String get label => tr(_ko, _en);
+  String get label => switch (this) {
+    none => l10n.worldsFirstFilterNone,
+    wf => l10n.worldsFirstFilterWf,
+    wfpp => l10n.worldsFirstFilterWfpp,
+    either => l10n.worldsFirstFilterEither,
+    both => l10n.worldsFirstFilterBoth,
+  };
   final String apiValue;
 }
 
 /// Filter by the game version a pass was made on.
 enum GameVersionFilter {
-  all('전체', 'All', 'all'),
-  latest('최신', 'Latest', 'latest'),
-  pre340('<3.4.0', '<3.4.0', 'pre340'),
-  v2('v2', 'v2', 'v2');
+  all('all'),
+  latest('latest'),
+  pre340('pre340'),
+  v2('v2');
 
-  const GameVersionFilter(this._ko, this._en, this.apiValue);
+  const GameVersionFilter(this.apiValue);
 
-  final String _ko;
-  final String _en;
-  String get label => tr(_ko, _en);
+  String get label => switch (this) {
+    all => l10n.gameVersionFilterAll,
+    latest => l10n.gameVersionFilterLatest,
+    pre340 => l10n.gameVersionFilterPre340,
+    v2 => l10n.gameVersionFilterV2,
+  };
   final String apiValue;
 }
 
@@ -125,26 +140,37 @@ class ClearSearchQuery {
 
 /// Leaderboard sort keys. Names match the API's sortBy values.
 enum LeaderboardSort {
-  rankedScore('랭크 점수', 'Ranked Score'),
-  totalScoreV2('총 점수', 'Total Score'),
-  generalScore('일반 점수', 'General Score'),
-  ppScore('완벽한 플레이 점수', 'PP Score'),
-  wfScore('세계 최초 점수', 'WF Score'),
-  wfPPScore('세계 최초 완플 점수', 'WF PP Score'),
-  score12K('12키 점수', '12K Score'),
-  averageXacc('평균 절대정확도', 'Average X-acc'),
-  totalPasses('클리어한 레벨', 'Total Passes'),
-  universalPassCount('U 클리어', 'Universal Passes'),
-  worldsFirstCount('세계 최초 클리어', 'WF Passes'),
-  worldsFirstPPCount('세계 최초 완플 클리어', 'WF PP Passes'),
-  topDiff('최고 난이도', 'Top Difficulty'),
-  top12kDiff('최고 12키 난이도', 'Top 12K Difficulty');
+  rankedScore,
+  totalScoreV2,
+  generalScore,
+  ppScore,
+  wfScore,
+  wfPPScore,
+  score12K,
+  averageXacc,
+  totalPasses,
+  universalPassCount,
+  worldsFirstCount,
+  worldsFirstPPCount,
+  topDiff,
+  top12kDiff;
 
-  const LeaderboardSort(this._ko, this._en);
-
-  final String _ko;
-  final String _en;
-  String get label => tr(_ko, _en);
+  String get label => switch (this) {
+    rankedScore => l10n.leaderboardSortRankedScore,
+    totalScoreV2 => l10n.leaderboardSortTotalScoreV2,
+    generalScore => l10n.leaderboardSortGeneralScore,
+    ppScore => l10n.leaderboardSortPpScore,
+    wfScore => l10n.leaderboardSortWfScore,
+    wfPPScore => l10n.leaderboardSortWfPPScore,
+    score12K => l10n.leaderboardSortScore12K,
+    averageXacc => l10n.leaderboardSortAverageXacc,
+    totalPasses => l10n.leaderboardSortTotalPasses,
+    universalPassCount => l10n.leaderboardSortUniversalPassCount,
+    worldsFirstCount => l10n.leaderboardSortWorldsFirstCount,
+    worldsFirstPPCount => l10n.leaderboardSortWorldsFirstPPCount,
+    topDiff => l10n.leaderboardSortTopDiff,
+    top12kDiff => l10n.leaderboardSortTop12kDiff,
+  };
 
   /// Keys whose value is a difficulty (shown as an icon).
   bool get isDifficulty => this == topDiff || this == top12kDiff;
@@ -173,7 +199,7 @@ class LeaderboardPlayer {
     final creator = user is Map<String, dynamic> ? user['creator'] : null;
     return LeaderboardPlayer(
       id: asInt(json['id']),
-      name: asStringOrNull(json['name']) ?? tr('알 수 없음', 'Unknown'),
+      name: asStringOrNull(json['name']) ?? l10n.unknown,
       avatar: AvatarUrls.of(json),
       rank: asIntOrNull(json['rank']) ?? asIntOrNull(json['rankedScoreRank']) ?? 0,
       country: asStringOrNull(json['country']),
@@ -216,19 +242,23 @@ class LeaderboardPlayer {
 
 /// Creator list sort keys. Names match the API's sortBy values and labels match the website.
 enum CreatorSort {
-  chartsTotal('총 레벨', 'Total Levels'),
-  chartsCharted('채보 레벨', 'Levels Charted'),
-  chartsVfxed('이펙트 레벨', "Levels VFX'd"),
-  chartsTeamed('팀 명의 레벨', 'Levels as a team member'),
-  totalChartClears('모든 레벨 클리어 수', 'Total Level Clears'),
-  totalChartLikes('모든 레벨 좋아요 수', 'Total Level Likes'),
-  name('이름', 'Name');
+  chartsTotal,
+  chartsCharted,
+  chartsVfxed,
+  chartsTeamed,
+  totalChartClears,
+  totalChartLikes,
+  name;
 
-  const CreatorSort(this._ko, this._en);
-
-  final String _ko;
-  final String _en;
-  String get label => tr(_ko, _en);
+  String get label => switch (this) {
+    chartsTotal => l10n.creatorSortChartsTotal,
+    chartsCharted => l10n.creatorSortChartsCharted,
+    chartsVfxed => l10n.creatorSortChartsVfxed,
+    chartsTeamed => l10n.creatorSortChartsTeamed,
+    totalChartClears => l10n.creatorSortTotalChartClears,
+    totalChartLikes => l10n.creatorSortTotalChartLikes,
+    name => l10n.creatorSortName,
+  };
 }
 
 /// One creator list row. GET /v3/creators/leaderboard
@@ -249,7 +279,7 @@ class CreatorListEntry {
     final user = json['user'] is Map<String, dynamic> ? json['user'] as Map<String, dynamic> : null;
     return CreatorListEntry(
       id: asInt(json['id']),
-      name: asStringOrNull(json['name']) ?? tr('알 수 없음', 'Unknown'),
+      name: asStringOrNull(json['name']) ?? l10n.unknown,
       avatar: user == null ? const AvatarUrls() : AvatarUrls.of(user),
       verification: CreatorVerification.fromApi(json['verificationStatus']),
       handle: asStringOrNull(user?['username']),

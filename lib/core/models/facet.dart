@@ -52,7 +52,7 @@ class FacetGroup {
   final List<FacetItem> items;
 
   /// Resolved when shown, so it follows language changes.
-  String get title => name ?? tr('기타', 'Other');
+  String get title => name ?? l10n.other;
 }
 
 /// Tags or curation types arranged in group order.

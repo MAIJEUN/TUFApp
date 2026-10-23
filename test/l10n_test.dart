@@ -12,11 +12,17 @@ import 'package:tufapp/main.dart';
 void main() {
   tearDown(() => appLanguage = AppLanguage.ko);
 
-  test('tr는 지금 언어의 글을 고른다', () {
-    expect(tr('받기', 'Download'), '받기');
+  test('l10n은 지금 언어의 글을 고른다', () {
+    expect(l10n.download, '받기');
     appLanguage = AppLanguage.en;
-    expect(tr('받기', 'Download'), 'Download');
+    expect(l10n.download, 'Download');
     expect(ClearSort.recent.label, 'Date', reason: '목록 항목 이름도 언어를 따른다');
+  });
+
+  test('언어마다 번역 파일의 글이 모두 있다', () {
+    expect([for (final language in AppLanguage.values) language.code], containsAll(['en', 'ko']));
+    expect(AppLanguage.ko.nativeName, '한국어');
+    expect(AppLanguage.en.nativeName, 'English');
   });
 
   test('묶음이 없는 태그의 묶음 이름도 언어를 바꾸면 따라 바뀐다', () {
@@ -26,10 +32,14 @@ void main() {
     expect(catalog.groups.single.title, 'Other');
   });
 
-  test('영어 단수·복수', () {
-    expect(plural(1, 'level'), 'level');
-    expect(plural(0, 'level'), 'levels');
-    expect(plural(2, 'pass', 'passes'), 'passes');
+  test('영어 단수·복수와 천 단위 쉼표', () {
+    appLanguage = AppLanguage.en;
+    expect(l10n.levelCount(1), '1 level');
+    expect(l10n.levelCount(0), '0 levels');
+    expect(l10n.passCount(1234), '1,234 passes');
+    expect(l10n.updatesAvailable(1), '1 level has an update.');
+    appLanguage = AppLanguage.ko;
+    expect(l10n.levelCount(1234), '레벨 1,234개');
   });
 
   test('날짜 형식', () {

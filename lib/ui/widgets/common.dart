@@ -155,7 +155,7 @@ class JobProgressIndicator extends StatelessWidget {
           ),
         ),
         IconButton(
-          tooltip: tr('취소', 'Cancel'),
+          tooltip: l10n.cancel,
           visualDensity: VisualDensity.compact,
           onPressed: job.cancel,
           icon: const Icon(Icons.close),
@@ -181,7 +181,7 @@ class LoadMoreError extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            tr('더 불러오지 못했어요', "Couldn't load more"),
+            l10n.couldntLoadMore,
             style: theme.textTheme.titleSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 4),
@@ -193,11 +193,7 @@ class LoadMoreError extends StatelessWidget {
             style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 12),
-          FilledButton.tonalIcon(
-            onPressed: onRetry,
-            icon: const Icon(Icons.refresh),
-            label: Text(tr('다시 시도', 'Retry')),
-          ),
+          FilledButton.tonalIcon(onPressed: onRetry, icon: const Icon(Icons.refresh), label: Text(l10n.retry)),
         ],
       ),
     );

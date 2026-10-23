@@ -202,14 +202,14 @@ class _StartupState extends StatelessWidget {
           ? EmptyState(
               key: const ValueKey('loading'),
               icon: const CircularProgressIndicator(),
-              title: tr('난이도 정보를 불러오는 중...', 'Loading difficulties...'),
+              title: l10n.loadingDifficulties,
             )
           : EmptyState(
               key: const ValueKey('error'),
               icon: const Icon(Icons.cloud_off),
-              title: tr('서버에 연결하지 못했습니다', "Couldn't connect to the server"),
+              title: l10n.couldntConnectToThe,
               message: error,
-              action: FilledButton(onPressed: onRetry, child: Text(tr('다시 시도', 'Retry'))),
+              action: FilledButton(onPressed: onRetry, child: Text(l10n.retry)),
             ),
     ),
   );
@@ -224,10 +224,10 @@ class _Header extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(tr('레벨 찾기', 'Levels'), style: theme.textTheme.headlineMedium),
+        Text(l10n.levels, style: theme.textTheme.headlineMedium),
         const SizedBox(height: 4),
         Text(
-          tr('TUF에 등록된 레벨을 찾아서 바로 받아보세요.', 'Find levels on TUF and download them right away.'),
+          l10n.findLevelsOnTUF,
           style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         ),
       ],
@@ -254,7 +254,7 @@ class _Toolbar extends StatelessWidget {
           child: SearchBar(
             controller: searchController,
             focusNode: PageCommandScope.searchFocusOf(context),
-            hintText: tr('곡 이름, 작곡가, 제작자로 검색', 'Search by song, artist, or creator'),
+            hintText: l10n.searchBySongArtist,
             leading: const Icon(Icons.search),
             elevation: const WidgetStatePropertyAll(0),
             padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 16)),
@@ -270,7 +270,7 @@ class _Toolbar extends StatelessWidget {
                   child: text.isNotEmpty
                       ? IconButton(
                           key: const ValueKey('clear'),
-                          tooltip: tr('검색어 지우기', 'Clear search'),
+                          tooltip: l10n.clearSearch,
                           icon: const Icon(Icons.close),
                           onPressed: () {
                             searchController.clear();
@@ -288,7 +288,7 @@ class _Toolbar extends StatelessWidget {
           // Recreate the menu when the sort changes from outside (like a reset) or the language changes.
           key: ValueKey((levels.sort.key, appLanguage)),
           initialSelection: levels.sort,
-          label: Text(tr('정렬', 'Sort')),
+          label: Text(l10n.sort),
           width: 180,
           onSelected: (option) {
             if (option != null) levels.setSort(option);
@@ -299,7 +299,7 @@ class _Toolbar extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         IconButton.filledTonal(
-          tooltip: levels.ascending ? tr('오름차순', 'Ascending') : tr('내림차순', 'Descending'),
+          tooltip: levels.ascending ? l10n.ascending : l10n.descending,
           onPressed: levels.toggleOrder,
           icon: AnimatedRotation(
             turns: levels.ascending ? 0.5 : 0,
@@ -319,13 +319,13 @@ class _Toolbar extends StatelessWidget {
                     key: const ValueKey('open'),
                     onPressed: levels.toggleFilterOpen,
                     icon: filterIcon,
-                    label: Text(tr('필터', 'Filter')),
+                    label: Text(l10n.filter),
                   )
                 : OutlinedButton.icon(
                     key: const ValueKey('closed'),
                     onPressed: levels.toggleFilterOpen,
                     icon: filterIcon,
-                    label: Text(tr('필터', 'Filter')),
+                    label: Text(l10n.filter),
                   ),
           ),
         ),
@@ -362,9 +362,9 @@ class _FilterCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(tr('난이도', 'Difficulty'), style: theme.textTheme.titleMedium),
+                      Text(l10n.difficulty, style: theme.textTheme.titleMedium),
                       Text(
-                        tr('슬라이더를 끌어서 범위를 정하세요.', 'Drag the slider to set the range.'),
+                        l10n.dragTheSliderTo,
                         style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                       ),
                     ],
@@ -372,7 +372,7 @@ class _FilterCard extends StatelessWidget {
                 ),
                 FilterChip(
                   avatar: NetworkIcon(levels.qIconUrl, size: 18),
-                  label: Text(tr('Q 난이도 포함', 'Include Q difficulties')),
+                  label: Text(l10n.includeQDifficulties),
                   selected: levels.includeQ,
                   onSelected: levels.setIncludeQ,
                 ),
@@ -400,8 +400,9 @@ class _FilterCard extends StatelessWidget {
                     SizedBox(
                       width: _pickerWidth,
                       child: _FacetPicker(
-                        label: tr('큐레이션 유형', 'Curation types'),
-                        description: tr('큐레이터가 매긴 등급으로 찾습니다.', 'Find by the grades curators gave.'),
+                        label: l10n.curationTypes,
+                        emptyLabel: l10n.noCurationTypes,
+                        description: l10n.findByTheGrades,
                         catalog: levels.curationCatalog,
                         selected: levels.selectedCurationIds,
                         matchAll: levels.curationsMatchAll,
@@ -414,8 +415,9 @@ class _FilterCard extends StatelessWidget {
                     SizedBox(
                       width: _pickerWidth,
                       child: _FacetPicker(
-                        label: tr('태그', 'Tags'),
-                        description: tr('레벨에 붙은 태그로 찾습니다.', 'Find by the tags on a level.'),
+                        label: l10n.tags,
+                        emptyLabel: l10n.noTags,
+                        description: l10n.findByTheTags,
                         catalog: levels.tagCatalog,
                         selected: levels.selectedTagIds,
                         matchAll: levels.tagsMatchAll,
@@ -447,14 +449,14 @@ class _FilterCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: _Labeled(
-                    label: tr('클리어한 레벨', 'Cleared levels'),
+                    label: l10n.clearedLevels,
                     child: _StateChoice(value: levels.clearedFilter, onChanged: levels.setClearedFilter),
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: _Labeled(
-                    label: tr('다운로드 가능', 'Downloadable'),
+                    label: l10n.downloadable,
                     child: _StateChoice(value: levels.availableDlFilter, onChanged: levels.setAvailableDlFilter),
                   ),
                 ),
@@ -466,7 +468,7 @@ class _FilterCard extends StatelessWidget {
               child: TextButton.icon(
                 onPressed: levels.resetAll,
                 icon: const Icon(Icons.refresh),
-                label: Text(tr('모두 초기화', 'Reset all')),
+                label: Text(l10n.resetAll),
               ),
             ),
           ],
@@ -503,9 +505,9 @@ class _StateChoice extends StatelessWidget {
   Widget build(BuildContext context) => SegmentedButton<FilterState>(
     showSelectedIcon: false,
     segments: [
-      ButtonSegment(value: FilterState.show, label: Text(tr('전체', 'All'))),
-      ButtonSegment(value: FilterState.hide, label: Text(tr('숨기기', 'Hide'))),
-      ButtonSegment(value: FilterState.only, label: Text(tr('만 보기', 'Only'))),
+      ButtonSegment(value: FilterState.show, label: Text(l10n.filterAll)),
+      ButtonSegment(value: FilterState.hide, label: Text(l10n.filterHide)),
+      ButtonSegment(value: FilterState.only, label: Text(l10n.filterOnly)),
     ],
     selected: {value},
     onSelectionChanged: (selection) => onChanged(selection.first),
@@ -555,6 +557,7 @@ class _PickerButton extends StatelessWidget {
 class _FacetPicker extends StatelessWidget {
   const _FacetPicker({
     required this.label,
+    required this.emptyLabel,
     required this.description,
     required this.catalog,
     required this.selected,
@@ -566,6 +569,9 @@ class _FacetPicker extends StatelessWidget {
   });
 
   final String label;
+
+  /// Shown on the disabled button when there is nothing to pick.
+  final String emptyLabel;
   final String description;
   final FacetCatalog? catalog;
   final Set<int> selected;
@@ -582,7 +588,7 @@ class _FacetPicker extends StatelessWidget {
       return OutlinedButton(
         onPressed: null,
         style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(40)),
-        child: Text(tr('$label 없음', 'No ${label.toLowerCase()}'), maxLines: 1, overflow: TextOverflow.ellipsis),
+        child: Text(emptyLabel, maxLines: 1, overflow: TextOverflow.ellipsis),
       );
     }
 
@@ -659,7 +665,7 @@ class _FacetPanel extends StatelessWidget {
                         ],
                       ),
                     ),
-                    TextButton(onPressed: selected.isEmpty ? null : onClear, child: Text(tr('선택 해제', 'Clear'))),
+                    TextButton(onPressed: selected.isEmpty ? null : onClear, child: Text(l10n.clearSelection)),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -667,8 +673,8 @@ class _FacetPanel extends StatelessWidget {
                 SegmentedButton<bool>(
                   showSelectedIcon: false,
                   segments: [
-                    ButtonSegment(value: false, label: Text(tr('하나라도', 'Any'))),
-                    ButtonSegment(value: true, label: Text(tr('모두 포함', 'All'))),
+                    ButtonSegment(value: false, label: Text(l10n.matchAny)),
+                    ButtonSegment(value: true, label: Text(l10n.includeAll)),
                   ],
                   selected: {matchAll},
                   onSelectionChanged: (value) => onMatchAllChanged(value.first),
@@ -714,11 +720,8 @@ class _SpecialPicker extends StatelessWidget {
         builder: (context, _) => _SpecialPanel(levels: levels),
       ),
     ],
-    builder: (context, controller, _) => _PickerButton(
-      label: tr('특수 난이도', 'Special difficulties'),
-      count: levels.selectedSpecials.length,
-      controller: controller,
-    ),
+    builder: (context, controller, _) =>
+        _PickerButton(label: l10n.specialDifficulties, count: levels.selectedSpecials.length, controller: controller),
   );
 }
 
@@ -745,9 +748,9 @@ class _SpecialPanel extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(tr('특수 난이도', 'Special difficulties'), style: theme.textTheme.titleMedium),
+                      Text(l10n.specialDifficulties, style: theme.textTheme.titleMedium),
                       Text(
-                        tr('선택한 난이도를 결과에 함께 보여줍니다.', 'Selected difficulties are shown in the results too.'),
+                        l10n.selectedDifficultiesAreShown,
                         style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                       ),
                     ],
@@ -755,9 +758,7 @@ class _SpecialPanel extends StatelessWidget {
                 ),
                 TextButton(
                   onPressed: levels.toggleAllSpecials,
-                  child: Text(
-                    levels.selectedSpecials.isEmpty ? tr('전체 선택', 'Select all') : tr('전체 선택 해제', 'Deselect all'),
-                  ),
+                  child: Text(levels.selectedSpecials.isEmpty ? l10n.selectAll : l10n.deselectAll),
                 ),
               ],
             ),
@@ -793,9 +794,7 @@ class _ResultsHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = levels.hasSearched
-        ? tr('레벨 ${formatNumber(levels.total)}개', "${formatNumber(levels.total)} ${plural(levels.total, 'level')}")
-        : '';
+    final text = levels.hasSearched ? l10n.levelCount(levels.total) : '';
 
     return Row(
       children: [
@@ -819,12 +818,8 @@ class _ResultsHeader extends StatelessWidget {
         SegmentedButton<bool>(
           showSelectedIcon: false,
           segments: [
-            ButtonSegment(
-              value: false,
-              icon: const Icon(Icons.view_agenda_outlined),
-              tooltip: tr('자세히 보기', 'Detailed view'),
-            ),
-            ButtonSegment(value: true, icon: const Icon(Icons.view_headline), tooltip: tr('간략히 보기', 'Compact view')),
+            ButtonSegment(value: false, icon: const Icon(Icons.view_agenda_outlined), tooltip: l10n.detailedView),
+            ButtonSegment(value: true, icon: const Icon(Icons.view_headline), tooltip: l10n.compactView),
           ],
           selected: {levels.compact},
           onSelectionChanged: (selection) => levels.setCompact(selection.first),
@@ -858,8 +853,8 @@ class _Footer extends StatelessWidget {
         padding: const EdgeInsets.only(top: 32),
         child: EmptyState(
           icon: const Icon(Icons.search_off),
-          title: tr('조건에 맞는 레벨이 없어요', 'No levels match'),
-          message: tr('검색어나 필터를 바꿔 보세요.', 'Try a different search or filter.'),
+          title: l10n.noLevelsMatch,
+          message: l10n.tryADifferentSearch,
         ),
       );
     } else if (!levels.hasMore && levels.levels.isNotEmpty && !levels.isSearching) {
@@ -867,7 +862,7 @@ class _Footer extends StatelessWidget {
         key: const ValueKey('end'),
         padding: const EdgeInsets.all(16),
         child: Text(
-          tr('모든 레벨을 불러왔어요', 'All levels loaded'),
+          l10n.allLevelsLoaded,
           style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         ),
       );

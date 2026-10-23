@@ -185,13 +185,10 @@ class _ListHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(tr('레벨 팩', 'Level Packs'), style: theme.textTheme.headlineMedium),
+        Text(l10n.levelPacks, style: theme.textTheme.headlineMedium),
         const SizedBox(height: 4),
         Text(
-          tr(
-            '커뮤니티에서 만든 레벨 팩을 둘러보고, 폴더 구조 그대로 한 번에 받아보세요.',
-            'Browse level packs made by the community and download them in one go, folders and all.',
-          ),
+          l10n.browseLevelPacksMade,
           style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         ),
       ],
@@ -212,7 +209,7 @@ class _ListToolbar extends StatelessWidget {
         child: SearchBar(
           controller: searchController,
           focusNode: PageCommandScope.searchFocusOf(context),
-          hintText: tr('팩 이름으로 검색', 'Search by pack name'),
+          hintText: l10n.searchByPackName,
           leading: const Icon(Icons.search),
           elevation: const WidgetStatePropertyAll(0),
           padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 16)),
@@ -225,7 +222,7 @@ class _ListToolbar extends StatelessWidget {
               child: packs.query.isNotEmpty
                   ? IconButton(
                       key: const ValueKey('clear'),
-                      tooltip: tr('검색어 지우기', 'Clear search'),
+                      tooltip: l10n.clearSearch,
                       icon: const Icon(Icons.close),
                       onPressed: () {
                         searchController.clear();
@@ -243,7 +240,7 @@ class _ListToolbar extends StatelessWidget {
         // The selected label is only filled in on creation, so recreate the menu when the language changes.
         key: ValueKey(appLanguage),
         initialSelection: packs.sort,
-        label: Text(tr('정렬', 'Sort')),
+        label: Text(l10n.sort),
         width: 160,
         onSelected: (value) {
           if (value != null) packs.setSort(value);
@@ -252,7 +249,7 @@ class _ListToolbar extends StatelessWidget {
       ),
       const SizedBox(width: 8),
       IconButton.filledTonal(
-        tooltip: packs.descending ? tr('내림차순', 'Descending') : tr('오름차순', 'Ascending'),
+        tooltip: packs.descending ? l10n.descending : l10n.ascending,
         onPressed: packs.toggleOrder,
         icon: AnimatedRotation(
           turns: packs.descending ? 0 : 0.5,
@@ -262,7 +259,7 @@ class _ListToolbar extends StatelessWidget {
         ),
       ),
       const SizedBox(width: 8),
-      IconButton(tooltip: tr('새로고침', 'Refresh'), onPressed: packs.search, icon: const Icon(Icons.refresh)),
+      IconButton(tooltip: l10n.refresh, onPressed: packs.search, icon: const Icon(Icons.refresh)),
     ],
   );
 }
@@ -275,9 +272,7 @@ class _ListResultsHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final text = packs.hasSearched
-        ? tr('팩 ${formatNumber(packs.total)}개', "${formatNumber(packs.total)} ${plural(packs.total, 'pack')}")
-        : '';
+    final text = packs.hasSearched ? l10n.packCount(packs.total) : '';
 
     return Row(
       children: [
@@ -317,9 +312,9 @@ class _ListFooter extends StatelessWidget {
         padding: const EdgeInsets.only(top: 32),
         child: EmptyState(
           icon: const Icon(Icons.cloud_off),
-          title: tr('팩을 불러오지 못했어요', "Couldn't load packs"),
+          title: l10n.couldntLoadPacks,
           message: error,
-          action: FilledButton(onPressed: packs.search, child: Text(tr('다시 시도', 'Retry'))),
+          action: FilledButton(onPressed: packs.search, child: Text(l10n.retry)),
         ),
       );
     } else if (packs.loadMoreError case final message?) {
@@ -334,11 +329,7 @@ class _ListFooter extends StatelessWidget {
       content = Padding(
         key: const ValueKey('empty'),
         padding: const EdgeInsets.only(top: 32),
-        child: EmptyState(
-          icon: const Icon(Icons.search_off),
-          title: tr('찾는 팩이 없어요', 'No packs found'),
-          message: tr('다른 이름으로 검색해 보세요.', 'Try searching for a different name.'),
-        ),
+        child: EmptyState(icon: const Icon(Icons.search_off), title: l10n.noPacksFound, message: l10n.trySearchingForA),
       );
     } else if (!packs.hasMore && packs.packs.isNotEmpty && !packs.isSearching) {
       content = Padding(
@@ -346,7 +337,7 @@ class _ListFooter extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Center(
           child: Text(
-            tr('모든 팩을 불러왔어요', 'All packs loaded'),
+            l10n.allPacksLoaded,
             style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
         ),
@@ -489,7 +480,7 @@ class _MoreLevels extends StatelessWidget {
                   if (!shownIds.contains(entry.level.id)) catalog?.byId(entry.level.diffId)?.icon,
             ];
 
-            final label = tr('+$more개 더', '+$more more');
+            final label = l10n.moreCount(more);
             return LayoutBuilder(
               builder: (context, constraints) {
                 // Measure the text so the icons end right before it.
@@ -729,17 +720,11 @@ class _LevelCountLine extends StatelessWidget {
     final muted = theme.colorScheme.onSurfaceVariant;
     return Row(
       children: [
-        Text(
-          tr(
-            '레벨 ${formatNumber(pack.levelCount)}개',
-            "${formatNumber(pack.levelCount)} ${plural(pack.levelCount, 'level')}",
-          ),
-          style: theme.textTheme.bodyMedium?.copyWith(color: muted),
-        ),
+        Text(l10n.levelCount(pack.levelCount), style: theme.textTheme.bodyMedium?.copyWith(color: muted)),
         if (pack.isPinned) ...[
           const SizedBox(width: 6),
           HoverTip(
-            message: tr('고정된 팩', 'Pinned pack'),
+            message: l10n.pinnedPack,
             child: _PinIcon(Icons.push_pin_outlined, size: 16, color: muted),
           ),
         ],
@@ -758,7 +743,7 @@ class _Likes extends StatelessWidget {
     final theme = Theme.of(context);
     final muted = theme.colorScheme.onSurfaceVariant;
     return HoverTip(
-      message: tr('좋아요 ${formatNumber(count)}개', "${formatNumber(count)} ${plural(count, 'like')}"),
+      message: l10n.likeCount(count),
       child: Column(
         children: [
           Icon(Icons.favorite_border, size: 22, color: muted),
@@ -778,7 +763,7 @@ class _OwnerLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final name = owner?.name ?? tr('알 수 없음', 'Unknown');
+    final name = owner?.name ?? l10n.unknown;
     return Row(
       children: [
         _Avatar(url: owner?.avatarUrl, size: 26),
@@ -955,7 +940,7 @@ class _PackDetailViewState extends State<_PackDetailView> {
                         child: OutlinedButton.icon(
                           onPressed: packs.close,
                           icon: const Icon(Icons.arrow_back),
-                          label: Text(tr('팩 목록', 'All packs')),
+                          label: Text(l10n.allPacks),
                         ),
                       ),
                     ),
@@ -1048,7 +1033,7 @@ class _DetailHeader extends StatelessWidget {
                       if (pack.isPinned) ...[
                         const SizedBox(width: 8),
                         HoverTip(
-                          message: tr('고정된 팩', 'Pinned pack'),
+                          message: l10n.pinnedPack,
                           child: _PinIcon(Icons.push_pin_outlined, color: muted),
                         ),
                       ],
@@ -1061,22 +1046,13 @@ class _DetailHeader extends StatelessWidget {
                       const SizedBox(width: 8),
                       Flexible(
                         child: SlideOverflow(
-                          child: slidingText(
-                            pack.owner?.name ?? tr('알 수 없음', 'Unknown'),
-                            style: theme.textTheme.bodyMedium,
-                          ),
+                          child: slidingText(pack.owner?.name ?? l10n.unknown, style: theme.textTheme.bodyMedium),
                         ),
                       ),
                       const SizedBox(width: 16),
                       Icon(Icons.library_music_outlined, size: 16, color: muted),
                       const SizedBox(width: 4),
-                      Text(
-                        tr(
-                          '레벨 ${formatNumber(pack.levelCount)}개',
-                          "${formatNumber(pack.levelCount)} ${plural(pack.levelCount, 'level')}",
-                        ),
-                        style: theme.textTheme.bodyMedium?.copyWith(color: muted),
-                      ),
+                      Text(l10n.levelCount(pack.levelCount), style: theme.textTheme.bodyMedium?.copyWith(color: muted)),
                       const SizedBox(width: 16),
                       Icon(Icons.favorite_border, size: 16, color: muted),
                       const SizedBox(width: 4),
@@ -1104,9 +1080,7 @@ class _DetailHeader extends StatelessWidget {
               scope: pack.id,
               label: pack.name,
               items: toDownload,
-              idleText: detail == null
-                  ? tr('팩 받기', 'Download pack')
-                  : tr('팩 받기 (${toDownload.length}개)', 'Download pack (${toDownload.length})'),
+              idleText: detail == null ? l10n.downloadPack : l10n.downloadPackCount(toDownload.length),
               filled: true,
             ),
           ],
@@ -1130,13 +1104,13 @@ class _ItemsHeader extends StatelessWidget {
 
     return Row(
       children: [
-        Text(tr('항목', 'Items'), style: theme.textTheme.titleLarge),
+        Text(l10n.items, style: theme.textTheme.titleLarge),
         const Spacer(),
         if (hasFolders)
           TextButton.icon(
             onPressed: () => packs.setAllExpanded(!allExpanded),
             icon: Icon(allExpanded ? Icons.unfold_less : Icons.unfold_more),
-            label: Text(allExpanded ? tr('모두 접기', 'Collapse all') : tr('모두 펼치기', 'Expand all')),
+            label: Text(allExpanded ? l10n.collapseAll : l10n.expandAll),
           ),
       ],
     );
@@ -1179,10 +1153,7 @@ class _FolderHeader extends StatelessWidget {
               children: [
                 SlideOverflow(child: slidingText(folder.name, style: theme.textTheme.titleMedium)),
                 Text(
-                  tr(
-                    '${folder.children.length}개 항목 · 레벨 $levelCount개',
-                    "${folder.children.length} ${plural(folder.children.length, 'item')} · $levelCount ${plural(levelCount, 'level')}",
-                  ),
+                  l10n.itemAndLevelCount(folder.children.length, levelCount),
                   style: theme.textTheme.bodySmall?.copyWith(color: muted),
                 ),
               ],
@@ -1194,9 +1165,9 @@ class _FolderHeader extends StatelessWidget {
             scope: folder.id,
             label: folder.name,
             items: toDownload,
-            idleText: tr('폴더 받기 (${toDownload.length}개)', 'Download folder (${toDownload.length})'),
+            idleText: l10n.downloadFolderCount(toDownload.length),
             filled: false,
-            doneText: levelCount == 0 ? tr('빈 폴더', 'Empty folder') : tr('모두 받음', 'All downloaded'),
+            doneText: levelCount == 0 ? l10n.emptyFolder : l10n.allDownloaded,
           ),
         ],
       ),
@@ -1216,20 +1187,11 @@ Future<void> _confirmDownload(
   final ok = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
-      title: Text(tr("'$label' 받기", "Download '$label'")),
-      content: Text(
-        tr(
-          '아직 받지 않은 레벨 ${items.length}개를 차례로 받습니다.\n'
-              "레벨 관리의 '${folder.split('/').first}' 폴더 안에 팩과 같은 폴더 구조로 저장돼요.\n"
-              '이미 받은 레벨은 건너뛰고 원래 자리에 그대로 둡니다.',
-          "Downloads the ${items.length} ${plural(items.length, 'level')} you don't have yet, one by one.\n"
-              "They're saved in the '${folder.split('/').first}' folder of the library, in the same folder layout as the pack.\n"
-              'Levels you already have are skipped and stay where they are.',
-        ),
-      ),
+      title: Text(l10n.downloadNamed(label)),
+      content: Text(l10n.downloadPackExplanation(items.length, folder.split('/').first)),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('취소', 'Cancel'))),
-        FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(tr('받기', 'Download'))),
+        TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
+        FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.download)),
       ],
     ),
   );
@@ -1282,7 +1244,7 @@ class _PackDownloadButton extends StatelessWidget {
         ? null
         : () => _confirmDownload(context, packs, scope, label, items);
     final text = Text(
-      items.isEmpty ? doneText ?? tr('모두 받음', 'All downloaded') : idleText,
+      items.isEmpty ? doneText ?? l10n.allDownloaded : idleText,
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
     );
@@ -1311,8 +1273,8 @@ class _PackDownloadButton extends StatelessWidget {
         // Include the current level's progress so the bar doesn't jump in steps.
         final current = isCurrent ? (job?.fraction ?? 0) : 0.0;
         final value = ((finished + current) / total).clamp(0.0, 1.0);
-        final failed = failedCount > 0 ? tr(' · 실패 $failedCount', ' · $failedCount failed') : '';
-        final state = isCurrent ? job?.shortText ?? tr('준비 중', 'Preparing') : tr('대기 중', 'Waiting');
+        final failed = failedCount > 0 ? l10n.failedCountSuffix(failedCount) : '';
+        final state = isCurrent ? job?.shortText ?? l10n.preparing : l10n.waiting;
 
         return Row(
           children: [
@@ -1328,7 +1290,7 @@ class _PackDownloadButton extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    download.cancelled ? tr('멈추는 중', 'Stopping') : '$finished/${ids.length}$failed · $state',
+                    download.cancelled ? l10n.stopping : '$finished/${ids.length}$failed · $state',
                     textAlign: TextAlign.center,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -1338,7 +1300,7 @@ class _PackDownloadButton extends StatelessWidget {
               ),
             ),
             IconButton(
-              tooltip: tr('멈추기', 'Stop'),
+              tooltip: l10n.stop,
               visualDensity: VisualDensity.compact,
               onPressed: download.cancelled ? null : packs.cancelDownload,
               icon: const Icon(Icons.close),
@@ -1364,9 +1326,9 @@ class _DetailFooter extends StatelessWidget {
         padding: const EdgeInsets.only(top: 32),
         child: EmptyState(
           icon: const Icon(Icons.cloud_off),
-          title: tr('팩 내용을 불러오지 못했어요', "Couldn't load the pack contents"),
+          title: l10n.couldntLoadThePack,
           message: error,
-          action: FilledButton(onPressed: packs.reloadDetail, child: Text(tr('다시 시도', 'Retry'))),
+          action: FilledButton(onPressed: packs.reloadDetail, child: Text(l10n.retry)),
         ),
       );
     } else if (packs.isLoadingDetail) {
@@ -1379,7 +1341,7 @@ class _DetailFooter extends StatelessWidget {
       content = Padding(
         key: const ValueKey('empty'),
         padding: const EdgeInsets.only(top: 32),
-        child: EmptyState(icon: const Icon(Icons.inventory_2_outlined), title: tr('비어 있는 팩이에요', 'This pack is empty')),
+        child: EmptyState(icon: const Icon(Icons.inventory_2_outlined), title: l10n.thisPackIsEmpty),
       );
     } else {
       content = const SizedBox(key: ValueKey('none'), width: double.infinity);

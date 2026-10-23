@@ -19,22 +19,21 @@ abstract final class ProfileNavigation {
       Navigator.of(context).push(MaterialPageRoute(builder: (context) => CreatorProfilePage(creatorId: creatorId)));
 
   static Future<void> openLevel(BuildContext context, int levelId) =>
-      _open(context, tr('레벨을 열지 못했습니다', "Couldn't open the level"), () async {
+      _open(context, l10n.couldntOpenTheLevel, () async {
         final level = await AppScope.of(context).api.getLevel(levelId);
         return (context) => LevelViewerPage.open(context, level);
       });
 
   /// Opens pass details, fetching the pass and its level.
-  static Future<void> openPass(BuildContext context, int passId) =>
-      _open(context, tr('클리어를 열지 못했습니다', "Couldn't open the pass"), () async {
-        final api = AppScope.of(context).api;
-        final detail = await api.getPass(passId);
-        final levelId = detail.pass.levelId;
-        if (levelId == null) throw TufApiException(tr('기록의 레벨을 알 수 없습니다.', 'The level of this pass is unknown.'));
-        final level = await api.getLevel(levelId);
-        // Pass the fetched details along so the pass page doesn't fetch them again.
-        return (context) => PassViewerPage.open(context, level: level, pass: detail.pass, detail: detail);
-      });
+  static Future<void> openPass(BuildContext context, int passId) => _open(context, l10n.couldntOpenThePass, () async {
+    final api = AppScope.of(context).api;
+    final detail = await api.getPass(passId);
+    final levelId = detail.pass.levelId;
+    if (levelId == null) throw TufApiException(l10n.theLevelOfThis);
+    final level = await api.getLevel(levelId);
+    // Pass the fetched details along so the pass page doesn't fetch them again.
+    return (context) => PassViewerPage.open(context, level: level, pass: detail.pass, detail: detail);
+  });
 
   /// Taps while something is loading are ignored, so the same page never opens twice.
   static bool _opening = false;
@@ -82,7 +81,7 @@ abstract final class ProfileNavigation {
     final app = AppScope.of(context);
     Navigator.of(context).popUntil((route) => route.isFirst);
     app.setPage(AppPage.packs);
-    if (!await app.packs.openById(packRef)) app.setStatus(tr('팩을 열지 못했습니다.', "Couldn't open the pack."));
+    if (!await app.packs.openById(packRef)) app.setStatus(l10n.couldntOpenThePack);
   }
 
   /// Searches the packs page for packs made by this user (the website's "View user's packs").

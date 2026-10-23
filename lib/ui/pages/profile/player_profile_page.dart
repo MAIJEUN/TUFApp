@@ -22,7 +22,7 @@ class PlayerProfilePage extends StatelessWidget {
   Widget build(BuildContext context) => ProfilePageFrame<PlayerProfileDetail>(
     load: (context) => AppScope.of(context).api.getPlayerProfile(playerId),
     titleOf: (player) => player.name,
-    emptyTitle: tr('기록이 없어요', 'No passes'),
+    emptyTitle: l10n.noPasses,
     createList: (api, player) => PlayerPassList(api, player.id),
     listHeader: (context, player, list) => PlayerPassListHeader(list: list as PlayerPassList),
     itemBuilder: (context, player, list, index) {
@@ -71,15 +71,15 @@ class PlayerProfilePage extends StatelessWidget {
           profileId: player.id,
           followerCount: player.showFollowerCount ? player.followerCount : null,
           iconSlots: playerIconSlots(player, catalog),
-          iconPanelTitle: tr('깬 난이도', 'Difficulties cleared'),
+          iconPanelTitle: l10n.difficultiesCleared,
           iconPanel: catalog == null
               ? null
               : (context) =>
                     DifficultyGridPanel(difficulties: catalog.all, clears: playerClearsByDifficulty(player, catalog)),
           stats: [
-            StatRow(tr('랭크 점수', 'Ranked Score'), formatPoints(player.score(PlayerScoreKey.rankedScore))),
-            StatRow(tr('평균 절대정확도', 'Average X-acc'), formatAccuracyRatio(player.score(PlayerScoreKey.averageXacc))),
-            StatRow(tr('총 점수', 'Total Score'), formatPoints(player.score(PlayerScoreKey.totalScoreV2))),
+            StatRow(l10n.rankedScore, formatPoints(player.score(PlayerScoreKey.rankedScore))),
+            StatRow(l10n.averageXAcc, formatAccuracyRatio(player.score(PlayerScoreKey.averageXacc))),
+            StatRow(l10n.totalScore, formatPoints(player.score(PlayerScoreKey.totalScoreV2))),
           ],
           statGroups: playerStatGroups(player, catalog),
           onOpenPass: (passId) => ProfileNavigation.openPass(context, passId),
@@ -93,13 +93,13 @@ class PlayerProfilePage extends StatelessWidget {
             if (player.handle case final handle?)
               ProfileAction(
                 icon: Icons.inventory_2_outlined,
-                tooltip: tr('사용자 팩 보기', "View user's packs"),
+                tooltip: l10n.viewUsersPacks,
                 onPressed: () => ProfileNavigation.openPacksOf(context, handle),
               ),
             if (player.creatorId case final creatorId?)
               ProfileAction(
                 icon: Icons.handyman_outlined,
-                tooltip: tr('제작자 프로필 보기', 'View creator profile'),
+                tooltip: l10n.viewCreatorProfile,
                 onPressed: () => ProfileNavigation.openCreator(context, creatorId),
               ),
           ],
@@ -107,12 +107,12 @@ class PlayerProfilePage extends StatelessWidget {
         // Like the website, empty modules are hidden. The pass list sits separately at the bottom.
         for (final module in player.modules.layoutFor(player: true))
           ?switch (module.type) {
-            'bio' when !player.bio.isEmpty => BioModule(title: tr('내 소개', 'Bio'), bio: player.bio),
+            'bio' when !player.bio.isEmpty => BioModule(title: l10n.playerBio, bio: player.bio),
             'tournaments' when TournamentsModule.visible(player.placements, player.placementOrderIds).isNotEmpty =>
               TournamentsModule(placements: player.placements, orderIds: player.placementOrderIds),
             'scoreBreakdown' => ScoreBreakdownModule(player: player),
             'difficulty' when (noDupes ?? withDupes)?.isNotEmpty ?? false => DifficultyModule(
-              title: tr('난이도별 클리어', 'Clears by difficulty'),
+              title: l10n.clearsByDifficulty,
               counts: noDupes ?? withDupes!,
               countsWithDupes: withDupes ?? noDupes!,
             ),

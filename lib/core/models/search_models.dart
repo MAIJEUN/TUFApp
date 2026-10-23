@@ -63,7 +63,7 @@ class DifficultyCatalog {
   DifficultyCatalog(Iterable<Difficulty> difficulties)
     : all = List.unmodifiable([...difficulties]..sort((a, b) => a.sortOrder.compareTo(b.sortOrder))) {
     if (pgu.isEmpty) {
-      throw StateError(tr('서버 난이도 목록에 PGU 난이도가 없습니다.', "The server's difficulty list has no PGU difficulties."));
+      throw StateError(l10n.theServersDifficultyList);
     }
   }
 

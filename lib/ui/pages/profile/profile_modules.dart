@@ -134,14 +134,14 @@ class _TournamentsModuleState extends State<TournamentsModule> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             ProfileGroupRow(
-              title: first.tournamentName.isEmpty ? tr('토너먼트', 'Tournaments') : first.tournamentName,
+              title: first.tournamentName.isEmpty ? l10n.tournaments : first.tournamentName,
               count: credits.length,
               open: open,
               onTap: () => _toggle(key),
               trailing: pack == null
                   ? null
                   : IconButton(
-                      tooltip: tr('팩 열기', 'Open pack'),
+                      tooltip: l10n.openPack,
                       visualDensity: VisualDensity.compact,
                       iconSize: 18,
                       onPressed: () => ProfileNavigation.openPack(context, pack),
@@ -168,8 +168,8 @@ class _TournamentsModuleState extends State<TournamentsModule> {
     }
 
     return ProfileSection(
-      title: tr('토너먼트', 'Tournaments'),
-      subtitle: tr('${list.length}개 입상', "${list.length} ${plural(list.length, 'placement')}"),
+      title: l10n.tournaments,
+      subtitle: l10n.placementCount(list.length),
       child: _card(
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -185,7 +185,7 @@ class _TournamentsModuleState extends State<TournamentsModule> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       ProfileGroupRow(
-                        title: group.value.name ?? tr('기타 토너먼트', 'Other tournaments'),
+                        title: group.value.name ?? l10n.otherTournaments,
                         count: group.value.tournaments.values.fold(0, (sum, credits) => sum + credits.length),
                         open: _open.contains(group.key),
                         onTap: () => _toggle(group.key),
@@ -273,7 +273,7 @@ class ScoreBreakdownModule extends StatelessWidget {
     final theme = Theme.of(context);
     final muted = theme.colorScheme.onSurfaceVariant;
     return ProfileSection(
-      title: tr('점수 상세', 'Score breakdown'),
+      title: l10n.scoreBreakdown,
       child: _card(
         LayoutBuilder(
           builder: (context, constraints) {
@@ -365,7 +365,7 @@ class _DifficultyModuleState extends State<DifficultyModule> {
       trailing: [
         if (withDupes != null)
           FilterChip(
-            label: Text(tr('중복 포함', 'Include duplicates')),
+            label: Text(l10n.includeDuplicates),
             selected: _includeDupes,
             onSelected: (value) => setState(() => _includeDupes = value),
           ),
@@ -388,16 +388,19 @@ class RankHistoryModule extends StatefulWidget {
 }
 
 enum _RankRange {
-  days30('30일', '30 days', 30),
-  days90('90일', '90 days', 90),
-  days365('1년', '1 year', 365),
-  all('전체', 'All time', null);
+  days30(30),
+  days90(90),
+  days365(365),
+  all(null);
 
-  const _RankRange(this._ko, this._en, this.days);
+  const _RankRange(this.days);
 
-  final String _ko;
-  final String _en;
-  String get label => tr(_ko, _en);
+  String get label => switch (this) {
+    days30 => l10n.rankRangeDays30,
+    days90 => l10n.rankRangeDays90,
+    days365 => l10n.rankRangeDays365,
+    all => l10n.rankRangeAll,
+  };
   final int? days;
 }
 
@@ -447,15 +450,15 @@ class _RankHistoryModuleState extends State<RankHistoryModule> {
         (date: point.date, rank: _general ? point.generalRank : point.rankedRank),
     ];
     final status = _error != null
-        ? tr('순위 기록을 불러오지 못했어요', "Couldn't load rank history")
+        ? l10n.couldntLoadRankHistory
         : points == null
         ? null
         : series.isEmpty
-        ? tr('저장된 순위 기록이 없어요', 'No rank history stored yet')
+        ? l10n.noRankHistoryStored
         : null;
 
     return ProfileSection(
-      title: tr('순위 변화', 'Rank over time'),
+      title: l10n.rankOverTime,
       child: _card(
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -468,8 +471,8 @@ class _RankHistoryModuleState extends State<RankHistoryModule> {
                 SegmentedButton<bool>(
                   showSelectedIcon: false,
                   segments: [
-                    ButtonSegment(value: false, label: Text(tr('랭크 점수', 'Ranked score'))),
-                    ButtonSegment(value: true, label: Text(tr('일반 점수', 'General score'))),
+                    ButtonSegment(value: false, label: Text(l10n.rankedScoreLine)),
+                    ButtonSegment(value: true, label: Text(l10n.generalScore)),
                   ],
                   selected: {_general},
                   onSelectionChanged: (value) => setState(() => _general = value.first),
@@ -554,7 +557,7 @@ class ProfileScoreCard extends StatelessWidget {
           ? null
           : ['#${level.id}', if (level.artist.isNotEmpty) level.artist].join(' - '),
       title: SlideOverflow(
-        child: slidingText(hidden ? tr('숨겨진 레벨', 'Hidden level') : level.song, style: theme.textTheme.titleMedium),
+        child: slidingText(hidden ? l10n.hiddenLevel : level.song, style: theme.textTheme.titleMedium),
       ),
       bottomText: hidden ? null : level.creatorDisplay,
       impact: impact,
@@ -586,13 +589,10 @@ class RankedCutoffNote extends StatelessWidget {
               spacing: 8,
               children: [
                 Text(
-                  tr('여기까지 랭크 점수에 들어가요', 'Passes above count toward Ranked Score'),
+                  l10n.passesAboveCountToward,
                   style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                 ),
-                ImpactChip(
-                  text: tr('${formatPoints(score + 0.01)} 이상', '${formatPoints(score + 0.01)}+'),
-                  positive: true,
-                ),
+                ImpactChip(text: l10n.scoreOrMore(formatPoints(score + 0.01)), positive: true),
               ],
             ),
           ),
@@ -613,7 +613,7 @@ class FavoritesModule extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ProfileSection(
-    title: tr('즐겨찾기', 'Favorites'),
+    title: l10n.favorites,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 8,
@@ -625,7 +625,7 @@ class FavoritesModule extends StatelessWidget {
             FavoritePack(:final pack) => _SimpleTile(
               leading: NetworkIcon(pack.iconUrl, size: 40),
               title: pack.name,
-              subtitle: tr('팩', 'Pack'),
+              subtitle: l10n.pack,
               onTap: () => ProfileNavigation.openPack(context, pack.id),
             ),
             FavoritePlayer(:final id, :final name, :final country, :final avatar, :final rankedScore, :final rank) =>
@@ -635,17 +635,14 @@ class FavoritesModule extends StatelessWidget {
                 titleTrailing: country == null ? null : CountryFlag(country: country, height: 12),
                 subtitle: [
                   if (rank case final r? when r > 0) '#$r',
-                  if (rankedScore case final score?)
-                    tr('랭크 점수 ${formatPoints(score)}', 'Ranked Score ${formatPoints(score)}'),
+                  if (rankedScore case final score?) l10n.rankedScoreValue(formatPoints(score)),
                 ].join(' · '),
                 onTap: () => ProfileNavigation.openPlayer(context, id),
               ),
             FavoriteCreator(:final id, :final name, :final avatar, :final chartsTotal) => _SimpleTile(
               leading: ProfileAvatar(avatar: avatar, size: 40),
               title: name,
-              subtitle: chartsTotal == null
-                  ? tr('제작자', 'Creator')
-                  : tr('레벨 $chartsTotal개', "$chartsTotal ${plural(chartsTotal, 'level')}"),
+              subtitle: chartsTotal == null ? l10n.creator : l10n.chartLevelCount(chartsTotal),
               onTap: () => ProfileNavigation.openCreator(context, id),
             ),
           },

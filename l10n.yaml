@@ -1,0 +1,5 @@
+# UI text: one app_<language code>.arb file per language in lib/l10n. English is the template.
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+nullable-getter: false

@@ -19,7 +19,7 @@ class OperationCancelledException implements Exception {
   const OperationCancelledException();
 
   @override
-  String toString() => tr('취소됨', 'Cancelled');
+  String toString() => l10n.cancelled;
 }
 
 class CancelToken {
@@ -112,14 +112,9 @@ class LevelDownloader {
       try {
         await finished.future;
       } on TimeoutException {
-        throw TufApiException(
-          tr(
-            '다운로드가 ${idleTimeout.inSeconds}초 동안 멈춰서 중단했습니다.',
-            'The download stalled for ${idleTimeout.inSeconds} seconds and was stopped.',
-          ),
-        );
+        throw TufApiException(l10n.theDownloadStalledFor(idleTimeout.inSeconds));
       } on http.ClientException catch (e) {
-        throw TufApiException(tr('다운로드가 중간에 끊겼습니다: ${e.message}', 'The download was interrupted: ${e.message}'));
+        throw TufApiException(l10n.theDownloadWasInterrupted(e.message));
       } finally {
         await subscription.cancel();
       }
@@ -128,9 +123,7 @@ class LevelDownloader {
       sinkClosed = true;
 
       if (total != null && received != total) {
-        throw TufApiException(
-          tr('다운로드가 중간에 끊겼습니다. ($received/$total bytes)', 'The download was interrupted. ($received/$total bytes)'),
-        );
+        throw TufApiException(l10n.theDownloadWasInterruptedBytes(received, total));
       }
 
       onProgress?.call(DownloadProgress(received, total));

@@ -26,11 +26,8 @@ class CreatorsPage extends StatelessWidget {
       listenable: Listenable.merge([creators, app.levels]),
       builder: (context, _) => BrowsePage<CreatorListEntry>(
         list: creators,
-        title: tr('제작자', 'Creators'),
-        subtitle: tr(
-          '레벨을 만든 사람들을 레벨 수, 클리어 수, 큐레이션으로 찾아보세요.',
-          'Find the people who make levels by level count, clears, and curations.',
-        ),
+        title: l10n.creators,
+        subtitle: l10n.findThePeopleWho,
         toolbar: _Toolbar(creators: creators),
         filter: Reveal(
           visible: creators.filterOpen,
@@ -39,11 +36,11 @@ class CreatorsPage extends StatelessWidget {
             child: _FilterCard(creators: creators, curations: app.levels.curationCatalog),
           ),
         ),
-        countText: (total) => tr('제작자 ${formatNumber(total)}명', "${formatNumber(total)} ${plural(total, 'creator')}"),
+        countText: (total) => l10n.creatorCount(total),
         itemKey: (creator) => creator.id,
         itemBuilder: (context, creator, index) => CreatorRow(creator: creator, sort: creators.sort),
-        emptyTitle: tr('찾는 제작자가 없어요', 'No creators found'),
-        endText: tr('모든 제작자를 불러왔어요', 'All creators loaded'),
+        emptyTitle: l10n.noCreatorsFound,
+        endText: l10n.allCreatorsLoaded,
       ),
     );
   }
@@ -63,7 +60,7 @@ class _Toolbar extends StatelessWidget {
         Expanded(
           child: BrowseSearchBar(
             initialText: creators.query,
-            hint: tr('제작자 이름으로 검색 (@계정으로도)', 'Search by creator name (or @account)'),
+            hint: l10n.searchByCreatorName,
             onChanged: creators.setQuery,
           ),
         ),
@@ -72,7 +69,7 @@ class _Toolbar extends StatelessWidget {
           // The selected label is only filled in on creation, so recreate the menu when the language changes.
           key: ValueKey(appLanguage),
           initialSelection: creators.sort,
-          label: Text(tr('정렬', 'Sort')),
+          label: Text(l10n.sort),
           width: 220,
           onSelected: (value) {
             if (value != null) creators.setSort(value);
@@ -94,13 +91,13 @@ class _Toolbar extends StatelessWidget {
                     key: const ValueKey('open'),
                     onPressed: creators.toggleFilterOpen,
                     icon: filterIcon,
-                    label: Text(tr('필터', 'Filter')),
+                    label: Text(l10n.filter),
                   )
                 : OutlinedButton.icon(
                     key: const ValueKey('closed'),
                     onPressed: creators.toggleFilterOpen,
                     icon: filterIcon,
-                    label: Text(tr('필터', 'Filter')),
+                    label: Text(l10n.filter),
                   ),
           ),
         ),
@@ -122,7 +119,7 @@ class _FilterCard extends StatelessWidget {
     final muted = theme.colorScheme.onSurfaceVariant;
     final groups = <String, List<FacetItem>>{};
     for (final type in curations?.all ?? const <FacetItem>[]) {
-      groups.putIfAbsent(type.group ?? tr('기타', 'Other'), () => []).add(type);
+      groups.putIfAbsent(type.group ?? l10n.other, () => []).add(type);
     }
 
     return Card(
@@ -132,12 +129,12 @@ class _FilterCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(tr('인증 상태', 'Verification status'), style: theme.textTheme.labelLarge),
+            Text(l10n.verificationStatus, style: theme.textTheme.labelLarge),
             const SizedBox(height: 8),
             SegmentedButton<CreatorVerification?>(
               showSelectedIcon: false,
               segments: [
-                ButtonSegment(value: null, label: Text(tr('모든 상태', 'All statuses'))),
+                ButtonSegment(value: null, label: Text(l10n.allStatuses)),
                 for (final status in CreatorVerification.values)
                   ButtonSegment(value: status, label: Text(status.label)),
               ],
@@ -152,19 +149,16 @@ class _FilterCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(tr('큐레이션 유형', 'Curation types'), style: theme.textTheme.labelLarge),
-                        Text(
-                          tr('고른 유형의 레벨이 있는 제작자만 보여줍니다.', 'Only shows creators with levels of the chosen types.'),
-                          style: theme.textTheme.bodySmall?.copyWith(color: muted),
-                        ),
+                        Text(l10n.curationTypes, style: theme.textTheme.labelLarge),
+                        Text(l10n.onlyShowsCreatorsWith, style: theme.textTheme.bodySmall?.copyWith(color: muted)),
                       ],
                     ),
                   ),
                   SegmentedButton<bool>(
                     showSelectedIcon: false,
                     segments: [
-                      ButtonSegment(value: false, label: Text(tr('하나라도', 'Any'))),
-                      ButtonSegment(value: true, label: Text(tr('모두', 'All'))),
+                      ButtonSegment(value: false, label: Text(l10n.matchAny)),
+                      ButtonSegment(value: true, label: Text(l10n.matchAll)),
                     ],
                     selected: {creators.curationsMatchAll},
                     onSelectionChanged: (selection) => creators.setCurationsMatchAll(selection.first),
@@ -196,7 +190,7 @@ class _FilterCard extends StatelessWidget {
               child: TextButton.icon(
                 onPressed: creators.resetFilters,
                 icon: const Icon(Icons.refresh),
-                label: Text(tr('모두 초기화', 'Reset all')),
+                label: Text(l10n.resetAll),
               ),
             ),
           ],
@@ -268,10 +262,7 @@ class CreatorRow extends StatelessWidget {
                       ],
                     ),
                     Text(
-                      [
-                        handle == null ? tr('연동된 계정 없음', 'No linked account') : '@$handle',
-                        'ID ${creator.id}',
-                      ].join('  ·  '),
+                      [handle == null ? l10n.noLinkedAccount : '@$handle', 'ID ${creator.id}'].join('  ·  '),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.labelSmall?.copyWith(color: muted),

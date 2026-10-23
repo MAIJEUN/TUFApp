@@ -40,7 +40,7 @@ class LevelPass {
       id: asInt(json['id']),
       levelId: asIntOrNull(json['levelId']),
       playerId: asInt(json['playerId']),
-      playerName: (player is Map<String, dynamic> ? asStringOrNull(player['name']) : null) ?? tr('알 수 없음', 'Unknown'),
+      playerName: (player is Map<String, dynamic> ? asStringOrNull(player['name']) : null) ?? l10n.unknown,
       playerAvatar: avatar.primary,
       playerAvatarFallback: avatar.fallback,
       country: player is Map<String, dynamic> ? asStringOrNull(player['country']) : null,
@@ -118,9 +118,9 @@ class LevelPass {
 
   /// Key count label like "16K", or null if there is nothing to show.
   String? get keyCountLabel => switch (keyCount) {
-    final count? => tr('$count키', '${count}K'),
-    null when is16K => tr('16키', '16K'),
-    null when is12K => tr('12키', '12K'),
+    final count? => l10n.keyCount(count),
+    null when is16K => l10n.keys16,
+    null when is12K => l10n.keys12,
     _ => null,
   };
 
@@ -263,7 +263,7 @@ class PlayerProfile {
     final topDiff = stats['topDiff'] ?? json['topDiff'];
     return PlayerProfile(
       id: asInt(json['id']),
-      name: asStringOrNull(json['name']) ?? tr('알 수 없음', 'Unknown'),
+      name: asStringOrNull(json['name']) ?? l10n.unknown,
       country: asStringOrNull(json['country']),
       avatar: AvatarUrls.of(json).primary,
       avatarFallback: AvatarUrls.of(json).fallback,
@@ -365,21 +365,27 @@ class PassJudgements {
 
 /// Judgement kinds, named like the website (Korean) and the game (English).
 enum Judgement {
-  tooEarly('너무 빠름', 'Too Early'),
-  early('빠름!', 'Early!'),
-  earlyPerfect('빠름', 'EPerfect'),
-  perfectMinus('정확−', 'Perfect−'),
-  perfect('정확', 'Perfect'),
-  perfectPlus('정확+', 'Perfect+'),
-  latePerfect('느림', 'LPerfect'),
-  late('느림!', 'Late!'),
-  tooLate('너무 느림', 'Too Late');
+  tooEarly,
+  early,
+  earlyPerfect,
+  perfectMinus,
+  perfect,
+  perfectPlus,
+  latePerfect,
+  late,
+  tooLate;
 
-  const Judgement(this._ko, this._en);
-
-  final String _ko;
-  final String _en;
-  String get label => tr(_ko, _en);
+  String get label => switch (this) {
+    tooEarly => l10n.judgementTooEarly,
+    early => l10n.judgementEarly,
+    earlyPerfect => l10n.judgementEarlyPerfect,
+    perfectMinus => l10n.judgementPerfectMinus,
+    perfect => l10n.judgementPerfect,
+    perfectPlus => l10n.judgementPerfectPlus,
+    latePerfect => l10n.judgementLatePerfect,
+    late => l10n.judgementLate,
+    tooLate => l10n.judgementTooLate,
+  };
 }
 
 /// Summary of a level's passes (first clear, best score, ...).

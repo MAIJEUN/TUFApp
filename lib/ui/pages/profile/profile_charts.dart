@@ -146,12 +146,7 @@ class _DifficultyBarChartState extends State<DifficultyBarChart> {
               ),
               Expanded(
                 child: Text(
-                  widget.levels
-                      ? tr('레벨 ${formatNumber(bar.count)}개', "${formatNumber(bar.count)} ${plural(bar.count, 'level')}")
-                      : tr(
-                          '${formatNumber(bar.count)}회 클리어',
-                          "${formatNumber(bar.count)} ${plural(bar.count, 'clear')}",
-                        ),
+                  widget.levels ? l10n.levelCount(bar.count) : l10n.clearCount(bar.count),
                   style: theme.textTheme.bodyMedium,
                 ),
               ),
@@ -326,10 +321,10 @@ class _RankHistoryChartState extends State<RankHistoryChart> {
     final today = DateTime.now().toUtc();
     final days = DateTime.utc(today.year, today.month, today.day).difference(point.date).inDays;
     final when = days <= 0
-        ? tr('오늘', 'Today')
+        ? l10n.today
         : days == 1
-        ? tr('1일 전', '1 day ago')
-        : tr('$days일 전', '$days days ago');
+        ? l10n.oneDayAgo
+        : l10n.daysAgo(days);
     const width = 120.0;
     return Positioned(
       left: at.dx + 14 + width > layout.size.width ? at.dx - width - 14 : at.dx + 14,
@@ -421,7 +416,7 @@ class _LinePainter extends CustomPainter {
       canvas.drawLine(Offset(plot.left, y), Offset(plot.right, y), grid);
       _text(canvas, '$tick', Offset(plot.left - 6, y), label, alignRight: true);
     }
-    _text(canvas, tr('순위', 'Rank'), Offset(8, plot.center.dy), label, rotate: true);
+    _text(canvas, l10n.rank, Offset(8, plot.center.dy), label, rotate: true);
     canvas.drawLine(Offset(plot.left, plot.top), Offset(plot.left, plot.bottom), grid);
     canvas.drawLine(Offset(plot.left, plot.bottom), Offset(plot.right, plot.bottom), grid);
 

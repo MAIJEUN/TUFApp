@@ -345,9 +345,7 @@ class _DragFeedback extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final label = entries.length == 1
-        ? entries.single.name
-        : tr('${entries.length}개 항목', "${entries.length} ${plural(entries.length, 'item')}");
+    final label = entries.length == 1 ? entries.single.name : l10n.itemCount(entries.length);
 
     return Transform.translate(
       offset: const Offset(12, 12),
@@ -438,18 +436,10 @@ class _FolderContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final summary = folder.isEmpty
-        ? tr('비어 있음', 'Empty')
+        ? l10n.empty
         : [
-            if (folder.folderCount > 0)
-              tr(
-                '폴더 ${formatNumber(folder.folderCount)}개',
-                "${formatNumber(folder.folderCount)} ${plural(folder.folderCount, 'folder')}",
-              ),
-            if (folder.levelCount > 0)
-              tr(
-                '레벨 ${formatNumber(folder.levelCount)}개',
-                "${formatNumber(folder.levelCount)} ${plural(folder.levelCount, 'level')}",
-              ),
+            if (folder.folderCount > 0) l10n.folderCount(folder.folderCount),
+            if (folder.levelCount > 0) l10n.levelCount(folder.levelCount),
           ].join('  ·  ');
 
     return SizedBox(
@@ -509,7 +499,7 @@ class _ExternalLevelContent extends StatelessWidget {
                   child: SlideOverflow(child: slidingText(entry.name, style: theme.textTheme.titleMedium)),
                 ),
                 Text(
-                  tr('직접 넣은 레벨 (앱 목록에는 없어요)', "Added manually (not in the app's list)"),
+                  l10n.addedManuallyNotIn,
                   style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                 ),
               ],
@@ -570,7 +560,7 @@ class _LevelContent extends StatelessWidget {
                             child: Padding(
                               padding: const EdgeInsets.only(left: 8),
                               child: Chip(
-                                label: Text(tr('업데이트 있음', 'Update available')),
+                                label: Text(l10n.updateAvailable),
                                 visualDensity: VisualDensity.compact,
                                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
@@ -594,10 +584,7 @@ class _LevelContent extends StatelessWidget {
                 ),
               ),
               Text(
-                tr(
-                  '${formatBytes(item.sizeBytes)}  ·  ${_formatDate(item.installedAt)}에 받음',
-                  '${formatBytes(item.sizeBytes)}  ·  downloaded ${_formatDate(item.installedAt)}',
-                ),
+                l10n.sizeAndDownloadDate(formatBytes(item.sizeBytes), _formatDate(item.installedAt)),
                 style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
               ),
             ],
@@ -620,7 +607,7 @@ class _LevelContent extends StatelessWidget {
                 ? FilledButton.tonal(
                     key: const ValueKey('update'),
                     onPressed: () => app.installs.install(update),
-                    child: Text(tr('업데이트', 'Update')),
+                    child: Text(l10n.update),
                   )
                 : const SizedBox.shrink(key: ValueKey('none')),
           ),
@@ -644,7 +631,7 @@ class _EntryMenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => HoverTip(
-    message: tr('더 보기', 'More'),
+    message: l10n.more,
     child: Builder(
       builder: (context) => IconButton(
         onPressed: () {
@@ -671,14 +658,8 @@ class _Header extends StatelessWidget {
     final count = library.installedCount;
     final checking = library.isCheckingUpdates;
     final summary = count == 0
-        ? tr(
-            '받아 둔 레벨을 폴더로 정리하고 업데이트를 확인할 수 있어요.',
-            'Organize your downloaded levels into folders and check for updates.',
-          )
-        : tr(
-            '레벨 ${formatNumber(count)}개  ·  ${formatBytes(library.totalSize)}',
-            "${formatNumber(count)} ${plural(count, 'level')}  ·  ${formatBytes(library.totalSize)}",
-          );
+        ? l10n.organizeYourDownloadedLevels
+        : l10n.levelCountAndSize(count, formatBytes(library.totalSize));
 
     return Row(
       children: [
@@ -686,7 +667,7 @@ class _Header extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(tr('레벨 관리', 'Library'), style: theme.textTheme.headlineMedium),
+              Text(l10n.library, style: theme.textTheme.headlineMedium),
               const SizedBox(height: 4),
               FadeSwitcher(
                 alignment: Alignment.centerLeft,
@@ -718,15 +699,12 @@ class _Header extends StatelessWidget {
                         )
                       : const Icon(Icons.refresh, key: ValueKey('idle')),
                 ),
-                label: Text(checking ? tr('확인 중...', 'Checking...') : tr('업데이트 확인', 'Check for updates')),
+                label: Text(checking ? l10n.checking : l10n.checkForUpdates),
               ),
               if (library.updateCount > 0) ...[
                 const SizedBox(width: 8),
                 Appear(
-                  child: FilledButton(
-                    onPressed: library.updateAll,
-                    child: Text(tr('모두 업데이트 (${library.updateCount})', 'Update all (${library.updateCount})')),
-                  ),
+                  child: FilledButton(onPressed: library.updateAll, child: Text(l10n.updateAll(library.updateCount))),
                 ),
               ],
             ],
@@ -755,7 +733,7 @@ class _Toolbar extends StatelessWidget {
         child: Row(
           children: [
             IconButton(
-              tooltip: tr('위로 (Backspace)', 'Up (Backspace)'),
+              tooltip: l10n.upBackspace,
               onPressed: library.currentPath.isEmpty ? null : library.goUp,
               icon: const Icon(Icons.arrow_upward),
             ),
@@ -805,11 +783,11 @@ class _Toolbar extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: () => _createFolder(context, library),
               icon: const Icon(Icons.create_new_folder_outlined),
-              label: Text(tr('새 폴더', 'New folder')),
+              label: Text(l10n.newFolder),
             ),
             const SizedBox(width: 8),
             IconButton(
-              tooltip: tr('탐색기에서 열기', 'Open in Explorer'),
+              tooltip: l10n.openInExplorer,
               onPressed: library.openFolderPath,
               icon: const Icon(Icons.open_in_new),
             ),
@@ -818,16 +796,16 @@ class _Toolbar extends StatelessWidget {
                 MenuItemButton(
                   leadingIcon: const Icon(Icons.drive_file_move_outline),
                   onPressed: library.changeFolder,
-                  child: Text(tr('라이브러리 폴더 변경', 'Change library folder')),
+                  child: Text(l10n.changeLibraryFolder),
                 ),
                 MenuItemButton(
                   leadingIcon: const Icon(Icons.refresh),
                   onPressed: library.refreshContents,
-                  child: Text(tr('새로 고침', 'Refresh')),
+                  child: Text(l10n.refreshLibrary),
                 ),
               ],
               builder: (context, controller, _) => IconButton(
-                tooltip: tr('더 보기', 'More'),
+                tooltip: l10n.more,
                 onPressed: () => controller.isOpen ? controller.close() : controller.open(),
                 icon: const Icon(Icons.more_vert),
               ),
@@ -944,23 +922,23 @@ class _SelectionBar extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                tr('${selected.length}개 선택됨', '${selected.length} selected'),
+                l10n.selected(selected.length),
                 style: theme.textTheme.titleSmall?.copyWith(color: theme.colorScheme.onSecondaryContainer),
               ),
             ),
             TextButton.icon(
               onPressed: selected.isEmpty ? null : () => _moveMany(context, library, selected),
               icon: const Icon(Icons.drive_file_move_outline),
-              label: Text(tr('이동', 'Move')),
+              label: Text(l10n.move),
             ),
             const SizedBox(width: 4),
             TextButton.icon(
               onPressed: selected.isEmpty ? null : () => _deleteMany(context, library, selected),
               icon: const Icon(Icons.delete_outline),
-              label: Text(tr('삭제', 'Delete')),
+              label: Text(l10n.delete),
             ),
             const SizedBox(width: 4),
-            TextButton(onPressed: library.clearSelection, child: Text(tr('선택 해제', 'Deselect'))),
+            TextButton(onPressed: library.clearSelection, child: Text(l10n.deselect)),
           ],
         ),
       ),
@@ -986,7 +964,7 @@ Future<void> _showEntryMenu(
         value: 'open',
         child: ListTile(
           leading: Icon(entry is FolderEntry ? Icons.folder_open : Icons.open_in_new),
-          title: Text(entry is FolderEntry ? tr('열기', 'Open') : tr('탐색기에서 열기', 'Open in Explorer')),
+          title: Text(entry is FolderEntry ? l10n.open : l10n.openInExplorer),
           contentPadding: EdgeInsets.zero,
         ),
       ),
@@ -995,7 +973,7 @@ Future<void> _showEntryMenu(
         value: 'rename',
         child: ListTile(
           leading: const Icon(Icons.drive_file_rename_outline),
-          title: Text(tr('이름 변경', 'Rename')),
+          title: Text(l10n.rename),
           subtitle: const Text('F2'),
           contentPadding: EdgeInsets.zero,
         ),
@@ -1004,7 +982,7 @@ Future<void> _showEntryMenu(
       value: 'move',
       child: ListTile(
         leading: const Icon(Icons.drive_file_move_outline),
-        title: Text(tr('폴더로 이동', 'Move to folder')),
+        title: Text(l10n.moveToFolder),
         contentPadding: EdgeInsets.zero,
       ),
     ),
@@ -1012,7 +990,7 @@ Future<void> _showEntryMenu(
       value: 'delete',
       child: ListTile(
         leading: const Icon(Icons.delete_outline),
-        title: Text(tr('삭제', 'Delete')),
+        title: Text(l10n.delete),
         subtitle: const Text('Delete'),
         contentPadding: EdgeInsets.zero,
       ),
@@ -1038,7 +1016,7 @@ Future<void> _showFolderMenu(BuildContext context, LibraryController library, Of
       value: 'new',
       child: ListTile(
         leading: const Icon(Icons.create_new_folder_outlined),
-        title: Text(tr('새 폴더', 'New folder')),
+        title: Text(l10n.newFolder),
         contentPadding: EdgeInsets.zero,
       ),
     ),
@@ -1046,7 +1024,7 @@ Future<void> _showFolderMenu(BuildContext context, LibraryController library, Of
       value: 'selectAll',
       child: ListTile(
         leading: const Icon(Icons.select_all),
-        title: Text(tr('모두 선택', 'Select all')),
+        title: Text(l10n.selectAllItems),
         subtitle: const Text('Ctrl+A'),
         contentPadding: EdgeInsets.zero,
       ),
@@ -1055,7 +1033,7 @@ Future<void> _showFolderMenu(BuildContext context, LibraryController library, Of
       value: 'explorer',
       child: ListTile(
         leading: const Icon(Icons.open_in_new),
-        title: Text(tr('탐색기에서 열기', 'Open in Explorer')),
+        title: Text(l10n.openInExplorer),
         contentPadding: EdgeInsets.zero,
       ),
     ),
@@ -1063,7 +1041,7 @@ Future<void> _showFolderMenu(BuildContext context, LibraryController library, Of
       value: 'refresh',
       child: ListTile(
         leading: const Icon(Icons.refresh),
-        title: Text(tr('새로 고침', 'Refresh')),
+        title: Text(l10n.refreshLibrary),
         contentPadding: EdgeInsets.zero,
       ),
     ),
@@ -1096,21 +1074,16 @@ Future<String?> _showMenuAt(BuildContext context, Offset position, List<PopupMen
 // ───────────────────────── Dialogs ─────────────────────────
 
 Future<void> _createFolder(BuildContext context, LibraryController library) async {
-  final name = await _askName(
-    context,
-    title: tr('새 폴더', 'New folder'),
-    label: tr('폴더 이름', 'Folder name'),
-    confirm: tr('만들기', 'Create'),
-  );
+  final name = await _askName(context, title: l10n.newFolder, label: l10n.folderName, confirm: l10n.create);
   if (name != null) await library.createFolder(name);
 }
 
 Future<void> _rename(BuildContext context, LibraryController library, LibraryEntry entry) async {
   final name = await _askName(
     context,
-    title: tr('이름 변경', 'Rename'),
-    label: tr('새 이름', 'New name'),
-    confirm: tr('바꾸기', 'Rename'),
+    title: l10n.rename,
+    label: l10n.newName,
+    confirm: l10n.renameConfirm,
     initial: entry.name,
   );
   if (name != null) await library.renameEntry(entry, name);
@@ -1130,16 +1103,9 @@ Future<void> _deleteMany(BuildContext context, LibraryController library, List<L
   if (entries.isEmpty) return;
   final colors = Theme.of(context).colorScheme;
 
-  final title = entries.length == 1
-      ? tr('"${entries.single.name}"을(를) 삭제할까요?', 'Delete "${entries.single.name}"?')
-      : tr('${entries.length}개를 삭제할까요?', "Delete ${entries.length} ${plural(entries.length, 'item')}?");
+  final title = entries.length == 1 ? l10n.deleteNamed(entries.single.name) : l10n.deleteItems(entries.length);
   final levelsInside = entries.whereType<FolderEntry>().fold(0, (sum, folder) => sum + folder.levelCount);
-  final message = levelsInside > 0
-      ? tr(
-          '폴더 안의 레벨 ${formatNumber(levelsInside)}개를 포함해 디스크에서 지워집니다.',
-          "This deletes it from disk, including ${formatNumber(levelsInside)} ${plural(levelsInside, 'level')} inside.",
-        )
-      : tr('디스크에서 지워집니다.', 'This deletes it from disk.');
+  final message = levelsInside > 0 ? l10n.thisDeletesItFrom(levelsInside) : l10n.thisDeletesItFromDisk;
 
   final confirmed = await showDialog<bool>(
     context: context,
@@ -1147,11 +1113,11 @@ Future<void> _deleteMany(BuildContext context, LibraryController library, List<L
       title: Text(title),
       content: Text(message),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(tr('취소', 'Cancel'))),
+        TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.cancel)),
         FilledButton(
           style: FilledButton.styleFrom(backgroundColor: colors.error, foregroundColor: colors.onError),
           onPressed: () => Navigator.of(context).pop(true),
-          child: Text(tr('삭제', 'Delete')),
+          child: Text(l10n.delete),
         ),
       ],
     ),
@@ -1211,7 +1177,7 @@ class _NameDialogState extends State<_NameDialog> {
       ),
     ),
     actions: [
-      TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(tr('취소', 'Cancel'))),
+      TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.cancel)),
       FilledButton(onPressed: _submit, child: Text(widget.confirm)),
     ],
   );
@@ -1268,10 +1234,10 @@ class _MoveDialogState extends State<_MoveDialog> {
     final theme = Theme.of(context);
     final contents = _contents;
     final title = widget.entries.length == 1
-        ? tr('"${widget.entries.single.name}" 옮기기', 'Move "${widget.entries.single.name}"')
-        : tr('${widget.entries.length}개 옮기기', "Move ${widget.entries.length} ${plural(widget.entries.length, 'item')}");
+        ? l10n.moveNamed(widget.entries.single.name)
+        : l10n.moveItems(widget.entries.length);
 
-    final crumbs = <(String, String)>[(tr('루트', 'Root'), '')];
+    final crumbs = <(String, String)>[(l10n.root, '')];
     var walked = '';
     for (final part in _path.split('/').where((part) => part.isNotEmpty)) {
       walked = walked.isEmpty ? part : '$walked/$part';
@@ -1314,7 +1280,7 @@ class _MoveDialogState extends State<_MoveDialog> {
                 null => const Center(child: CircularProgressIndicator()),
                 FolderContents(folders: []) => Center(
                   child: Text(
-                    tr('하위 폴더가 없어요.', 'No subfolders.'),
+                    l10n.noSubfolders,
                     style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                   ),
                 ),
@@ -1336,10 +1302,10 @@ class _MoveDialogState extends State<_MoveDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(tr('취소', 'Cancel'))),
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.cancel)),
         FilledButton(
           onPressed: _canMoveHere ? () => Navigator.of(context).pop(_path) : null,
-          child: Text(_path.isEmpty ? tr('루트로 옮기기', 'Move to root') : tr('여기로 옮기기', 'Move here')),
+          child: Text(_path.isEmpty ? l10n.moveToRoot : l10n.moveHere),
         ),
       ],
     );
@@ -1361,16 +1327,14 @@ class _EmptyFolder extends StatelessWidget {
       child: Center(
         child: EmptyState(
           icon: Icon(atRoot ? Icons.download_outlined : Icons.folder_open_outlined),
-          title: atRoot ? tr('아직 받은 레벨이 없어요', 'No downloaded levels yet') : tr('빈 폴더예요', 'This folder is empty'),
-          message: atRoot
-              ? tr('레벨 찾기에서 마음에 드는 레벨을 받아보세요.', 'Find levels you like in Levels and download them.')
-              : tr('레벨을 끌어다 놓거나, 안에 폴더를 더 만들 수 있어요.', 'Drag levels here, or create more folders inside.'),
+          title: atRoot ? l10n.noDownloadedLevelsYet : l10n.thisFolderIsEmpty,
+          message: atRoot ? l10n.findLevelsYouLike : l10n.dragLevelsHereOr,
           action: atRoot
-              ? FilledButton(onPressed: onBrowse, child: Text(tr('레벨 둘러보기', 'Browse levels')))
+              ? FilledButton(onPressed: onBrowse, child: Text(l10n.browseLevels))
               : OutlinedButton.icon(
                   onPressed: onCreateFolder,
                   icon: const Icon(Icons.create_new_folder_outlined),
-                  label: Text(tr('새 폴더', 'New folder')),
+                  label: Text(l10n.newFolder),
                 ),
         ),
       ),

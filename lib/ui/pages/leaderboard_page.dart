@@ -23,17 +23,14 @@ class LeaderboardPage extends StatelessWidget {
       listenable: leaderboard,
       builder: (context, _) => BrowsePage<LeaderboardPlayer>(
         list: leaderboard,
-        title: tr('리더보드', 'Leaderboard'),
-        subtitle: tr(
-          '플레이어 순위를 점수, 클리어 수, 최고 난이도 등으로 보세요.',
-          'See player rankings by score, passes, top difficulty, and more.',
-        ),
+        title: l10n.leaderboard,
+        subtitle: l10n.seePlayerRankingsBy,
         toolbar: _Toolbar(leaderboard: leaderboard),
-        countText: (total) => tr('플레이어 ${formatNumber(total)}명', "${formatNumber(total)} ${plural(total, 'player')}"),
+        countText: (total) => l10n.playerCount(total),
         itemKey: (player) => player.id,
         itemBuilder: (context, player, index) => LeaderboardRow(player: player, sort: leaderboard.sort),
-        emptyTitle: tr('찾는 플레이어가 없어요', 'No players found'),
-        endText: tr('모든 플레이어를 불러왔어요', 'All players loaded'),
+        emptyTitle: l10n.noPlayersFound,
+        endText: l10n.allPlayersLoaded,
       ),
     );
   }
@@ -50,7 +47,7 @@ class _Toolbar extends StatelessWidget {
       Expanded(
         child: BrowseSearchBar(
           initialText: leaderboard.query,
-          hint: tr('플레이어 이름으로 검색', 'Search by player name'),
+          hint: l10n.searchByPlayerName,
           onChanged: leaderboard.setQuery,
         ),
       ),
@@ -59,7 +56,7 @@ class _Toolbar extends StatelessWidget {
         // The selected label is only filled in on creation, so recreate the menu when the language changes.
         key: ValueKey(appLanguage),
         initialSelection: leaderboard.sort,
-        label: Text(tr('정렬', 'Sort')),
+        label: Text(l10n.sort),
         width: 220,
         menuHeight: 420,
         onSelected: (value) {
@@ -72,7 +69,7 @@ class _Toolbar extends StatelessWidget {
       const SizedBox(width: 8),
       OrderButton(descending: leaderboard.descending, onPressed: leaderboard.toggleOrder),
       const SizedBox(width: 8),
-      IconButton(tooltip: tr('새로고침', 'Refresh'), onPressed: leaderboard.reload, icon: const Icon(Icons.refresh)),
+      IconButton(tooltip: l10n.refresh, onPressed: leaderboard.reload, icon: const Icon(Icons.refresh)),
     ],
   );
 }
@@ -162,7 +159,7 @@ class LeaderboardRow extends StatelessWidget {
             child: top == null
                 ? null
                 : HoverTip(
-                    message: tr('최고 난이도 ${top.name}', 'Top difficulty ${top.name}'),
+                    message: l10n.topDifficulty(top.name),
                     child: Align(alignment: Alignment.centerRight, child: NetworkIcon(top.icon, size: 32)),
                   ),
           ),

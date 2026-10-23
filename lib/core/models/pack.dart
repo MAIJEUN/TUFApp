@@ -143,15 +143,18 @@ class LevelPackDetail {
 }
 
 enum PackSort {
-  recent('RECENT', '최신', 'Recent'),
-  name('NAME', '이름', 'Name'),
-  levels('LEVELS', '레벨 수', 'Level Count'),
-  favorites('FAVORITES', '좋아요 수', 'Favorites');
+  recent('RECENT'),
+  name('NAME'),
+  levels('LEVELS'),
+  favorites('FAVORITES');
 
-  const PackSort(this.apiValue, this._ko, this._en);
+  const PackSort(this.apiValue);
 
   final String apiValue;
-  final String _ko;
-  final String _en;
-  String get label => tr(_ko, _en);
+  String get label => switch (this) {
+    recent => l10n.packSortRecent,
+    name => l10n.packSortName,
+    levels => l10n.packSortLevels,
+    favorites => l10n.packSortFavorites,
+  };
 }

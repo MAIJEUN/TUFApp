@@ -149,7 +149,7 @@ List<StatGroup> playerStatGroups(PlayerProfileDetail player, DifficultyCatalog? 
   );
 
   return [
-    StatGroup(tr('점수', 'Scores'), [
+    StatGroup(l10n.scores, [
       for (final key in [
         PlayerScoreKey.rankedScore,
         PlayerScoreKey.totalScoreV2,
@@ -161,51 +161,51 @@ List<StatGroup> playerStatGroups(PlayerProfileDetail player, DifficultyCatalog? 
         if (player.scores.containsKey(key)) StatRow(key.label, formatPoints(player.score(key))),
       StatRow(PlayerScoreKey.averageXacc.label, formatAccuracyRatio(player.score(PlayerScoreKey.averageXacc))),
     ]),
-    StatGroup(tr('클리어 수', 'Pass counts'), [
-      StatRow(tr('총 클리어 횟수', 'Total passes'), formatCount(counts['totalPasses'])),
-      StatRow(tr('클리어한 레벨', 'Unique levels cleared'), formatCount(counts['uniqueLevelsCleared'])),
-      StatRow(tr('세계 최초 클리어', "World's first clears"), formatCount(counts['worldsFirstCount'])),
-      StatRow(tr('세계 최초 완플 클리어', "World's first PP clears"), formatCount(counts['worldsFirstPPCount'])),
-      StatRow(tr('12키 클리어', '12K clears'), formatCount(counts['clears12K'])),
-      StatRow(tr('16키 클리어', '16K clears'), formatCount(counts['clears16K'])),
-      StatRow(tr('완벽한 클리어 합계', 'Total pure perfects'), formatCount(counts['totalPurePerfectClears'])),
-      StatRow(tr('중복 클리어', 'Reclears'), formatCount(counts['duplicatePasses'])),
+    StatGroup(l10n.passCounts, [
+      StatRow(l10n.totalPasses, formatCount(counts['totalPasses'])),
+      StatRow(l10n.uniqueLevelsCleared, formatCount(counts['uniqueLevelsCleared'])),
+      StatRow(l10n.worldsFirstClears, formatCount(counts['worldsFirstCount'])),
+      StatRow(l10n.worldsFirstPPClears, formatCount(counts['worldsFirstPPCount'])),
+      StatRow(l10n.clears12k, formatCount(counts['clears12K'])),
+      StatRow(l10n.clears16k, formatCount(counts['clears16K'])),
+      StatRow(l10n.totalPurePerfects, formatCount(counts['totalPurePerfectClears'])),
+      StatRow(l10n.reclears, formatCount(counts['duplicatePasses'])),
     ]),
-    StatGroup(tr('판정', 'Judgements'), [
-      StatRow(tr('총 누른 타일', 'Total tiles hit'), formatCount(judgements['totalTilesHit'])),
+    StatGroup(l10n.judgements, [
+      StatRow(l10n.totalTilesHit, formatCount(judgements['totalTilesHit'])),
       StatRow(Judgement.tooEarly.label, formatCount(judgements['earlyDouble'])),
       StatRow(Judgement.early.label, formatCount(judgements['earlySingle'])),
       StatRow(Judgement.earlyPerfect.label, formatCount(judgements['ePerfect'])),
       StatRow(Judgement.perfect.label, formatCount(judgements['perfect'])),
       StatRow(Judgement.latePerfect.label, formatCount(judgements['lPerfect'])),
       StatRow(Judgement.late.label, formatCount(judgements['lateSingle'])),
-      StatRow(tr('평균 정확도', 'General accuracy'), _xaccOf(judgements)),
-      StatRow(tr('빠름/느림 쏠림', 'Early vs late bias'), formatFixed(judgements['earlyVsLateBias'], 4)),
+      StatRow(l10n.generalAccuracy, _xaccOf(judgements)),
+      StatRow(l10n.earlyVsLateBias, formatFixed(judgements['earlyVsLateBias'], 4)),
     ]),
-    StatGroup(tr('클리어한 레벨', 'Levels cleared'), [
-      StatRow(tr('클리어한 총 타일 수', 'Total tilecount cleared'), formatCount(cleared['totalTilecountCleared'])),
-      StatRow(tr('예상 플레이 시간', 'Estimated playtime'), formatDurationMs(cleared['totalPlaytimeMs'])),
-      StatRow(tr('평균 BPM (클리어한 레벨)', 'Avg BPM (cleared levels)'), formatFixed(cleared['averageBpm'], 2)),
-      StatRow(tr('총 점수 (중복 포함)', 'Raw sum of all pass scores'), formatPoints(cleared['totalRawScoreV2'])),
+    StatGroup(l10n.levelsCleared, [
+      StatRow(l10n.totalTilecountCleared, formatCount(cleared['totalTilecountCleared'])),
+      StatRow(l10n.estimatedPlaytime, formatDurationMs(cleared['totalPlaytimeMs'])),
+      StatRow(l10n.avgBPMClearedLevels, formatFixed(cleared['averageBpm'], 2)),
+      StatRow(l10n.rawSumOfAll, formatPoints(cleared['totalRawScoreV2'])),
     ]),
-    StatGroup(tr('기록', 'Records'), [
-      extreme(tr('첫 클리어', 'First pass'), 'firstPassAt', formatStatDate),
-      extreme(tr('최근 클리어', 'Latest pass'), 'latestPassAt', formatStatDate),
-      extreme(tr('최고 정확도', 'Best accuracy'), 'bestAccuracy', formatAccuracyRatio),
-      extreme(tr('최저 정확도', 'Worst accuracy'), 'worstAccuracy', formatAccuracyRatio),
-      extreme(tr('최고 속도', 'Top speed'), 'topSpeed', (value) => _trimNumber(asDoubleOrNull(value) ?? 0, 3)),
-      extreme(tr('최고 타일 수', 'Highest tilecount'), 'highestTilecountCleared', formatCount),
-      extreme(tr('최장 길이', 'Longest level'), 'longestLevelMs', formatDurationMs),
-      extreme(tr('클리어한 최고 BPM', 'Highest BPM cleared'), 'highestBpmCleared', (value) => formatFixed(value, 2)),
+    StatGroup(l10n.records, [
+      extreme(l10n.firstPass, 'firstPassAt', formatStatDate),
+      extreme(l10n.latestPass, 'latestPassAt', formatStatDate),
+      extreme(l10n.bestAccuracy, 'bestAccuracy', formatAccuracyRatio),
+      extreme(l10n.worstAccuracy, 'worstAccuracy', formatAccuracyRatio),
+      extreme(l10n.topSpeed, 'topSpeed', (value) => _trimNumber(asDoubleOrNull(value) ?? 0, 3)),
+      extreme(l10n.highestTilecount, 'highestTilecountCleared', formatCount),
+      extreme(l10n.longestLevel, 'longestLevelMs', formatDurationMs),
+      extreme(l10n.highestBPMCleared, 'highestBpmCleared', (value) => formatFixed(value, 2)),
     ]),
-    StatGroup(tr('활동', 'Activity'), [
-      StatRow(tr('가입 일수', 'Account age (days)'), formatCount(activity['accountAgeDays'])),
-      StatRow(tr('최근 30일 클리어 수', 'Passes (last 30 days)'), formatCount(activity['passesLast30Days'])),
-      StatRow(tr('좋아요 표시한 레벨 수', 'Levels liked'), formatCount(activity['uniqueLevelsLiked'])),
-      StatRow(tr('제작한 팩 수', 'Packs owned'), formatCount(activity['packsOwned'])),
-      StatRow(tr('좋아요 표시한 팩 수', 'Packs favorited'), formatCount(activity['packsFavorited'])),
+    StatGroup(l10n.activity, [
+      StatRow(l10n.accountAgeDays, formatCount(activity['accountAgeDays'])),
+      StatRow(l10n.passesLast30Days, formatCount(activity['passesLast30Days'])),
+      StatRow(l10n.levelsLiked, formatCount(activity['uniqueLevelsLiked'])),
+      StatRow(l10n.packsOwned, formatCount(activity['packsOwned'])),
+      StatRow(l10n.packsFavorited, formatCount(activity['packsFavorited'])),
     ]),
-    StatGroup(tr('클리어한 난이도 수', 'Clears by difficulty type'), [
+    StatGroup(l10n.clearsByDifficultyType, [
       for (final bucket in const ['PLANETARY', 'GALACTIC', 'UNIVERSAL', 'SPECIAL'])
         StatRow(
           bucket,
@@ -213,11 +213,8 @@ List<StatGroup> playerStatGroups(PlayerProfileDetail player, DifficultyCatalog? 
               ? '${formatCount(unique[bucket])} (${formatCount(total[bucket])})'
               : formatCount(unique[bucket]),
           tooltip: total[bucket]! > unique[bucket]!
-              ? tr(
-                  '고유 레벨 ${unique[bucket]}개 클리어 (총 ${total[bucket]}회)',
-                  '${unique[bucket]} unique levels cleared (${total[bucket]} total passes)',
-                )
-              : tr('클리어한 고유 레벨 ${unique[bucket]}개', '${unique[bucket]} unique levels cleared'),
+              ? l10n.uniqueLevelsClearedTotal(unique[bucket]!, total[bucket]!)
+              : l10n.uniqueLevelsClearedCount(unique[bucket]!),
         ),
     ]),
   ];
@@ -254,39 +251,39 @@ List<StatGroup> creatorStatGroups(CreatorProfileDetail creator, DifficultyCatalo
   final byType = bucketByDifficultyName(_section(facts, 'levelsByDifficulty'), catalog);
 
   return [
-    StatGroup(tr('기본 정보', 'Identity'), [
-      StatRow(tr('별칭', 'Aliases'), formatCount(identity['aliasCount'])),
-      StatRow(tr('팀 참여', 'Teams joined'), formatCount(identity['teamsJoined'])),
+    StatGroup(l10n.identity, [
+      StatRow(l10n.aliases, formatCount(identity['aliasCount'])),
+      StatRow(l10n.teamsJoined, formatCount(identity['teamsJoined'])),
     ]),
-    StatGroup(tr('참여', 'Credits'), [
-      StatRow(tr('채보 참여 레벨', 'Levels as charter'), formatCount(credits['levelsAsCharter'])),
-      StatRow(tr('이펙트 참여 레벨', 'Levels as VFX'), formatCount(credits['levelsAsVfxer'])),
+    StatGroup(l10n.credits, [
+      StatRow(l10n.levelsAsCharter, formatCount(credits['levelsAsCharter'])),
+      StatRow(l10n.levelsAsVFX, formatCount(credits['levelsAsVfxer'])),
     ]),
-    StatGroup(tr('레벨 내용', 'Chart content'), [
-      StatRow(tr('총 타일 수', 'Tiles placed'), formatCount(content['totalTilesMade'])),
-      StatRow(tr('총 채보 길이', 'Total chart duration'), formatDurationMs(content['totalLevelDurationMs'])),
-      StatRow(tr('평균 타일 수', 'Avg tilecount'), formatFixed(content['averageTilecount'], 2)),
-      StatRow(tr('평균 채보 길이', 'Avg level length'), formatDurationMs(content['averageLevelLengthMs'])),
-      StatRow(tr('평균 BPM', 'Avg BPM'), formatFixed(content['averageBpm'], 2)),
-      StatRow(tr('모든 레벨 클리어 수', 'Total clears on charts'), formatCount(content['totalClearsOnLevels'])),
-      StatRow(tr('모든 레벨 좋아요 수', 'Total likes on charts'), formatCount(content['totalLikesOnLevels'])),
-      StatRow(tr('모든 레벨 다운로드 수', 'Total downloads on charts'), formatCount(content['totalDownloadsOnLevels'])),
+    StatGroup(l10n.chartContent, [
+      StatRow(l10n.tilesPlaced, formatCount(content['totalTilesMade'])),
+      StatRow(l10n.totalChartDuration, formatDurationMs(content['totalLevelDurationMs'])),
+      StatRow(l10n.avgTilecount, formatFixed(content['averageTilecount'], 2)),
+      StatRow(l10n.avgLevelLength, formatDurationMs(content['averageLevelLengthMs'])),
+      StatRow(l10n.avgBPM, formatFixed(content['averageBpm'], 2)),
+      StatRow(l10n.totalClearsOnCharts, formatCount(content['totalClearsOnLevels'])),
+      StatRow(l10n.totalLikesOnCharts, formatCount(content['totalLikesOnLevels'])),
+      StatRow(l10n.totalDownloadsOnCharts, formatCount(content['totalDownloadsOnLevels'])),
     ]),
-    StatGroup(tr('플레이어', 'Audience'), [
-      StatRow(tr('클리어한 플레이어 수', 'Unique players who cleared'), formatCount(audience['uniquePlayersCleared'])),
-      StatRow(tr('레벨의 세계 최초 클리어', "WF's on charts"), formatCount(audience['worldsFirstsOnLevels'])),
-      StatRow(tr('레벨의 세계 최초 완플', "WF PP's on charts"), formatCount(audience['worldsFirstPPsOnLevels'])),
-      StatRow(tr('플레이어가 누른 타일', 'Total tiles hit'), formatCount(audience['totalTilesPlayedOnLevels'])),
+    StatGroup(l10n.audience, [
+      StatRow(l10n.uniquePlayersWhoCleared, formatCount(audience['uniquePlayersCleared'])),
+      StatRow(l10n.wfsOnCharts, formatCount(audience['worldsFirstsOnLevels'])),
+      StatRow(l10n.wfPpsOnCharts, formatCount(audience['worldsFirstPPsOnLevels'])),
+      StatRow(l10n.totalTilesHitOnCharts, formatCount(audience['totalTilesPlayedOnLevels'])),
     ]),
-    StatGroup(tr('타임라인', 'Timeline'), [
-      StatRow(tr('첫 제작', 'First chart'), formatStatDate(timeline['firstLevelAt'])),
-      StatRow(tr('최근 제작', 'Latest chart'), formatStatDate(timeline['latestLevelAt'])),
+    StatGroup(l10n.timeline, [
+      StatRow(l10n.firstChart, formatStatDate(timeline['firstLevelAt'])),
+      StatRow(l10n.latestChart, formatStatDate(timeline['latestLevelAt'])),
     ]),
-    StatGroup(tr('난이도별 레벨', 'Levels by difficulty type'), [
+    StatGroup(l10n.levelsByDifficultyType, [
       StatRow('P', formatCount(byType['PLANETARY'])),
       StatRow('G', formatCount(byType['GALACTIC'])),
       StatRow('U', formatCount(byType['UNIVERSAL'])),
-      StatRow(tr('특수', 'Special'), formatCount(byType['SPECIAL'])),
+      StatRow(l10n.special, formatCount(byType['SPECIAL'])),
     ]),
   ];
 }
@@ -346,12 +343,9 @@ List<IconSlot> playerIconSlots(PlayerProfileDetail player, DifficultyCatalog? ca
       letter: letter,
       iconUrl: best.difficulty?.icon,
       badge: best.count,
-      tooltip: tr(
-        '최고 $letter 클리어: $letter${best.number} (${best.count}회)',
-        'Top $letter clear: $letter${best.number} (${best.count}×)',
-      ),
+      tooltip: l10n.topClear(letter, best.number, best.count),
     ),
-    null => IconSlot(letter: letter, tooltip: tr('$letter: 클리어 없음', '$letter: no clears')),
+    null => IconSlot(letter: letter, tooltip: l10n.letterNoClears(letter)),
   };
 
   IconSlot q(String letter) => switch (qTop[letter]) {
@@ -359,15 +353,9 @@ List<IconSlot> playerIconSlots(PlayerProfileDetail player, DifficultyCatalog? ca
       letter: '${letter}Q',
       iconUrl: catalog?.all.where((d) => d.name.startsWith('${letter}Q${best.tier}')).firstOrNull?.icon,
       badge: best.count,
-      tooltip: tr(
-        '세계 최초 $letter 클리어로 얻은 ${letter}Q${best.tier} (${best.count}회)',
-        '${letter}Q${best.tier} from world\'s first $letter clears (${best.count}×)',
-      ),
+      tooltip: l10n.qFromWorldsFirst(letter, best.tier, best.count),
     ),
-    null => IconSlot(
-      letter: '${letter}Q',
-      tooltip: tr('${letter}Q: 해당 범위의 세계 최초 클리어 없음', "${letter}Q: no world's first clears in this range"),
-    ),
+    null => IconSlot(letter: '${letter}Q', tooltip: l10n.qNoWorldsFirst(letter)),
   };
 
   return [pgu('P'), pgu('G'), pgu('U'), q('G'), q('U')];
@@ -406,7 +394,7 @@ List<IconSlot> curationIconSlots(
     letter: type.name.length <= 3 ? type.name : type.name.substring(0, 2),
     iconUrl: type.icon,
     badge: count,
-    tooltip: tr('${type.name} · 레벨 $count개', '${type.name} · $count ${plural(count, 'level')}'),
+    tooltip: l10n.typeLevelCount(type.name, count),
   );
 
   final manual = displayCurationTypeIds.toSet().take(5).toList();

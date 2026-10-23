@@ -120,14 +120,7 @@ class LevelLibrary {
       // Keep the unreadable file next to it instead of deleting it, and start with an empty index.
       final backup = '${index.path}.broken-${DateTime.now().millisecondsSinceEpoch}';
       await index.rename(backup);
-      return LevelLibrary._(
-        root,
-        const [],
-        recovery: tr(
-          '받은 레벨 목록 파일을 읽을 수 없어서 새로 시작합니다. 원래 파일은 ${p.basename(backup)}(으)로 남겨 뒀습니다.',
-          "Couldn't read the downloaded level list, so it starts fresh. The original file was kept as ${p.basename(backup)}.",
-        ),
-      );
+      return LevelLibrary._(root, const [], recovery: l10n.couldntReadTheDownloaded(p.basename(backup)));
     }
 
     final levels = <InstalledLevel>[];
@@ -142,16 +135,7 @@ class LevelLibrary {
         levels.add(level);
       }
     }
-    return LevelLibrary._(
-      root,
-      levels,
-      recovery: skipped == 0
-          ? null
-          : tr(
-              '받은 레벨 목록에서 읽을 수 없는 항목 $skipped개를 뺐습니다.',
-              'Removed $skipped unreadable ${plural(skipped, 'entry', 'entries')} from the downloaded level list.',
-            ),
-    );
+    return LevelLibrary._(root, levels, recovery: skipped == 0 ? null : l10n.removedUnreadableEntries(skipped));
   }
 
   static InstalledLevel? _tryParse(Map<String, dynamic> json) {
@@ -191,7 +175,7 @@ class LevelLibrary {
 
   Future<void> set(InstalledLevel level) {
     if (!_isSafeFolderName(level.folderName)) {
-      throw FileSystemException(tr('레벨 폴더 이름이 올바르지 않습니다', 'Invalid level folder name'), level.folderName);
+      throw FileSystemException(l10n.invalidLevelFolderName, level.folderName);
     }
     _levels[level.levelId] = level;
     return _save();
@@ -286,9 +270,7 @@ abstract final class LevelArchive {
         final target = p.normalize(p.join(root, relative));
         // Zip slip protection: reject paths that escape the target folder.
         if (!p.isWithin(root, target)) {
-          throw FormatException(
-            tr('zip에 잘못된 경로가 있습니다: ${entry.name}', 'The zip contains an invalid path: ${entry.name}'),
-          );
+          throw FormatException(l10n.zipInvalidPath(entry.name));
         }
 
         if (!entry.isFile) {

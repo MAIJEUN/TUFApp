@@ -30,7 +30,7 @@ class CreatorProfilePage extends StatelessWidget {
   Widget build(BuildContext context) => ProfilePageFrame<CreatorProfileDetail>(
     load: (context) => AppScope.of(context).api.getCreatorProfile(creatorId),
     titleOf: (creator) => creator.name,
-    emptyTitle: tr('레벨이 없어요', 'No levels'),
+    emptyTitle: l10n.noLevels,
     createList: (api, creator) => CreatorLevelList(api, creator.id),
     listHeader: (context, creator, list) => CreatorLevelListHeader(list: list as CreatorLevelList),
     itemBuilder: (context, creator, list, index) =>
@@ -61,14 +61,14 @@ class CreatorProfilePage extends StatelessWidget {
             conditions: creator.uploadConditions,
           ),
           iconSlots: slots,
-          iconPanelTitle: tr('큐레이션 유형', 'Curation types'),
+          iconPanelTitle: l10n.curationTypes,
           iconPanel: curations == null || typedCount <= slots.length
               ? null
               : (context) => CurationPanel(types: curations.all, counts: creator.curationTypeCounts),
           stats: [
-            StatRow(tr('모든 레벨', 'Total levels'), formatCount(creator.chartsTotal)),
-            StatRow(tr('큐레이션 레벨', 'Curated levels'), formatCount(creator.curatedLevels)),
-            StatRow(tr('레벨 클리어 수', 'Total level clears'), formatCount(creator.totalChartClears)),
+            StatRow(l10n.totalLevels, formatCount(creator.chartsTotal)),
+            StatRow(l10n.curatedLevels, formatCount(creator.curatedLevels)),
+            StatRow(l10n.totalLevelClears, formatCount(creator.totalChartClears)),
           ],
           statGroups: creatorStatGroups(creator, catalog),
           actions: [
@@ -81,18 +81,18 @@ class CreatorProfilePage extends StatelessWidget {
             if (creator.playerId case final playerId?)
               ProfileAction(
                 icon: Icons.sports_esports_outlined,
-                tooltip: tr('플레이어 프로필 보기', 'View player profile'),
+                tooltip: l10n.viewPlayerProfile,
                 onPressed: () => ProfileNavigation.openPlayer(context, playerId),
               ),
           ],
         ),
         for (final module in creator.modules.layoutFor(player: false))
           ?switch (module.type) {
-            'bio' when !creator.bio.isEmpty => BioModule(title: tr('소개', 'Bio'), bio: creator.bio),
+            'bio' when !creator.bio.isEmpty => BioModule(title: l10n.bio, bio: creator.bio),
             'tournaments' when TournamentsModule.visible(creator.placements, creator.placementOrderIds).isNotEmpty =>
               TournamentsModule(placements: creator.placements, orderIds: creator.placementOrderIds),
             'difficulty' when levelsByDifficulty?.isNotEmpty ?? false => DifficultyModule(
-              title: tr('난이도별 레벨', 'Levels by difficulty'),
+              title: l10n.levelsByDifficulty,
               counts: levelsByDifficulty!,
             ),
             'favorite' when creator.modules.favorites[module.id]?.isNotEmpty ?? false => FavoritesModule(

@@ -214,9 +214,9 @@ class _Footer extends StatelessWidget {
         padding: const EdgeInsets.only(top: 32),
         child: EmptyState(
           icon: const Icon(Icons.cloud_off),
-          title: tr('목록을 불러오지 못했어요', "Couldn't load the list"),
+          title: l10n.couldntLoadTheList,
           message: error,
-          action: FilledButton(onPressed: list.reload, child: Text(tr('다시 시도', 'Retry'))),
+          action: FilledButton(onPressed: list.reload, child: Text(l10n.retry)),
         ),
       );
     } else if (list.loadMoreError case final message?) {
@@ -231,11 +231,7 @@ class _Footer extends StatelessWidget {
       content = Padding(
         key: const ValueKey('empty'),
         padding: const EdgeInsets.only(top: 32),
-        child: EmptyState(
-          icon: const Icon(Icons.search_off),
-          title: emptyTitle,
-          message: tr('다른 조건으로 찾아보세요.', 'Try different filters.'),
-        ),
+        child: EmptyState(icon: const Icon(Icons.search_off), title: emptyTitle, message: l10n.tryDifferentFilters),
       );
     } else if (!list.hasMore && !list.loading) {
       content = Padding(
@@ -300,7 +296,7 @@ class _BrowseSearchBarState extends State<BrowseSearchBar> {
           child: _controller.text.isNotEmpty
               ? IconButton(
                   key: const ValueKey('clear'),
-                  tooltip: tr('검색어 지우기', 'Clear search'),
+                  tooltip: l10n.clearSearch,
                   icon: const Icon(Icons.close),
                   onPressed: () {
                     _controller.clear();
@@ -323,7 +319,7 @@ class OrderButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => IconButton.filledTonal(
-    tooltip: descending ? tr('내림차순', 'Descending') : tr('오름차순', 'Ascending'),
+    tooltip: descending ? l10n.descending : l10n.ascending,
     onPressed: onPressed,
     icon: AnimatedRotation(
       turns: descending ? 0 : 0.5,

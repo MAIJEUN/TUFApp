@@ -30,22 +30,13 @@ abstract final class JudgementColors {
 /// Flags on a pass (same order and names as the website's PassFlags):
 /// world's first, auto-submitted, key count, hold setting, game version, X-Perfect.
 List<({String label, String? tip})> passFlags(LevelPass pass) => [
-  if (pass.isWorldsFirst) (label: 'WF', tip: tr('세계 최초 클리어!', "World's First Clear!")),
-  if (pass.isWorldsFirstPP) (label: 'WF PP', tip: tr('세계 최초 PP 클리어!', "World's First Pure Perfect!")),
-  if (pass.isAutoSubmitted)
-    (label: tr('자동 제출', 'Auto-submitted'), tip: tr('게임에서 바로 제출된 기록', 'Submitted straight from the game')),
+  if (pass.isWorldsFirst) (label: 'WF', tip: l10n.worldsFirstClearBadge),
+  if (pass.isWorldsFirstPP) (label: 'WF PP', tip: l10n.worldsFirstPurePerfect),
+  if (pass.isAutoSubmitted) (label: l10n.autoSubmitted, tip: l10n.submittedStraightFromThe),
   if (pass.keyCountLabel case final keys?) (label: keys, tip: null),
-  if (pass.isNoHoldTap) (label: tr('홀드 설정 꺼짐', 'No Hold'), tip: tr('기본 외 홀드 타일 동작', 'Alt. hold option')),
-  if (pass.era == AdofaiEra.v2)
-    (
-      label: 'v2',
-      tip: tr(
-        '엔진 변경 이전 버전입니다 (v2.9.8까지).\n타이밍 엔진 문제로 안정성과 정밀도가 낮았습니다.',
-        'Before the engine change (up to v2.9.8).\nTiming engine issues made it less stable and precise.',
-      ),
-    ),
-  if (pass.era == AdofaiEra.pre340)
-    (label: '<3.4.0', tip: tr('X-Perfect 이전 버전입니다 (v3.3.1까지).', 'Before X-Perfect (up to v3.3.1).')),
+  if (pass.isNoHoldTap) (label: l10n.noHold, tip: l10n.altHoldOption),
+  if (pass.era == AdofaiEra.v2) (label: 'v2', tip: l10n.beforeTheEngineChange),
+  if (pass.era == AdofaiEra.pre340) (label: '<3.4.0', tip: l10n.beforeXPerfectUp),
   if (pass.isXPerfectMode) (label: 'X-Perfect', tip: null),
 ];
 
@@ -91,9 +82,7 @@ class ImpactChip extends StatelessWidget {
     final color = positive ? green : theme.colorScheme.onSurfaceVariant;
 
     return HoverTip(
-      message: positive
-          ? tr('이 기록이 랭킹 점수에 보탠 몫', 'What this pass adds to the ranked score')
-          : tr('랭킹 점수에 들어가지 않는 기록이에요 (보탤 수 있었던 몫)', "Doesn't count toward the ranked score (what it could have added)"),
+      message: positive ? l10n.whatThisPassAdds : l10n.doesntCountTowardThe,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),

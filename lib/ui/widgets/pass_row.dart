@@ -187,7 +187,7 @@ class PassRow extends StatelessWidget {
             SizedBox(
               width: scoreWidth,
               child: _Labeled(
-                label: tr('점수', 'Score'),
+                label: l10n.score,
                 value: Text(
                   formatScore(pass.score),
                   maxLines: 1,
@@ -201,14 +201,14 @@ class PassRow extends StatelessWidget {
             SizedBox(
               width: accuracyWidth,
               child: _Labeled(
-                label: tr('정확도', 'Accuracy'),
+                label: l10n.accuracy,
                 value: _Accuracy(pass: pass),
               ),
             ),
             SizedBox(
               width: speedWidth,
               child: _Labeled(
-                label: tr('배속', 'Speed'),
+                label: l10n.speedMultiplier,
                 value: Text('${formatSpeed(pass.speed)}x', style: theme.textTheme.titleMedium),
               ),
             ),
@@ -224,7 +224,7 @@ class PassRow extends StatelessWidget {
                     Align(
                       alignment: Alignment.centerRight,
                       child: HoverTip(
-                        message: tr('영상 보기', 'Watch video'),
+                        message: l10n.watchVideo,
                         child: IconButton(
                           onPressed: () => app.openLink(video),
                           icon: const Icon(Icons.smart_display_outlined),

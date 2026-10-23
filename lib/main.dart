@@ -77,7 +77,7 @@ class _TufAppState extends State<TufApp> {
   void _onAppChanged() {
     if (_shown == appLanguage) return;
     _shown = appLanguage;
-    // Text is picked with tr() during build, so rebuilding every element switches the language.
+    // Text is read from l10n during build, so rebuilding every element switches the language.
     void rebuild(Element element) {
       element.markNeedsBuild();
       element.visitChildren(rebuild);

@@ -30,8 +30,8 @@ class ClearsPage extends StatelessWidget {
         final catalog = app.levels.catalog;
         return BrowsePage<PlayerPassEntry>(
           list: clears,
-          title: tr('클리어', 'Passes'),
-          subtitle: tr('모든 플레이어의 클리어 기록을 둘러보세요.', 'Browse passes from every player.'),
+          title: l10n.passes,
+          subtitle: l10n.browsePassesFromEvery,
           toolbar: _Toolbar(clears: clears),
           filter: catalog == null
               ? null
@@ -42,12 +42,11 @@ class ClearsPage extends StatelessWidget {
                     child: _FilterCard(clears: clears, catalog: catalog),
                   ),
                 ),
-          countText: (total) =>
-              tr('클리어 ${formatNumber(total)}개', "${formatNumber(total)} ${plural(total, 'pass', 'passes')}"),
+          countText: (total) => l10n.passCount(total),
           itemKey: (entry) => entry.pass.id,
           itemBuilder: (context, entry, index) => ClearRow(entry: entry),
-          emptyTitle: tr('찾는 클리어 기록이 없어요', 'No passes found'),
-          endText: tr('모든 클리어 기록을 불러왔어요', 'All passes loaded'),
+          emptyTitle: l10n.noPassesFound,
+          endText: l10n.allPassesLoaded,
         );
       },
     );
@@ -66,18 +65,14 @@ class _Toolbar extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: BrowseSearchBar(
-            initialText: clears.query,
-            hint: tr('곡 이름, 플레이어로 검색 (#번호로 기록 찾기)', 'Search by song or player (#id to find a pass)'),
-            onChanged: clears.setQuery,
-          ),
+          child: BrowseSearchBar(initialText: clears.query, hint: l10n.searchBySongOr, onChanged: clears.setQuery),
         ),
         const SizedBox(width: 12),
         DropdownMenu<ClearSort>(
           // The selected label is only filled in on creation, so recreate the menu when the language changes.
           key: ValueKey(appLanguage),
           initialSelection: clears.sort,
-          label: Text(tr('정렬', 'Sort')),
+          label: Text(l10n.sort),
           width: 160,
           onSelected: (value) {
             if (value != null) clears.setSort(value);
@@ -101,13 +96,13 @@ class _Toolbar extends StatelessWidget {
                     key: const ValueKey('open'),
                     onPressed: clears.toggleFilterOpen,
                     icon: filterIcon,
-                    label: Text(tr('필터', 'Filter')),
+                    label: Text(l10n.filter),
                   )
                 : OutlinedButton.icon(
                     key: const ValueKey('closed'),
                     onPressed: clears.toggleFilterOpen,
                     icon: filterIcon,
-                    label: Text(tr('필터', 'Filter')),
+                    label: Text(l10n.filter),
                   ),
           ),
         ),
@@ -134,11 +129,8 @@ class _FilterCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(tr('난이도', 'Difficulty'), style: theme.textTheme.titleMedium),
-            Text(
-              tr('슬라이더를 끌어서 범위를 정하세요.', 'Drag the slider to set the range.'),
-              style: theme.textTheme.bodySmall?.copyWith(color: muted),
-            ),
+            Text(l10n.difficulty, style: theme.textTheme.titleMedium),
+            Text(l10n.dragTheSliderTo, style: theme.textTheme.bodySmall?.copyWith(color: muted)),
             const SizedBox(height: 12),
             DifficultySlider(
               difficulties: catalog.pgu,
@@ -153,7 +145,7 @@ class _FilterCard extends StatelessWidget {
                 runSpacing: 8,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  Text(tr('특수 난이도도 보기', 'Include special difficulties'), style: theme.textTheme.labelLarge),
+                  Text(l10n.includeSpecialDifficulties, style: theme.textTheme.labelLarge),
                   for (final difficulty in catalog.special)
                     FilterChip(
                       avatar: NetworkIcon(difficulty.icon, size: 18),
@@ -170,7 +162,7 @@ class _FilterCard extends StatelessWidget {
               runSpacing: 16,
               children: [
                 _Labeled(
-                  label: tr('키 수', 'Key count'),
+                  label: l10n.keyCountFilter,
                   child: _Choice<KeyCountFilter>(
                     values: KeyCountFilter.values,
                     labelOf: (value) => value.label,
@@ -179,7 +171,7 @@ class _FilterCard extends StatelessWidget {
                   ),
                 ),
                 _Labeled(
-                  label: tr('세계 최초', "World's first"),
+                  label: l10n.worldsFirst,
                   child: _Choice<WorldsFirstFilter>(
                     values: WorldsFirstFilter.values,
                     labelOf: (value) => value.label,
@@ -188,7 +180,7 @@ class _FilterCard extends StatelessWidget {
                   ),
                 ),
                 _Labeled(
-                  label: tr('게임 버전', 'Game version'),
+                  label: l10n.gameVersion,
                   child: _Choice<GameVersionFilter>(
                     values: GameVersionFilter.values,
                     labelOf: (value) => value.label,
@@ -204,7 +196,7 @@ class _FilterCard extends StatelessWidget {
               child: TextButton.icon(
                 onPressed: clears.resetFilters,
                 icon: const Icon(Icons.refresh),
-                label: Text(tr('모두 초기화', 'Reset all')),
+                label: Text(l10n.resetAll),
               ),
             ),
           ],
@@ -273,7 +265,7 @@ class ClearRow extends StatelessWidget {
       // Same order as level cards: "#id - artist" on top, song in the middle.
       top: hidden ? null : ['#${level.id}', if (level.artist.isNotEmpty) level.artist].join(' - '),
       title: SlideOverflow(
-        child: slidingText(hidden ? tr('숨겨진 레벨', 'Hidden level') : level.song, style: theme.textTheme.titleMedium),
+        child: slidingText(hidden ? l10n.hiddenLevel : level.song, style: theme.textTheme.titleMedium),
       ),
       bottomText: hidden ? null : level.creatorDisplay,
       extra: _Player(pass: pass),
@@ -295,7 +287,7 @@ class _Player extends StatelessWidget {
       child: Align(
         alignment: Alignment.centerLeft,
         child: HoverTip(
-          message: tr('플레이어 프로필 보기', 'View player profile'),
+          message: l10n.viewPlayerProfile,
           child: InkWell(
             borderRadius: BorderRadius.circular(8),
             onTap: () => ProfileNavigation.openPlayer(context, pass.playerId),

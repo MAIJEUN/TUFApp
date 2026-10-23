@@ -120,7 +120,7 @@ class _LevelViewerPageState extends State<LevelViewerPage> {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            tooltip: tr('뒤로', 'Back'),
+            tooltip: l10n.back,
             onPressed: () => Navigator.of(context).maybePop(),
             icon: const Icon(Icons.arrow_back),
           ),
@@ -149,21 +149,19 @@ class _LevelViewerPageState extends State<LevelViewerPage> {
                   padding: const EdgeInsets.only(top: 24, bottom: 12),
                   child: Row(
                     children: [
-                      Text(tr('리더보드', 'Leaderboard'), style: Theme.of(context).textTheme.titleLarge),
+                      Text(l10n.leaderboard, style: Theme.of(context).textTheme.titleLarge),
                       const SizedBox(width: 12),
                       if (summary != null)
                         Text(
-                          tr(
-                            '${formatNumber(summary.uniquePlayers)}명'
-                                '${summary.totalClears != summary.uniquePlayers ? ' (총 ${formatNumber(summary.totalClears)}회)' : ''}',
-                            '${formatNumber(summary.uniquePlayers)} ${plural(summary.uniquePlayers, 'player')}'
-                                '${summary.totalClears != summary.uniquePlayers ? ' (${formatNumber(summary.totalClears)} total)' : ''}',
-                          ),
+                          l10n.uniquePlayerCount(summary.uniquePlayers) +
+                              (summary.totalClears != summary.uniquePlayers
+                                  ? l10n.totalClearsSuffix(summary.totalClears)
+                                  : ''),
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
                       const Spacer(),
-                      IconButton(tooltip: tr('새로고침', 'Refresh'), onPressed: _load, icon: const Icon(Icons.refresh)),
+                      IconButton(tooltip: l10n.refresh, onPressed: _load, icon: const Icon(Icons.refresh)),
                     ],
                   ),
                 ),
@@ -207,9 +205,9 @@ class _Footer extends StatelessWidget {
         padding: const EdgeInsets.only(top: 32),
         child: EmptyState(
           icon: const Icon(Icons.cloud_off),
-          title: tr('기록을 불러오지 못했어요', "Couldn't load passes"),
+          title: l10n.couldntLoadPasses,
           message: message,
-          action: FilledButton(onPressed: onRetry, child: Text(tr('다시 시도', 'Retry'))),
+          action: FilledButton(onPressed: onRetry, child: Text(l10n.retry)),
         ),
       );
     } else if (loading) {
@@ -222,7 +220,7 @@ class _Footer extends StatelessWidget {
       content = Padding(
         key: const ValueKey('empty'),
         padding: const EdgeInsets.only(top: 32),
-        child: EmptyState(icon: const Icon(Icons.flag_outlined), title: tr('아직 클리어 기록이 없어요', 'No passes yet')),
+        child: EmptyState(icon: const Icon(Icons.flag_outlined), title: l10n.noPassesYet),
       );
     } else {
       content = const SizedBox(key: ValueKey('none'), width: double.infinity);
@@ -288,31 +286,31 @@ class _Records extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _RecordRow(
-              label: tr('최초 클리어', 'First clear'),
+              label: l10n.firstClear,
               who: summary?.firstClear?.playerName,
               value: formatDate(summary?.firstClear?.clearedAt),
               last: true,
             ),
             _RecordRow(
-              label: tr('최고 점수', 'Highest score'),
+              label: l10n.highestScore,
               who: best?.playerName,
               value: best == null ? null : formatScore(best.score),
               last: true,
             ),
             _RecordRow(
-              label: tr('최고 속도', 'Highest speed'),
+              label: l10n.highestSpeed,
               who: speed?.playerName,
               value: speed == null ? null : '${formatSpeed(speed.speed)}x',
               last: true,
             ),
             _RecordRow(
-              label: tr('최고 정확도', 'Highest accuracy'),
+              label: l10n.highestAccuracy,
               who: accuracy?.playerName,
               value: accuracy == null ? null : formatAccuracy(accuracy.accuracy),
               last: true,
             ),
             _RecordRow(
-              label: tr('총 클리어 수', 'Total clears'),
+              label: l10n.totalClears,
               value: summary == null
                   ? null
                   : '${formatNumber(summary.uniquePlayers)}'
@@ -325,7 +323,7 @@ class _Records extends StatelessWidget {
               child: FilledButton.tonalIcon(
                 onPressed: () => LevelInfoDialog.show(context, level),
                 icon: const Icon(Icons.info_outline),
-                label: Text(tr('전체 정보', 'Full info')),
+                label: Text(l10n.fullInfo),
               ),
             ),
           ],
@@ -501,7 +499,7 @@ class _PassRow extends StatelessWidget {
       onTap: () => PassViewerPage.open(context, level: level, pass: pass),
       // The avatar and name open the player page (the rest of the row opens the pass).
       leading: HoverTip(
-        message: tr('플레이어 프로필 보기', 'View player profile'),
+        message: l10n.viewPlayerProfile,
         child: InkWell(
           borderRadius: BorderRadius.circular(8),
           onTap: openPlayer,
@@ -510,9 +508,9 @@ class _PassRow extends StatelessWidget {
           ),
         ),
       ),
-      top: feeling == null || feeling.isEmpty ? null : tr('체감 $feeling', 'Feeling $feeling'),
+      top: feeling == null || feeling.isEmpty ? null : l10n.feeling(feeling),
       title: HoverTip(
-        message: tr('플레이어 프로필 보기', 'View player profile'),
+        message: l10n.viewPlayerProfile,
         child: InkWell(
           borderRadius: BorderRadius.circular(6),
           onTap: openPlayer,
