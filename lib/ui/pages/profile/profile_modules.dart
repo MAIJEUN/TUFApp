@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/controllers.dart';
-import '../../../core/image_cache_store.dart';
 import '../../../core/l10n.dart';
 import '../../../core/models/profile.dart';
 import '../../../core/profile_stats.dart';
 import '../../../core/tuf_api_client.dart';
 import '../../widgets/common.dart';
-import '../../widgets/embedded_video.dart';
 import '../../widgets/hover_tip.dart';
 import '../../widgets/level_card.dart';
 import '../../widgets/motion.dart';
@@ -15,6 +13,7 @@ import '../../widgets/pass_badges.dart';
 import '../../widgets/pass_row.dart';
 import '../../widgets/slide_overflow.dart';
 import 'profile_charts.dart';
+import 'bio_canvas.dart';
 import 'profile_header.dart';
 import 'profile_navigation.dart';
 import 'profile_section.dart';
@@ -30,7 +29,7 @@ Widget _card(Widget child) => SizedBox(
 
 // ───────────────────────── Bio ─────────────────────────
 
-/// Bio. Supporters' composed bios are shown as blocks (text, links, images, videos, levels).
+/// Bio. Supporters' composed bios are drawn as a free-form canvas like on the website ([BioCanvas]).
 class BioModule extends StatelessWidget {
   const BioModule({super.key, required this.title, required this.bio});
 
@@ -38,93 +37,14 @@ class BioModule extends StatelessWidget {
   final ProfileBio bio;
 
   @override
-  Widget build(BuildContext context) {
-    final textStyle = Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5);
-    return ProfileSection(
-      title: title,
-      child: _card(
-        bio.blocks.isEmpty
-            ? SelectableText(bio.text ?? '', style: textStyle)
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: 14,
-                children: [for (final block in bio.blocks) _BioBlockView(block: block, textStyle: textStyle)],
-              ),
-      ),
-    );
-  }
-}
-
-class _BioBlockView extends StatelessWidget {
-  const _BioBlockView({required this.block, required this.textStyle});
-
-  final BioBlock block;
-  final TextStyle? textStyle;
-
-  @override
-  Widget build(BuildContext context) {
-    final app = AppScope.of(context);
-    final theme = Theme.of(context);
-    Widget linkChip(String label, String url, {IconData icon = Icons.link}) =>
-        ActionChip(avatar: Icon(icon, size: 18), label: Text(label), onPressed: () => app.openLink(url));
-
-    return switch (block) {
-      BioTextBlock(:final heading, :final body) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 4,
-        children: [
-          if (heading != null && heading.trim().isNotEmpty) Text(heading, style: theme.textTheme.titleMedium),
-          if (body != null && body.trim().isNotEmpty) SelectableText(body, style: textStyle),
-        ],
-      ),
-      BioLinkBlock(:final label, :final url) => Align(alignment: Alignment.centerLeft, child: linkChip(label, url)),
-      BioSocialBlock(:final links) => Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [for (final link in links) linkChip(link.platform, link.url, icon: Icons.public)],
-      ),
-      BioImageBlock(:final url, :final alt) => HoverTip(
-        message: alt ?? '',
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 420),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image(
-              image: DiskCachedImage(url, maxWidth: 1200),
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stack) => const SizedBox.shrink(),
-            ),
-          ),
-        ),
-      ),
-      BioEmbedBlock(:final url, :final title) =>
-        EmbeddedVideo.canPlay(url)
-            ? ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: EmbeddedVideo(videoLink: url, onUnavailable: () {}),
-                ),
-              )
-            : Align(
-                alignment: Alignment.centerLeft,
-                child: linkChip(title ?? url, url, icon: Icons.smart_display_outlined),
-              ),
-      BioFeaturedBlock(:final passes, :final ids) => Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          for (final id in ids)
-            ActionChip(
-              avatar: Icon(passes ? Icons.flag_outlined : Icons.music_note, size: 18),
-              label: Text('#$id'),
-              onPressed: () =>
-                  passes ? ProfileNavigation.openPass(context, id) : ProfileNavigation.openLevel(context, id),
-            ),
-        ],
-      ),
-    };
-  }
+  Widget build(BuildContext context) => ProfileSection(
+    title: title,
+    child: _card(
+      bio.blocks.isEmpty
+          ? SelectableText(bio.text ?? '', style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5))
+          : BioCanvas(blocks: bio.blocks),
+    ),
+  );
 }
 
 // ───────────────────────── Tournaments ─────────────────────────

@@ -62,15 +62,107 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('TUFApp'),
-        actions: [
-          ListenableBuilder(
-            listenable: Listenable.merge([app, app.installs]),
-            builder: (context, _) => Row(
-              children: [
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 480),
-                  child: FadeSwitcher(
+        // The window title already names the app, so the bar holds just the tabs and status.
+        toolbarHeight: kTextTabBarHeight,
+        titleSpacing: 0,
+        flexibleSpace: const Align(alignment: Alignment.bottomCenter, child: Divider(height: 1)),
+        // The title slot leaves the height unbounded, so the layout is given the bar's height.
+        title: SizedBox(
+          height: kTextTabBarHeight,
+          child: CustomMultiChildLayout(
+            delegate: _TabsThenStatus(),
+            children: [
+              LayoutId(
+                id: _BarSlot.tabs,
+                child: TabBar(
+                  controller: _tabs,
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.start,
+                  dividerHeight: 0,
+                  tabs: [
+                    Tab(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.search, size: 18),
+                          const SizedBox(width: 8),
+                          Text(tr('레벨 찾기', 'Levels')),
+                        ],
+                      ),
+                    ),
+                    Tab(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.inventory_2_outlined, size: 18),
+                          const SizedBox(width: 8),
+                          Text(tr('레벨 팩', 'Packs')),
+                        ],
+                      ),
+                    ),
+                    Tab(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.flag_outlined, size: 18),
+                          const SizedBox(width: 8),
+                          Text(tr('클리어', 'Passes')),
+                        ],
+                      ),
+                    ),
+                    Tab(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.leaderboard_outlined, size: 18),
+                          const SizedBox(width: 8),
+                          Text(tr('리더보드', 'Leaderboard')),
+                        ],
+                      ),
+                    ),
+                    Tab(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.handyman_outlined, size: 18),
+                          const SizedBox(width: 8),
+                          Text(tr('제작자', 'Creators')),
+                        ],
+                      ),
+                    ),
+                    Tab(
+                      child: ListenableBuilder(
+                        listenable: app.library,
+                        builder: (context, _) => AnimatedSize(
+                          duration: Motion.medium,
+                          curve: Motion.curve,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.download_done, size: 18),
+                              const SizedBox(width: 8),
+                              Text(tr('레벨 관리', 'Library')),
+                              if (app.library.installedCount > 0) ...[
+                                const SizedBox(width: 8),
+                                Badge(
+                                  label: Text('${app.library.installedCount}'),
+                                  backgroundColor: theme.colorScheme.secondaryContainer,
+                                  textColor: theme.colorScheme.onSecondaryContainer,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              LayoutId(
+                id: _BarSlot.status,
+                child: ListenableBuilder(
+                  listenable: app,
+                  builder: (context, _) => FadeSwitcher(
                     alignment: Alignment.centerRight,
                     child: Tooltip(
                       key: ValueKey(app.status),
@@ -84,6 +176,15 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
                     ),
                   ),
                 ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          ListenableBuilder(
+            listenable: Listenable.merge([app, app.installs]),
+            builder: (context, _) => Row(
+              children: [
                 AnimatedSize(
                   duration: Motion.medium,
                   curve: Motion.curve,
@@ -111,84 +212,6 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
             ),
           ),
         ],
-        bottom: TabBar(
-          controller: _tabs,
-          isScrollable: true,
-          tabAlignment: TabAlignment.start,
-          tabs: [
-            Tab(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [const Icon(Icons.search, size: 18), const SizedBox(width: 8), Text(tr('레벨 찾기', 'Levels'))],
-              ),
-            ),
-            Tab(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.inventory_2_outlined, size: 18),
-                  const SizedBox(width: 8),
-                  Text(tr('레벨 팩', 'Packs')),
-                ],
-              ),
-            ),
-            Tab(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.flag_outlined, size: 18),
-                  const SizedBox(width: 8),
-                  Text(tr('클리어', 'Passes')),
-                ],
-              ),
-            ),
-            Tab(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.leaderboard_outlined, size: 18),
-                  const SizedBox(width: 8),
-                  Text(tr('리더보드', 'Leaderboard')),
-                ],
-              ),
-            ),
-            Tab(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.handyman_outlined, size: 18),
-                  const SizedBox(width: 8),
-                  Text(tr('제작자', 'Creators')),
-                ],
-              ),
-            ),
-            Tab(
-              child: ListenableBuilder(
-                listenable: app.library,
-                builder: (context, _) => AnimatedSize(
-                  duration: Motion.medium,
-                  curve: Motion.curve,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.download_done, size: 18),
-                      const SizedBox(width: 8),
-                      Text(tr('레벨 관리', 'Library')),
-                      if (app.library.installedCount > 0) ...[
-                        const SizedBox(width: 8),
-                        Badge(
-                          label: Text('${app.library.installedCount}'),
-                          backgroundColor: theme.colorScheme.secondaryContainer,
-                          textColor: theme.colorScheme.onSecondaryContainer,
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
       body: ListenableBuilder(
         listenable: app,
@@ -206,6 +229,23 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
       ),
     );
   }
+}
+
+enum _BarSlot { tabs, status }
+
+/// Lays the tabs out first; the status text gets the room left on the right, up to 480 wide.
+class _TabsThenStatus extends MultiChildLayoutDelegate {
+  @override
+  void performLayout(Size size) {
+    final tabs = layoutChild(_BarSlot.tabs, BoxConstraints.loose(size));
+    positionChild(_BarSlot.tabs, Offset(0, size.height - tabs.height));
+    final room = (size.width - tabs.width - 16).clamp(0.0, 480.0);
+    final status = layoutChild(_BarSlot.status, BoxConstraints.loose(Size(room, size.height)));
+    positionChild(_BarSlot.status, Offset(size.width - status.width, (size.height - status.height) / 2));
+  }
+
+  @override
+  bool shouldRelayout(_TabsThenStatus oldDelegate) => false;
 }
 
 /// UI language menu: follow the system language or pin Korean or English.

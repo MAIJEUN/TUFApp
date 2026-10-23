@@ -30,6 +30,7 @@ Third-party components keep their own licenses:
 - [Flutter](https://github.com/flutter/flutter) and Dart packages (`http`, `path`, `path_provider`, `url_launcher`, `file_selector`, `ffi`, `webview_windows`): BSD-3-Clause
 - `archive`, `cupertino_icons`: MIT
 - [Roboto](https://fonts.google.com/specimen/Roboto) font: SIL Open Font License 1.1 ([`assets/fonts/OFL.txt`](assets/fonts/OFL.txt))
+- [Font Awesome Free](https://fontawesome.com/license/free) icons via `font_awesome_flutter`: icons CC BY 4.0, font SIL OFL 1.1, package MIT
 
 ## Disclaimer
 

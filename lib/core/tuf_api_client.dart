@@ -111,6 +111,35 @@ class TufApiClient {
     );
   }
 
+  /// Levels by id, in the given order (missing ones are left out). Same request as the website's featured blocks.
+  Future<List<Level>> getLevelsByIds(List<int> ids) async {
+    final json = await _getJson('v2/database/levels', _idQuery(ids));
+    if (json is! Map<String, dynamic>) throw TufApiException(tr('검색 응답 형식이 올바르지 않습니다.', 'Unexpected search response.'));
+    return _inOrder(asObjectList(json['results']).map(Level.fromJson), ids, (level) => level.id);
+  }
+
+  /// Passes by id, in the given order (missing ones are left out).
+  Future<List<PlayerPassEntry>> getPassesByIds(List<int> ids) async {
+    final json = await _getJson('v2/database/passes', _idQuery(ids));
+    if (json is! Map<String, dynamic>) {
+      throw TufApiException(tr('클리어 목록 응답 형식이 올바르지 않습니다.', 'Unexpected pass list response.'));
+    }
+    return _inOrder(asObjectList(json['results']).map(PlayerPassEntry.fromJson), ids, (entry) => entry.pass.id);
+  }
+
+  /// The search language joins alternatives with '|'.
+  static Map<String, Object> _idQuery(List<int> ids) => {
+    'query': ids.map((id) => 'id:$id').join(' | '),
+    'limit': '${ids.length}',
+    'offset': '0',
+    'deletedFilter': 'hide',
+  };
+
+  static List<T> _inOrder<T>(Iterable<T> rows, List<int> ids, int Function(T row) idOf) {
+    final byId = {for (final row in rows) idOf(row): row};
+    return [for (final id in ids) ?byId[id]];
+  }
+
   /// Finds a pass by number ("#id" in the search box). Empty if not found.
   Future<List<PlayerPassEntry>> findPassesById(int id) async {
     final json = await _getJson('v2/database/passes/byId/$id');

@@ -34,6 +34,9 @@ class _EmbeddedVideoState extends State<EmbeddedVideo> {
   final _controller = WebviewController();
   bool _ready = false;
 
+  /// Whether the controller was created; disposing one that never was throws.
+  bool _created = false;
+
   @override
   void initState() {
     super.initState();
@@ -42,7 +45,7 @@ class _EmbeddedVideoState extends State<EmbeddedVideo> {
 
   @override
   void dispose() {
-    _controller.dispose();
+    if (_created) _controller.dispose();
     super.dispose();
   }
 
@@ -59,6 +62,7 @@ class _EmbeddedVideoState extends State<EmbeddedVideo> {
       // Like the website, it has to be opened in an iframe on a page from our own origin.
       final page = await _writePlayerPage(url, VideoLinks.referrerPolicy(widget.videoLink));
 
+      _created = true;
       await _controller.initialize();
       // Keep the player from opening new windows (ads or "Watch on ...").
       await _controller.setPopupWindowPolicy(WebviewPopupWindowPolicy.deny);

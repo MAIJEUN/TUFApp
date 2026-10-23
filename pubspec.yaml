@@ -42,6 +42,7 @@ dependencies:
   file_selector: ^1.1.0
   webview_windows: ^0.4.0
   ffi: ^2.2.0
+  font_awesome_flutter: ^11.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

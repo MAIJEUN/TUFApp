@@ -255,7 +255,7 @@ enum CreatorVerification {
       values.where((status) => status.name == value).firstOrNull ?? pending;
 }
 
-/// Bio. TUF Stellar supporters can compose it from text, link and image blocks; otherwise it is plain text.
+/// Bio. TUF Stellar supporters compose it on a canvas of freely placed blocks; otherwise it is plain text.
 class ProfileBio {
   const ProfileBio({this.text, this.blocks = const []});
 
@@ -263,9 +263,17 @@ class ProfileBio {
     final canvas = _map(json['bioCanvas']);
     final rawBlocks = asObjectList(canvas?['blocks']);
     final assets = _map(json['bioCanvasImageAssets']) ?? const {};
-    final blocks = [for (final block in rawBlocks) ?BioBlock.fromJson(block, assets)];
+    final blocks = <BioBlock>[];
+    // Blocks saved with the old stacked layout are placed one under another, like the website does.
+    var stackY = BioLayout.stagePadding;
+    for (final raw in rawBlocks) {
+      final block = BioBlock.fromJson(raw, assets, stackY: stackY);
+      if (block == null) continue;
+      blocks.add(block);
+      stackY = block.layout.y + block.layout.h + BioLayout.blockGap;
+    }
 
-    // If the supporter status ended, block bios show their text and link blocks as plain text (as on the website).
+    // If the supporter status ended, block bios show their text, link and social blocks as plain text (as on the website).
     if (blocks.isNotEmpty && stellar) return ProfileBio(blocks: blocks);
     if (blocks.isNotEmpty) {
       final text = [
@@ -278,42 +286,131 @@ class ProfileBio {
   }
 
   final String? text;
+
+  /// Canvas blocks in paint order (later blocks are drawn on top).
   final List<BioBlock> blocks;
 
   bool get isEmpty => blocks.isEmpty && (text == null || text!.isEmpty);
 }
 
+/// Where a block sits on the bio stage, following the website's normalizeLayout (utils/bioCanvas/layout.js).
+class BioLayout {
+  const BioLayout({required this.x, required this.y, required this.w, required this.h, this.rotation = 0});
+
+  /// The website designs bios on a 1000×1200 stage and scales it down to fit narrower containers.
+  static const stageWidth = 1000;
+  static const stageHeight = 1200;
+  static const stagePadding = 24;
+  static const blockGap = 16;
+
+  final int x;
+  final int y;
+  final int w;
+  final int h;
+
+  /// Clockwise rotation in degrees, around the block's center.
+  final int rotation;
+
+  factory BioLayout.fromJson(Object? raw, {required int defaultW, required int defaultH, required int stackY}) {
+    final map = raw is Map<String, dynamic> ? raw : null;
+    final legacy = map != null && (map.containsKey('align') || map.containsKey('width'));
+    final freeform = map != null && const ['x', 'y', 'w', 'h'].any(map.containsKey);
+
+    if (freeform && !legacy) {
+      return BioLayout(
+        x: _clampInt(map['x'], -stageWidth, stageWidth),
+        y: _clampInt(map['y'], -stageHeight, stageHeight),
+        w: _clampInt(map['w'], 40, stageWidth * 4),
+        h: _clampInt(map['h'], 24, stageHeight * 4),
+        rotation: _roundOrNull(map['rotation'])?.clamp(-360, 360) ?? 0,
+      );
+    }
+    if (legacy) {
+      // Old layouts only had a width (full or half) and an alignment, stacked top to bottom.
+      final w = map['width'] == 'half' ? stageWidth ~/ 2 : stageWidth;
+      final x = switch (map['align']) {
+        'left' => 0,
+        'right' => stageWidth - w,
+        _ => (stageWidth - w) ~/ 2,
+      };
+      return BioLayout(x: x, y: stackY, w: w, h: defaultH);
+    }
+    return BioLayout(x: 0, y: 0, w: defaultW, h: defaultH);
+  }
+
+  /// Like the website's clampInt: a missing or invalid value becomes the minimum.
+  static int _clampInt(Object? value, int min, int max) => (_roundOrNull(value) ?? min).clamp(min, max);
+
+  static int? _roundOrNull(Object? value) {
+    final n = asDoubleOrNull(value);
+    return n == null || !n.isFinite ? null : n.round();
+  }
+}
+
 /// One bio block.
 sealed class BioBlock {
-  const BioBlock();
+  const BioBlock(this.layout);
 
-  static BioBlock? fromJson(Map<String, dynamic> json, Map<String, dynamic> assets) {
+  final BioLayout layout;
+
+  /// Whether the block's height is fixed. Link blocks only have a minimum height and grow with their content.
+  bool get fixedHeight => true;
+
+  static BioBlock? fromJson(Map<String, dynamic> json, Map<String, dynamic> assets, {required int stackY}) {
     final data = _map(json['data']) ?? const {};
-    final id = asStringOrNull(json['id']);
+    BioLayout layout(int w, int h) => BioLayout.fromJson(json['layout'], defaultW: w, defaultH: h, stackY: stackY);
+
     return switch (json['type']) {
-      'text' => BioTextBlock(heading: asStringOrNull(data['heading']), body: asStringOrNull(data['body'])),
-      'link' => switch (asStringOrNull(data['url'])) {
-        final url? => BioLinkBlock(label: asStringOrNull(data['label']) ?? url, url: url),
-        null => null,
+      'text' => BioTextBlock(
+        layout(600, 120),
+        heading: asStringOrNull(data['heading'])?.trim(),
+        body: data['body'] is String ? data['body'] as String : '',
+        fontSize: _fontSize(data['fontSize'], 16),
+        headingFontSize: _fontSize(data['headingFontSize'], 20),
+        align: _align(data['align'], 'left'),
+        color: _hexColor(data['color']),
+      ),
+      'link' => switch ((asStringOrNull(data['label'])?.trim(), _safeUrl(data['url']))) {
+        (final label?, final url?) => BioLinkBlock(layout(320, 56), label: label, url: url),
+        _ => null,
       },
       'social' => BioSocialBlock(
+        layout(360, 64),
         links: [
           for (final link in asObjectList(data['links']))
-            if (asStringOrNull(link['url']) case final url?)
-              (platform: asStringOrNull(link['platform']) ?? '', url: url),
+            if (_safeUrl(link['url']) case final url?)
+              (platform: asStringOrNull(link['platform']) ?? 'other', url: url, label: asStringOrNull(link['label'])),
         ],
+        iconSize: _roundInRange(data['iconSize'], 24, 96, 40),
+        gap: _roundInRange(data['gap'], 0, 48, 12),
+        shape: switch (data['shape']) {
+          'rounded' => 'rounded',
+          'square' => 'square',
+          _ => 'circle',
+        },
+        align: _align(data['align'], 'center'),
+        showLabels: asBool(data['showLabels']),
       ),
-      'image' => switch (asStringOrNull(_map(assets[id])?['url']) ?? asStringOrNull(data['url'])) {
-        final url? => BioImageBlock(url: url, alt: asStringOrNull(data['alt'])),
+      'image' => switch (asStringOrNull(_map(assets[asStringOrNull(json['id'])])?['url'])) {
+        final url? => BioImageBlock(
+          layout(600, 400),
+          url: url,
+          alt: asStringOrNull(data['alt'])?.trim(),
+          crop: BioImageCrop.fromJson(_map(data['crop'])),
+        ),
         null => null,
       },
-      'embed' => switch (asStringOrNull(data['url'])) {
-        final url? => BioEmbedBlock(url: url, title: asStringOrNull(data['title'])),
+      'embed' => switch (_safeUrl(data['url'])) {
+        final url? => BioEmbedBlock(layout(640, 360), url: url, title: asStringOrNull(data['title'])?.trim()),
         null => null,
       },
       'featuredLevels' => BioFeaturedBlock(
+        layout(700, 260),
         passes: data['mode'] == 'passes',
-        ids: _ids(data['mode'] == 'passes' ? data['passIds'] : data['levelIds']),
+        ids: {
+          for (final id in _ids(data['mode'] == 'passes' ? data['passIds'] : data['levelIds']))
+            if (id > 0) id,
+        }.take(6).toList(),
       ),
       _ => null,
     };
@@ -321,54 +418,147 @@ sealed class BioBlock {
 
   /// Plain text shown once the supporter status ended, or null for blocks not shown as text.
   String? get plainText => null;
+
+  static int _fontSize(Object? value, int fallback) => _roundInRange(value, 12, 72, fallback);
+
+  static int _roundInRange(Object? value, int min, int max, int fallback) {
+    final n = asDoubleOrNull(value);
+    return n == null || !n.isFinite ? fallback : n.round().clamp(min, max);
+  }
+
+  static String _align(Object? value, String fallback) =>
+      value == 'left' || value == 'center' || value == 'right' ? value as String : fallback;
+
+  /// "#abc" or "#aabbcc", like the website's parseTextBlockColor.
+  static String? _hexColor(Object? value) {
+    final text = asStringOrNull(value)?.trim();
+    return text != null && RegExp(r'^#([0-9a-f]{3}|[0-9a-f]{6})$', caseSensitive: false).hasMatch(text)
+        ? text.toLowerCase()
+        : null;
+  }
+
+  /// Only http and https links, like the website's parseSafeUrl.
+  static String? _safeUrl(Object? value) {
+    final text = asStringOrNull(value)?.trim();
+    final uri = text == null ? null : Uri.tryParse(text);
+    return uri != null && (uri.scheme == 'http' || uri.scheme == 'https') && uri.host.isNotEmpty ? text : null;
+  }
 }
 
 class BioTextBlock extends BioBlock {
-  const BioTextBlock({this.heading, this.body});
+  const BioTextBlock(
+    super.layout, {
+    this.heading,
+    required this.body,
+    this.fontSize = 16,
+    this.headingFontSize = 20,
+    this.align = 'left',
+    this.color,
+  });
 
   final String? heading;
-  final String? body;
+
+  /// Shown as an italic "Sample text" placeholder when empty, like the website.
+  final String body;
+  final int fontSize;
+  final int headingFontSize;
+
+  /// 'left', 'center' or 'right'.
+  final String align;
+
+  /// "#rrggbb" or "#rgb"; null uses the default colors.
+  final String? color;
 
   @override
-  String? get plainText => [?heading?.trim(), ?body?.trim()].where((part) => part.isNotEmpty).join('\n');
+  String? get plainText => [?heading, body.trim()].where((part) => part.isNotEmpty).join('\n');
 }
 
 class BioLinkBlock extends BioBlock {
-  const BioLinkBlock({required this.label, required this.url});
+  const BioLinkBlock(super.layout, {required this.label, required this.url});
 
   final String label;
   final String url;
+
+  @override
+  bool get fixedHeight => false;
 
   @override
   String? get plainText => '$label ($url)';
 }
 
 class BioSocialBlock extends BioBlock {
-  const BioSocialBlock({required this.links});
+  const BioSocialBlock(
+    super.layout, {
+    required this.links,
+    this.iconSize = 40,
+    this.gap = 12,
+    this.shape = 'circle',
+    this.align = 'center',
+    this.showLabels = false,
+  });
 
-  final List<({String platform, String url})> links;
+  final List<({String platform, String url, String? label})> links;
+  final int iconSize;
+  final int gap;
+
+  /// 'circle', 'rounded' or 'square'.
+  final String shape;
+
+  /// 'left', 'center' or 'right'.
+  final String align;
+  final bool showLabels;
 
   @override
   String? get plainText => links.map((link) => '${link.platform}: ${link.url}').join(' | ');
 }
 
+/// How an image fills its frame: CSS object-fit and object-position, then zoomed around the focal point.
+class BioImageCrop {
+  const BioImageCrop({this.contain = false, this.focalX = 50, this.focalY = 50, this.zoom = 1});
+
+  factory BioImageCrop.fromJson(Map<String, dynamic>? json) {
+    double inRange(Object? value, double min, double max, double fallback) {
+      final n = asDoubleOrNull(value);
+      return n == null || !n.isFinite || n < min || n > max ? fallback : n;
+    }
+
+    return BioImageCrop(
+      contain: json?['fit'] == 'contain',
+      focalX: inRange(json?['focalX'], 0, 100, 50),
+      focalY: inRange(json?['focalY'], 0, 100, 50),
+      zoom: inRange(json?['zoom'], 1, 4, 1),
+    );
+  }
+
+  /// object-fit: contain instead of cover.
+  final bool contain;
+
+  /// Focal point in percent (0–100).
+  final double focalX;
+  final double focalY;
+
+  /// 1–4.
+  final double zoom;
+}
+
 class BioImageBlock extends BioBlock {
-  const BioImageBlock({required this.url, this.alt});
+  const BioImageBlock(super.layout, {required this.url, this.alt, this.crop = const BioImageCrop()});
 
   final String url;
   final String? alt;
+  final BioImageCrop crop;
 }
 
 class BioEmbedBlock extends BioBlock {
-  const BioEmbedBlock({required this.url, this.title});
+  const BioEmbedBlock(super.layout, {required this.url, this.title});
 
   final String url;
   final String? title;
 }
 
-/// A list of featured levels or passes.
+/// A list of up to six featured levels or passes, loaded by id.
 class BioFeaturedBlock extends BioBlock {
-  const BioFeaturedBlock({required this.passes, required this.ids});
+  const BioFeaturedBlock(super.layout, {required this.passes, required this.ids});
 
   final bool passes;
   final List<int> ids;
